@@ -152,6 +152,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brief-bar .meta{font-size:13px;color:var(--faint);margin-right:auto}
 .brief-edit textarea{width:100%;min-height:60vh;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
 .table-x{overflow-x:auto}
+.roster{display:grid;gap:0;border-top:1px solid var(--line)}
+.roster-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.roster-row.off{opacity:.5}
+.roster-row input,.roster-add input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
+.tcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:600;letter-spacing:.08em}
+.roster-add{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.roster-add input{flex:1;min-width:180px}
+@media (max-width:760px){.roster-row{grid-template-columns:80px minmax(0,1fr);}.roster-row .btn{grid-column:auto}}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -234,7 +241,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code|tm-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -253,23 +260,21 @@ button,input,select,textarea{font:inherit;color:inherit}
     if(S.tab==="team")renderTeam();
     if(S.tab==="brief")renderBrief();
   }
-  function renderMe(){var w=$("who-me");w.textContent="";if(!S.db||!S.uid)return;var n=S.isOwner?"Ifeanyi":myName();if(!n)return;w.appendChild(document.createTextNode("Signed in as "));w.appendChild(el("b",{text:n}));if(!S.isOwner)w.appendChild(el("button",{type:"button",text:"Change name",onclick:function(){S.renaming=true;render()}}));w.appendChild(el("button",{type:"button",text:"Sign out",onclick:function(){setTok("");S.db=null;S.uid=null;S.jobs=[];render()}}))}
+  function renderMe(){var w=$("who-me");w.textContent="";if(!S.db||!S.uid)return;var n=S.isOwner?"Ifeanyi":(myName()||"Teammate");w.appendChild(document.createTextNode("Signed in as "));w.appendChild(el("b",{text:n}));w.appendChild(el("button",{type:"button",text:"Sign out",onclick:function(){setTok("");S.db=null;S.uid=null;S.jobs=[];render()}}))}
   function renderWelcome(){
     var slot=$("welcome-slot");slot.textContent="";
     var signedIn=!!S.db&&!!S.uid;
     document.querySelector(".top").style.visibility=signedIn?"visible":"hidden";
     ["view-apps","view-replies","view-team","view-brief"].forEach(function(v){if(!signedIn)$(v).hidden=true});
-    if(signedIn&&!S.renaming)return;
-    var inp=el("input",{id:"my-name",placeholder:"Your first and last name",autocomplete:"name","aria-label":"Your name"});inp.value=signedIn?myName():"";
-    var code=el("input",{id:"my-code",placeholder:"Team code",autocomplete:"off","aria-label":"Team code",style:"text-transform:uppercase"});
+    if(signedIn)return;
+    var code=el("input",{id:"my-code",placeholder:"Your code",autocomplete:"off",autocapitalize:"characters",spellcheck:"false","aria-label":"Your code",style:"text-transform:uppercase;letter-spacing:.12em;font-weight:600"});
     var msg=el("p",{style:"color:var(--red);font-size:14px;min-height:20px"});
     slot.appendChild(el("div",{class:"welcome"},[
-      el("h2",{text:signedIn?"Change your name":"Team board"}),
-      el("p",{text:signedIn?"This is the name your teammates see on everything you log.":"Enter your name and the team code Ifeanyi sent you. Everything you log gets your name on it."}),
-      el("form",{onsubmit:function(e){e.preventDefault();var v=inp.value.trim();msg.textContent="";if(v.length<2){msg.textContent="Add your name.";return}
-        if(signedIn){api("PATCH","/api/me",{name:v}).then(function(){S.renaming=false;toast("Saved");refresh()},fail);return}
-        api("POST","/api/join",{name:v,code:code.value.trim().toUpperCase()}).then(function(d){setTok(d.token);S.tab=d.me.owner?"apps":"brief";toast("Welcome, "+v.split(" ")[0]);refresh()},function(err){msg.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't sign in. Check your connection."})}},
-        signedIn?[inp,el("button",{class:"btn accent",type:"submit",text:"Save"}),el("button",{class:"btn ghost",type:"button",text:"Cancel",onclick:function(){S.renaming=false;render()}})]:[inp,code,el("button",{class:"btn accent",type:"submit",text:"Sign in"})]),
+      el("h2",{text:"Team board"}),
+      el("p",{text:"Sign in with the code Ifeanyi gave you. Your code is how the board knows who you are."}),
+      el("form",{onsubmit:function(e){e.preventDefault();msg.textContent="";var c=code.value.trim();if(c.length<4){msg.textContent="Enter your code.";return}
+        api("POST","/api/join",{code:c}).then(function(d){setTok(d.token);S.tab=d.me.owner?"apps":"brief";toast("Welcome, "+String(d.me.name).split(" ")[0]);refresh()},function(err){msg.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't sign in. Check your connection."})}},
+        [code,el("button",{class:"btn accent",type:"submit",text:"Sign in"})]),
       msg
     ]));
   }
@@ -394,8 +399,30 @@ button,input,select,textarea{font:inherit;color:inherit}
   }
 
   // team
+  function renderRoster(T){
+    var box=el("div",{class:"panel"},[el("h2",{text:"Team codes"}),el("p",{class:"help",text:"Each person signs in with their own code. Set their name here and it shows on everything they log. Only you can see this."})]);
+    var list=el("div",{class:"roster"});box.appendChild(list);
+    function draw(rows){list.textContent="";
+      if(!rows.length)list.appendChild(el("p",{class:"help",text:"No teammates yet."}));
+      rows.forEach(function(r){
+        var nm=el("input",{id:"tm-"+r.id,value:r.name,"aria-label":"Name for code "+r.code});
+        list.appendChild(el("div",{class:"roster-row"+(r.active?"":" off")},[
+          el("code",{class:"tcode",text:r.code}),
+          nm,
+          el("button",{class:"btn small",type:"button",text:"Save name",onclick:function(){api("PATCH","/api/team/"+r.id,{name:nm.value}).then(function(){toast("Saved");load();refresh()},fail)}}),
+          el("button",{class:"btn ghost small",type:"button",text:"Copy code",onclick:function(){var b=this;try{navigator.clipboard.writeText(r.code).then(function(){b.textContent="Copied"},function(){})}catch(e){}}}),
+          el("button",{class:"btn ghost small",type:"button",text:r.active?"Turn off":"Turn on",onclick:function(){api("PATCH","/api/team/"+r.id,{active:!r.active}).then(function(){toast(r.active?"Turned off":"Turned on");load()},fail)}}),
+          el("button",{class:"btn ghost small",type:"button",text:"New code",onclick:function(){api("PATCH","/api/team/"+r.id,{newCode:true}).then(function(){toast("New code issued");load()},fail)}})
+        ]));
+      });
+    }
+    function load(){api("GET","/api/team").then(draw,fail)}
+    var addName=el("input",{id:"tm-new",placeholder:"Name","aria-label":"New teammate name"});
+    box.appendChild(el("form",{class:"roster-add",onsubmit:function(e){e.preventDefault();api("POST","/api/team",{name:addName.value.trim()}).then(function(){addName.value="";toast("Code created");load();refresh()},fail)}},[addName,el("button",{class:"btn accent small",type:"submit",text:"Add a teammate"})]));
+    T.appendChild(box);load();
+  }
   function renderTeam(){
-    var T=$("team");T.textContent="";var g={},t=today(),w=weekStart();
+    var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);var g={},t=today(),w=weekStart();
     S.jobs.forEach(function(j){var k=j.addedBy||"owner";var x=g[k]||(g[k]={t:0,w:0,n:0,r:0,days:new Array(14).fill(0)});var s=sentAt(j);if(!s)return;var d=new Date(s);x.n++;if(d>=t)x.t++;if(d>=w)x.w++;if(REPLIED[j.status])x.r++;var a=Math.round((t-d0(d))/864e5);if(a>=0&&a<14)x.days[13-a]++});
     Object.keys(S.people).forEach(function(k){if(k==="owner")return;if(!g[k])g[k]={t:0,w:0,n:0,r:0,days:new Array(14).fill(0)}});
     T.appendChild(el("p",{class:"summary",text:"Daily goal: "+target()+" good applications per person."}));
