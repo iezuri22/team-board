@@ -343,6 +343,37 @@ body{background:var(--page)}
 .wk-goal{position:absolute;left:0;right:0;border-top:1.5px dashed var(--accent);opacity:.6;pointer-events:none}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
+/* job detail, v2 */
+.wrap{max-width:1280px}
+.detail{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;padding:14px 16px 22px;background:var(--soft);border-bottom:1px solid var(--line)}
+@media (max-width:900px){.detail{grid-template-columns:1fr}}
+.d-main,.d-side{display:grid;gap:14px;align-content:start;min-width:0}
+.detail .block{margin:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.detail .block h3{margin:0}
+.bhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;min-height:30px}
+.bhead h3{font-size:15px;letter-spacing:-.005em}
+.bhead-acts{display:flex;gap:6px;flex-wrap:wrap}
+.detail .desc{background:none;padding:0;border-radius:0;font-size:14px;line-height:1.6;max-height:220px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+.detail .desc.open{max-height:none;-webkit-mask-image:none;mask-image:none}
+.linkish.more{margin-top:8px;font-size:13.5px;font-weight:600;text-decoration:none}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.scard h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:0 0 10px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;margin:0;font-size:13.5px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:500;overflow-wrap:anywhere}.kv a{color:var(--accent);text-decoration:none}.kv a:hover{text-decoration:underline}
+.scard textarea{width:100%;margin:0;min-height:76px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:14px;resize:vertical}
+.scard .hint{display:block;font-size:12px;color:var(--faint);min-height:16px;margin-top:4px}
+.side-acts{display:grid;gap:8px}.side-acts>.btn{width:100%}
+.side-acts .send-row{display:flex;gap:6px}.side-acts .send-sel{flex:1;min-width:0}
+.btn.danger{color:var(--red);border-color:color-mix(in srgb,var(--red) 30%,var(--line))}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;display:grid;gap:10px;max-height:280px;overflow:auto;border-left:2px solid var(--line)}
+.tl li{position:relative;font-size:13.5px;line-height:1.4}
+.tl li::before{content:"";position:absolute;left:-20px;top:5px;width:8px;height:8px;border-radius:50%;background:var(--card);border:2px solid var(--line)}
+.tl li:first-child::before{border-color:var(--accent)}
+.tl li span{display:block;color:var(--faint);font-size:12px;margin-top:1px}
+.btn.ai.subtle{background:transparent;color:var(--fg);border:1px solid var(--line)}.btn.ai.subtle .spark{color:var(--accent)}
+.detail .fit{margin:0 0 12px}
+.detail .textbox{margin:0}
+.steps{margin:0}
 </style>
 
 <div class="wrap">
@@ -666,7 +697,7 @@ body{background:var(--page)}
     var r=(size/2)-7,c=2*Math.PI*r,pct=Math.min(1,goal?done/goal:0);
     var ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox","0 0 "+size+" "+size);svg.setAttribute("width",size);svg.setAttribute("height",size);svg.setAttribute("class","ring"+(pct>=1?" done":""));svg.setAttribute("aria-hidden","true");
     function circ(cls,dash){var e=document.createElementNS(ns,"circle");e.setAttribute("cx",size/2);e.setAttribute("cy",size/2);e.setAttribute("r",r);e.setAttribute("class",cls);if(dash!=null){e.setAttribute("stroke-dasharray",c);e.setAttribute("stroke-dashoffset",c*(1-dash))}return e}
-    svg.appendChild(circ("track"));svg.appendChild(circ("fill",pct));return svg;
+    svg.appendChild(circ("track"));if(pct>0){var fc=circ("fill",pct);if(pct<.06)fc.style.strokeLinecap="butt";svg.appendChild(fc)}return svg;
   }
   function firstName(id){return nameOf(id).replace(" (you)","").split(" ")[0]}
   function greet(){var h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"}
@@ -691,7 +722,7 @@ body{background:var(--page)}
       left+" to go, "+daysLeft+" day"+(daysLeft===1?"":"s")+" left. "+(n>=pace?"You're on pace.":"About "+(pace-n)+" behind pace.");
     if(monday(new Date())<TEAM_START&&!n)line="You start Monday, "+TEAM_START.toLocaleDateString(undefined,{month:"short",day:"numeric"})+". Your goal is "+g+" applications a week.";
     x.appendChild(el("div",{class:"today"},[
-      el("div",{class:"ringbox big"},[ring(n,g,112),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+g+" this week"})])]),
+      el("div",{class:"ringbox big"},[ring(n,g,120),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+g})])]),
       el("div",{class:"today-main"},[
         el("h2",{text:greet()+", "+firstName(S.uid)}),el("p",{class:"today-line",text:line}),
         el("div",{class:"chips"},[
@@ -763,37 +794,46 @@ body{background:var(--page)}
     });
     if(rows.length>S.limit)R.appendChild(el("div",{style:"padding:14px 6px"},[el("button",{class:"btn ghost small",type:"button",text:"Show more",onclick:function(){S.limit+=150;renderRows()}})]));
   }
+  function bhead(title,acts){return el("div",{class:"bhead"},[el("h3",{text:title}),acts&&acts.length?el("div",{class:"bhead-acts"},acts):null])}
+  function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
-    var f=el("div",{class:"facts"},[]);
-    if(j.url)f.appendChild(el("div",{},["Posting: ",el("a",{href:j.url,target:"_blank",rel:"noopener",text:j.url.replace(/^https?:\/\//,"").slice(0,80)})]));
-    f.appendChild(el("div",{},["Logged by ",el("b",{text:nameOf(j.addedBy)}),j.addedAt?" on "+new Date(j.addedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""]));
-    if(j.pay)f.appendChild(el("div",{},["Pay: ",el("b",{text:j.pay})]));
-    if(j.resume)f.appendChild(el("div",{},["Resume sent: ",el("b",{text:j.resume})]));
-    if(j.source)f.appendChild(el("div",{},["Found on: ",el("b",{text:j.source})]));
-    if(j.lastReply)f.appendChild(el("div",{},["Last reply: ",el("b",{text:j.lastReply})]));
-    if(j.interviewAt)f.appendChild(el("div",{},["Interview: ",el("b",{text:when(j.interviewAt)})]));
-    if(j.contact)f.appendChild(el("div",{},["Contact: ",el("b",{text:j.contact})]));
-    var ta=el("textarea",{id:"notes-"+j.id,placeholder:"Notes for the team",disabled:S.readOnly?true:null});ta.value=j.notes||"";
-    var acts=el("div",{class:"acts"},[]);
-    if(S.uid){
-      acts.appendChild(el("button",{class:"btn small",type:"button",text:"Save notes",onclick:function(){saveNotes(j,ta.value)}}));
-      if(!S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Text Ifeanyi about this",onclick:function(){S.texting=j.id;renderRows()}}));
-      if(S.isOwner&&!SENT[j.status]&&j.status!=="skipped"){var mates2=Object.keys(S.people).filter(function(k){var p=S.people[k];return k!=="owner"&&!p.owner&&p.name&&!/^Teammate \d/.test(p.name)&&k!==j.addedBy});
-        if(mates2.length){var sel=el("select",{class:"send-sel","aria-label":"Send this job to"});mates2.forEach(function(k){sel.appendChild(el("option",{value:k,text:S.people[k].name}))});
-          acts.appendChild(el("span",{class:"send-row"},[sel,el("button",{class:"btn ghost small",type:"button",text:"Send to apply",onclick:function(){api("PATCH","/api/jobs/"+j.id,{assignTo:sel.value}).then(function(){toast("Sent to "+S.people[sel.value].name);refresh()},fail)}})]))}}
-      if(S.isOwner&&j.needsIfeanyi)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
-      if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
-    }
     var saved=j.status==="saved";
-    var left=el("div",{},[f,ta,acts,textBlock(j),followBlock(j),saved?null:resumeBlock(j),saved&&!j.cover?null:coverBlock(j),descBlock(j),contactsBlock(j)]);
-    var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
-    var h=(j.history||[]).slice().reverse();
-    if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
-    h.forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
-    log.appendChild(ol);
-    return el("div",{class:"detail"},[stepsCard(j),left,log]);
+    var main=el("div",{class:"d-main"},[textBlock(j),followBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j),contactsBlock(j)]);
+    var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
+    return el("div",{class:"detail"},[stepsCard(j),main,side]);
   }
-
+  function detailsCard(j){
+    function kv(k,v){return v?[el("dt",{text:k}),el("dd",{},[v])]:[]}
+    var host="";try{host=new URL(j.url).hostname.replace(/^www\./,"")}catch(e){}
+    var logged=nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+new Date(j.addedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}):"");
+    var rows=[].concat(
+      kv("Posting",j.url?el("a",{href:j.url,target:"_blank",rel:"noopener",text:(host||"Open posting")+" \u2197"}):null),
+      kv("Pay",j.pay||null),kv("Resume",j.resume?(VARIANTS[j.resume]?VARIANTS[j.resume].label:j.resume):null),kv("Found on",j.source||null),
+      kv("Logged by",logged),kv("Interview",j.interviewAt?when(j.interviewAt):null),kv("Last reply",j.lastReply||null),kv("Contact",j.contact||null));
+    return scard(null,[el("dl",{class:"kv"},rows)]);
+  }
+  function notesCard(j){
+    var ta=el("textarea",{id:"notes-"+j.id,rows:"3",placeholder:"Anything the team should know. Saves when you click away.",disabled:S.uid?null:true});ta.value=j.notes||"";
+    var hint=el("span",{class:"hint"});
+    ta.addEventListener("blur",function(){if(ta.value===(j.notes||""))return;hint.textContent="Saving...";api("PATCH","/api/jobs/"+j.id,{notes:ta.value,note:"Updated notes"}).then(function(){j.notes=ta.value;hint.textContent="Saved";refresh()},function(e){hint.textContent="";fail(e)})});
+    return scard("Notes",[ta,hint]);
+  }
+  function actionsCard(j){
+    if(!S.uid)return null;var list=[];
+    if(!S.isOwner)list.push(el("button",{class:"btn ghost small",type:"button",text:"Text Ifeanyi about this",onclick:function(){S.texting=j.id;renderRows()}}));
+    if(S.isOwner&&!SENT[j.status]&&j.status!=="skipped"){var mates2=Object.keys(S.people).filter(function(k){var p=S.people[k];return k!=="owner"&&!p.owner&&p.name&&!/^Teammate \d/.test(p.name)&&k!==j.addedBy});
+      if(mates2.length){var sel=el("select",{class:"send-sel","aria-label":"Send this job to"});mates2.forEach(function(k){sel.appendChild(el("option",{value:k,text:S.people[k].name}))});
+        list.push(el("div",{class:"send-row"},[sel,el("button",{class:"btn ghost small",type:"button",text:"Send to apply",onclick:function(){api("PATCH","/api/jobs/"+j.id,{assignTo:sel.value}).then(function(){toast("Sent to "+S.people[sel.value].name);refresh()},fail)}})]))}}
+    if(S.isOwner&&j.needsIfeanyi)list.push(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
+    if(S.isOwner)list.push(el("button",{class:"btn ghost small danger",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete job",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
+    return list.length?scard(null,[el("div",{class:"side-acts"},list)]):null;
+  }
+  function historyCard(j){
+    var ol=el("ol",{class:"tl"}),h=(j.history||[]).slice().reverse();
+    if(!h.length)ol.appendChild(el("li",{},["Logged",el("span",{text:nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+rel(j.addedAt):"")})]));
+    h.forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
+    return scard("History",[ol]);
+  }
   function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
   function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
   function baseMd(){return S.baseMd?Promise.resolve(S.baseMd):api("GET","/api/resume/base").then(function(b){S.baseMd=(b&&b.md)||"";return S.baseMd})}
@@ -820,7 +860,7 @@ body{background:var(--page)}
         B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===1),
         B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
       step(2,"Cover letter",j.cover?"Written. Read or change it further down.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",null,
-        j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===2)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})}):null,B("Not needed",function(){markStep(j,"cover")})]),
+        j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===2)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})},cur!==2):null,B("Not needed",function(){markStep(j,"cover")})]),
       step(3,"Apply",cur===3?"You're set. Apply on their site, then come back and mark it.":"Finish the steps before this, then apply.",null,[
         j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,
         B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;S.preview=null;refresh()},fail)},cur===3)])
@@ -872,7 +912,7 @@ body{background:var(--page)}
         a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Copy",onclick:function(){var b=this;try{navigator.clipboard.writeText(ta.value).then(function(){b.textContent="Copied"},function(){toast("Couldn't copy. Select the text instead.")})}catch(e){}}}));
         a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printCover(ta.value,j)}}));
       }
-      if(j.description)a.appendChild(aiBtn(c?"Rewrite with AI":"Write with AI",function(){if(c&&!window.confirm("Replace this letter with a fresh AI version? Your edits here will be lost."))return;return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over.");refresh()})}));
+      if(j.description)a.appendChild(aiBtn(c?"Rewrite with AI":"Write with AI",function(){if(c&&!window.confirm("Replace this letter with a fresh AI version? Your edits here will be lost."))return;return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over.");refresh()})},true));
       if(a.childNodes.length)wrap.appendChild(a)}
     return wrap;
   }
@@ -887,22 +927,24 @@ body{background:var(--page)}
     setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
   }
   function descBlock(j){
-    var wrap=el("div",{class:"block"},[el("h3",{text:"Job description"})]);
-    if(S.editDesc===j.id){
+    var editing=S.editDesc===j.id,acts=[];
+    if(S.uid&&!editing){acts.push(el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit":"Paste it",onclick:function(){S.editDesc=j.id;renderRows()}}));
+      if(j.description)acts.push(aiBtn(j.fit?"Re-check fit":"Check fit",function(){return api("POST","/api/ai/fit",{jobId:j.id}).then(function(f){toast("Fit: "+f.score+"/100");refresh()})},true))}
+    var wrap=el("div",{class:"block"},[bhead("Job description",acts)]);
+    if(editing){
       var t=el("textarea",{id:"desc-"+j.id,class:"desc-edit",placeholder:"Paste the full job description"});t.value=j.description||"";
       wrap.appendChild(t);
       wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn small",type:"button",text:"Save description",onclick:function(){api("PATCH","/api/jobs/"+j.id,{description:t.value,note:"Saved the job description"}).then(function(){S.editDesc=null;toast("Saved");refresh()},fail)}}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editDesc=null;renderRows()}})]));
       return wrap;
     }
-    if(j.description){var d=el("div",{class:"desc"});d.textContent=j.description;wrap.appendChild(d)}
-    else wrap.appendChild(el("p",{class:"muted-line",text:"Not saved yet. Paste it in so it's here even after the posting comes down."}));
     if(j.fit)wrap.appendChild(fitCard(j.fit));
-    if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit description":"Paste description",onclick:function(){S.editDesc=j.id;renderRows()}})]);
-      if(j.description)a.appendChild(aiBtn(j.fit?"Re-check fit":"Check fit with AI",function(b){return api("POST","/api/ai/fit",{jobId:j.id}).then(function(f){toast("Fit: "+f.score+"/100");refresh()})}));
-      wrap.appendChild(a)}
+    if(j.description){S.descOpen=S.descOpen||{};var open=!!S.descOpen[j.id],long=j.description.length>600;
+      var d=el("div",{class:"desc"+(open||!long?" open":"")});d.textContent=j.description;wrap.appendChild(d);
+      if(long)wrap.appendChild(el("button",{class:"linkish more",type:"button",text:open?"Show less":"Show the full description",onclick:function(){S.descOpen[j.id]=!open;renderRows()}}))}
+    else wrap.appendChild(el("p",{class:"muted-line",text:"Not saved yet. Paste it so it's here after the posting comes down."}));
     return wrap;
   }
-  function aiBtn(label,run){var b=el("button",{class:"btn ai small",type:"button"},[el("span",{class:"spark","aria-hidden":"true",text:"\u2726"}),label]);
+  function aiBtn(label,run,subtle){var b=el("button",{class:"btn ai small"+(subtle?" subtle":""),type:"button"},[el("span",{class:"spark","aria-hidden":"true",text:"\u2726"}),label]);
     b.onclick=function(){if(b.disabled)return;b.disabled=true;var t=b.lastChild.nodeValue;b.lastChild.nodeValue=" Thinking...";Promise.resolve(run(b)).catch(fail).then(function(){b.disabled=false;b.lastChild.nodeValue=t})};return b}
   function fitCard(f){var cls=f.verdict==="apply"?"good":f.verdict==="skip"?"bad":"meh";
     var box=el("div",{class:"fit "+cls},[el("div",{class:"fit-top"},[el("b",{class:"fit-score",text:String(f.score)}),el("div",{},[el("div",{class:"fit-verdict",text:f.verdict==="apply"?"Good fit, apply":f.verdict==="skip"?"Skip this one":"Worth a closer look"}),el("div",{class:"fit-sum",text:f.summary||""})])])]);
@@ -920,8 +962,9 @@ body{background:var(--page)}
   }
   function contactsBlock(j){
     var cs=j.contacts||[];
-    var wrap=el("div",{class:"block"},[el("h3",{text:"People to contact ("+cs.length+")"})]);
-    if(!cs.length&&S.editContact!==j.id+":new")wrap.appendChild(el("p",{class:"muted-line",text:"No one yet. Find the recruiter and the hiring manager or team lead."}));
+    var adding=S.editContact===j.id+":new";
+    var wrap=el("div",{class:"block"},[bhead("People to contact"+(cs.length?" ("+cs.length+")":""),S.uid&&!adding?[el("button",{class:"btn ghost small",type:"button",text:"Add a person",onclick:function(){S.editContact=j.id+":new";renderRows()}})]:[])]);
+    if(!cs.length&&!adding)wrap.appendChild(el("p",{class:"muted-line",text:"Optional. A recruiter or hiring manager gives Ifeanyi someone to follow up with."}));
     cs.forEach(function(c){
       if(S.editContact===j.id+":"+c.id){wrap.appendChild(contactForm(j,c));return}
       var links=el("div",{class:"clinks"},[]);
@@ -933,10 +976,10 @@ body{background:var(--page)}
         el("div",{class:"cmeta",text:(c.source?c.source+". ":"")+"Found by "+nameOf(c.addedBy).replace(" (you)","")+", "+rel(c.addedAt)}),
       ]);
       if(c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
-      if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}}),aiBtn(c.draft?"Redraft message":"Draft message with AI",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id}).then(function(){toast("Draft ready for "+c.name);refresh()})})]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
+      if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}}),aiBtn(c.draft?"Redraft message":"Draft message with AI",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id}).then(function(){toast("Draft ready for "+c.name);refresh()})},true)]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
       wrap.appendChild(row);
     });
-    if(S.uid){if(S.editContact===j.id+":new")wrap.appendChild(contactForm(j,null));else wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn accent small",type:"button",text:"Add a person",onclick:function(){S.editContact=j.id+":new";renderRows()}})]))}
+    if(adding)wrap.appendChild(contactForm(j,null));
     return wrap;
   }
 
