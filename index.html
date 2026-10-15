@@ -871,7 +871,7 @@ body{background:var(--page)}
     var slot=$("add-slot");if(!S.adding){slot.textContent="";return}if(slot.firstChild)return;
     var url=el("input",{id:"a-url",type:"url",placeholder:"Paste the job posting link"}),co=el("input",{id:"a-co",required:true}),ro=el("input",{id:"a-ro",required:true}),pay=el("input",{id:"a-pay",placeholder:"$95k to $110k, or $70/hr"});
     var src=el("select",{id:"a-src"}),srcWrap=el("div",{class:"src-wrap"},[src]);
-    function fillSrc(sel){src.textContent="";["LinkedIn","Indeed","Company site","Wellfound","Built In","Dice","Glassdoor","Referral"].concat(S.sources||[],["Other"]).forEach(function(x){src.appendChild(el("option",{text:x}))});src.appendChild(el("option",{value:"__add",text:"+ Add another site"}));src.value=sel||"LinkedIn";src._last=src.value}
+    function fillSrc(sel){src.textContent="";["LinkedIn","Indeed","Company site"].concat(S.sources||[]).forEach(function(x){src.appendChild(el("option",{text:x}))});src.appendChild(el("option",{value:"__add",text:"+ Add another site"}));src.value=sel||"LinkedIn";src._last=src.value}
     fillSrc();
     src.onchange=function(){if(src.value!=="__add"){src._last=src.value;return}
       var inp=el("input",{id:"a-src-new",placeholder:"Site name",maxlength:"40","aria-label":"New site name"}),row=el("div",{class:"src-add"},[inp,el("button",{type:"button",class:"btn small",text:"Add",onclick:save}),el("button",{type:"button",class:"btn ghost small",text:"Cancel",onclick:function(){back()}})]);
@@ -890,7 +890,7 @@ body{background:var(--page)}
       var parts=[];shots.forEach(function(x){parts=parts.concat(x.parts)});
       return api("POST","/api/ai/extract",{images:parts.slice(0,8)}).then(function(r){
         if(r.url&&!url.value.trim())url.value=r.url;if(r.company)co.value=r.company;if(r.role)ro.value=r.role;if(r.pay)pay.value=r.pay;
-        if(r.source)src.value=r.source;if(r.resume)res.value=r.resume;if(r.description)desc.value=r.description;
+        if(r.source&&[].some.call(src.options,function(o){return o.text===r.source}))src.value=r.source;if(r.resume)res.value=r.resume;if(r.description)desc.value=r.description;
         var d=check();toast(d.ex.length?"Heads up: this one is already logged":"Filled in. Check it, apply with the "+(r.resume==="Default"?"Base":r.resume==="Health"?"Healthcare":r.resume)+" resume, then Save.")})});
     readBtn.hidden=true;
     function drawShots(){thumbs.textContent="";shots.forEach(function(x,i){thumbs.appendChild(el("div",{class:"shot"},[el("img",{src:x.thumb,alt:"Screenshot "+(i+1)}),el("button",{type:"button",class:"shot-x","aria-label":"Remove screenshot "+(i+1),text:"\u00d7",onclick:function(){shots.splice(i,1);drawShots()}})]))});readBtn.hidden=!shots.length;drop.classList.toggle("has",!!shots.length)}
