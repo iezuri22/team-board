@@ -219,6 +219,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .cv-edit{width:100%;min-height:300px;font-size:14px;line-height:1.55;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 14px;resize:vertical}
 .cv-edit.tall{min-height:440px}
 .cv-show{max-height:none}
+.cv-peek{white-space:pre-wrap;font-size:14px;line-height:1.55;color:var(--muted);max-height:120px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 50%,transparent);mask-image:linear-gradient(#000 50%,transparent);margin:6px 0 4px}
 .cv-changes{margin:8px 0 10px;padding-left:18px;font-size:13.5px;color:var(--muted)}
 .cv-wrap{max-width:860px;margin:0 auto}
 .doc-pick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
@@ -535,17 +536,22 @@ body{background:var(--page)}
     return root.innerHTML;
   }
   function resumeDoc(md,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+RESUME_CSS+".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}body{padding:0}[contenteditable]:focus{outline:none}[contenteditable] p:hover,[contenteditable] li:hover,[contenteditable] .role:hover{background:#fff6ef}</style></head><body>"+bodyOf(md)+"</body></html>"}
-  function printResume(md,title){
+  // Zero page margins stop the browser printing its date, title and URL in the margins.
+  // The real margins come back as body padding (sides) and a repeating table header/footer (top and bottom of every page).
+  function printShell(css,inner,title,tb,lr){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+css+"@page{size:Letter;margin:0}html,body{margin:0}body{padding:0 "+lr+"}.pg{width:100%;border-collapse:collapse}.pg td{padding:0;vertical-align:top}.pg thead td,.pg tfoot td{height:"+tb+"}</style></head><body><table class='pg'><thead><tr><td></td></tr></thead><tfoot><tr><td></td></tr></tfoot><tbody><tr><td>"+inner+"</td></tr></tbody></table></body></html>"}
+  function printHTML(html){
     var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
-    var d=f.contentDocument;d.open();d.write(resumeDoc(md,title));d.close();
+    var d=f.contentDocument;d.open();d.write(html);d.close();
     setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
   }
-  function previewInto(box,md,editable,onEdit){
+  var RESUME_EXTRA=".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}";
+  function printResume(md,title){printHTML(printShell(RESUME_CSS+RESUME_EXTRA,bodyOf(md),title,"0.5in","0.62in"))}
+  function previewInto(box,md,editable,onEdit,build){
     var holder=box.querySelector(".paper-scale");var f=box.querySelector("iframe");
     if(!f){holder=el("div",{class:"paper-scale"});f=el("iframe",{class:"paper-frame",title:"Resume preview"});holder.appendChild(f);box.appendChild(holder)}
     var fit=function(){var sc=Math.min(1,(box.clientWidth-36)/816);f.style.transform="scale("+sc+")";holder.style.height=(1056*sc)+"px";holder.style.width=(816*sc)+"px"};
     fit();if(!box._fit){box._fit=1;window.addEventListener("resize",fit)}
-    var d=f.contentDocument;d.open();d.write(resumeDoc(md,"Preview").replace("<body>","<body style='margin:0.5in 0.62in'"+(editable?" contenteditable='true' spellcheck='true'":"")+">"));d.close();
+    var d=f.contentDocument;d.open();d.write(build?build(md,editable):resumeDoc(md,"Preview").replace("<body>","<body style='margin:0.5in 0.62in'"+(editable?" contenteditable='true' spellcheck='true'":"")+">"));d.close();
     if(editable){d.body.addEventListener("input",function(){if(onEdit)onEdit()});
       var grow=function(){var h=Math.max(1056,d.body.scrollHeight+96);f.style.height=h+"px";var sc=Math.min(1,(box.clientWidth-36)/816);holder.style.height=(h*sc)+"px"};setTimeout(grow,50);d.body.addEventListener("input",grow)}
     box._doc=function(){return f.contentDocument}}
@@ -636,6 +642,7 @@ body{background:var(--page)}
   }
   function renderResumeTab(){
     var V=$("resume-view");V.textContent="";
+    if(S.editorJob&&S.editorJob.indexOf("cover:")===0){var cj=S.jobs.find(function(x){return x.id===S.editorJob.slice(6)});if(cj&&cj.cover){renderCoverEditor(V,cj);return}S.editorJob=null}
     var mode=S.editorJob||null,tplEdit=mode&&mode.indexOf("tpl:")===0?tplById(mode.slice(4)):null;
     var j=mode&&mode!=="base"&&!tplEdit?S.jobs.find(function(x){return x.id===mode}):null;
     if(mode&&mode.indexOf("tpl:")===0&&!tplEdit){S.editorJob=null;mode=null}
@@ -692,6 +699,24 @@ body{background:var(--page)}
       }
       body.appendChild(box);previewInto(box,md);
     },fail);
+  }
+
+  function renderCoverEditor(V,j){
+    var box=el("div",{class:"paper-box"}),actions=el("div",{class:"acts"});
+    V.appendChild(el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:"Cover letter for "+j.company}),el("p",{class:"muted-line",text:j.role+". Click into the letter to edit. The letterhead and date are added for you."})]),actions]));
+    var lb=function(){return box._doc().querySelector(".lb")};
+    var current=function(){return HTML_MARK+cleanHTML(lb().cloneNode(true))};
+    var saveBtn=el("button",{class:"btn accent small",type:"button",text:"Saved",disabled:true,onclick:function(){saveBtn.disabled=true;var v=current();api("PUT","/api/cover/job/"+j.id,{text:v}).then(function(r){j.cover=r;saveBtn.textContent="Saved";toast("Cover letter saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
+    var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save"};
+    actions.appendChild(saveBtn);
+    actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printCover(current(),j);markStep(j,"cover")}}));
+    actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Copy text",onclick:function(){var b=this;try{navigator.clipboard.writeText(coverText(current())).then(function(){b.textContent="Copied"})}catch(e){}}}));
+    if(j.description)actions.appendChild(aiBtn("Rewrite with AI",function(){if(!window.confirm("Replace this letter with a fresh AI version? Your edits will be lost."))return;return api("POST","/api/ai/cover",{jobId:j.id}).then(function(r){j.cover=r;previewInto(box,r.text,true,edited,build);toast("Rewritten. Read it over.");refresh()})},true));
+    actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Back to the job",onclick:function(){S.editorJob=null;S.resumeShown=false;S.tab="apps";S.open=j.id;render()}}));
+    var build=function(text,editable){return "<!doctype html><html><head><meta charset='utf-8'><style>"+COVER_CSS+"body{margin:0.8in 0.95in}.lb p:hover{background:#fff6ef}</style></head><body>"+coverInner(text,editable)+"</body></html>"};
+    var col=el("div",{class:"ed-col"});V.appendChild(el("div",{class:"ed-body solo"},[col]));
+    col.appendChild(toolbar(box,edited,function(){previewInto(box,j.cover.text,true,edited,build)}));
+    col.appendChild(box);previewInto(box,j.cover.text,true,edited,build);
   }
 
   // ---------- render ----------
@@ -936,8 +961,8 @@ body{background:var(--page)}
         B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
         B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===0),
         B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
-      step(1,"Cover letter",j.cover?"Written. Read or change it further down.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",null,
-        j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===1)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})},cur!==1):null,B("Not needed",function(){markStep(j,"cover")})]),
+      step(1,"Cover letter",j.cover?"Written. Open it to read and edit before you download.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",null,
+        j.cover?[B("Edit letter",function(){openCoverEditor(j)}),B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===1)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Opening it so you can read and edit.");refresh().then(function(){var x=S.jobs.find(function(q){return q.id===j.id});if(x)openCoverEditor(x)})})},cur!==1):null,B("Not needed",function(){markStep(j,"cover")})]),
       step(2,"Apply",cur===2?"You're set. Apply on their site, then come back and mark it.":"Finish the steps before this, then apply.",null,[
         j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,
         B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;S.preview=null;refresh()},fail)},cur===2)])
@@ -981,28 +1006,33 @@ body{background:var(--page)}
     else{
       wrap.appendChild(el("p",{class:"muted-line",text:(c.ai?"Written with AI by ":"Edited by ")+nameOf(c.by).replace(" (you)","")+", "+rel(c.at)+". Read it before you send it."}));
       if(c.ai&&c.changes&&c.changes.length){var ul=el("ul",{class:"cv-changes"});c.changes.forEach(function(x){ul.appendChild(el("li",{text:x}))});wrap.appendChild(ul)}
-      ta=el("textarea",{id:"cv-"+j.id,class:"cv-edit","aria-label":"Cover letter for "+j.company,disabled:S.uid?null:true});ta.value=c.text;wrap.appendChild(ta);
+      var pv=el("div",{class:"cv-peek"});pv.textContent=coverText(c.text).slice(0,420)+"...";wrap.appendChild(pv);
     }
     if(S.uid){var a=el("div",{class:"acts"});
       if(c){
-        a.appendChild(el("button",{class:"btn small",type:"button",text:"Save edits",onclick:function(){api("PUT","/api/cover/job/"+j.id,{text:ta.value}).then(function(){toast("Cover letter saved");refresh()},fail)}}));
-        a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Copy",onclick:function(){var b=this;try{navigator.clipboard.writeText(ta.value).then(function(){b.textContent="Copied"},function(){toast("Couldn't copy. Select the text instead.")})}catch(e){}}}));
-        a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printCover(ta.value,j)}}));
+        a.appendChild(el("button",{class:"btn small",type:"button",text:"Open and edit",onclick:function(){openCoverEditor(j)}}));
+        a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Copy",onclick:function(){var b=this;try{navigator.clipboard.writeText(coverText(c.text)).then(function(){b.textContent="Copied"},function(){toast("Couldn't copy. Select the text instead.")})}catch(e){}}}));
+        a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printCover(c.text,j)}}));
       }
       if(j.description)a.appendChild(aiBtn(c?"Rewrite with AI":"Write with AI",function(){if(c&&!window.confirm("Replace this letter with a fresh AI version? Your edits here will be lost."))return;return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over.");refresh()})},true));
       if(a.childNodes.length)wrap.appendChild(a)}
     return wrap;
   }
-  function coverDoc(text,title){
-    var date=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
-    var body=String(text||"").trim().split(/\n\s*\n/).map(function(p){return "<p>"+esc(p.trim()).replace(/\n/g,"<br>")+"</p>"}).join("");
-    return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>@page{size:Letter;margin:0.9in 1in}*{box-sizing:border-box}body{margin:0;color:#16181d;background:#fff;font:11pt/1.5 \"Helvetica Neue\",Helvetica,Arial,sans-serif;font-variant-ligatures:none}.nm{font-size:17pt;font-weight:700;letter-spacing:-.01em;margin:0}.ct{color:#4a4d55;font-size:9.6pt;margin:3pt 0 22pt}.dt{margin:0 0 16pt}p{margin:0 0 11pt}</style></head><body><p class='nm'>Ifeanyi Ezurike</p><p class='ct'>Chicago, IL &middot; ifeanyi.builds@gmail.com &middot; 708-898-8831 &middot; iezuri22.github.io/portfolio</p><p class='dt'>"+date+"</p>"+body+"</body></html>";
-  }
-  function printCover(text,j){
-    var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
-    var d=f.contentDocument;d.open();d.write(coverDoc(text,"Ifeanyi_Ezurike_Cover_Letter_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_")));d.close();
-    setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
-  }
+  var COVER_CSS="*{box-sizing:border-box}body{color:#16181d;background:#fff;font:10.6pt/1.6 \"Helvetica Neue\",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-variant-ligatures:none}"+
+    ".lh{display:flex;align-items:center;gap:14pt;padding-bottom:14pt;border-bottom:2pt solid #1f4e79;margin-bottom:22pt}"+
+    ".mono{flex:none;width:40pt;height:40pt;border-radius:7pt;background:#1f4e79;color:#fff;display:grid;place-items:center;font-weight:700;font-size:15pt;letter-spacing:.04em}"+
+    ".nm{margin:0;font-size:21pt;font-weight:700;letter-spacing:.035em;text-transform:uppercase;line-height:1.1}"+
+    ".tg{margin:3pt 0 0;font-size:9.6pt;font-weight:600;color:#1f4e79}.ct{margin:3pt 0 0;font-size:8.9pt;color:#4a4d55}"+
+    ".dt{margin:0 0 16pt;color:#4a4d55}.lb p{margin:0 0 10pt}.lb p:last-child{margin-top:16pt}"+
+    "a{color:#1f4e79;text-decoration:none}[contenteditable]:focus{outline:none}";
+  var COVER_HEAD="<div class='lh' contenteditable='false'><div class='mono'>IE</div><div><p class='nm'>Ifeanyi Ezurike</p><p class='tg'>Technical Project Manager &middot; CRM Implementation &middot; AI Automation</p><p class='ct'>Chicago, IL &middot; ifeanyi.builds@gmail.com &middot; 708-898-8831 &middot; <a href='https://iezuri22.github.io/portfolio/'>iezuri22.github.io/portfolio</a></p></div></div>";
+  function coverBodyHTML(text){text=String(text||"").trim();if(text.indexOf(HTML_MARK)===0)return text.slice(HTML_MARK.length);return text.split(/\n\s*\n/).map(function(p){return "<p>"+esc(p.trim()).replace(/\n/g,"<br>").replace(/(https?:\/\/)?(iezuri22\.github\.io\/portfolio\/?)/g,"<a href='https://iezuri22.github.io/portfolio/'>$2</a>")+"</p>"}).join("")}
+  function coverInner(text,editable){var date=new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+    return COVER_HEAD+"<p class='dt'>"+date+"</p><div class='lb'"+(editable?" contenteditable='true' spellcheck='true'":"")+">"+coverBodyHTML(text)+"</div>"}
+  function coverDoc(text,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+COVER_CSS+"body{margin:0.8in 0.95in}</style></head><body>"+coverInner(text,false)+"</body></html>"}
+  function coverText(text){var d=document.createElement("div");d.innerHTML=coverBodyHTML(text).replace(/<\/p>/g,"</p>\n\n").replace(/<br\s*\/?>/g,"\n");return d.textContent.replace(/\n{3,}/g,"\n\n").trim()}
+  function printCover(text,j){printHTML(printShell(COVER_CSS,coverInner(text,false),"Ifeanyi_Ezurike_Cover_Letter_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"),"0.8in","0.95in"))}
+  function openCoverEditor(j){S.editorJob="cover:"+j.id;S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0)}
   function descBlock(j){
     var editing=S.editDesc===j.id,acts=[];
     if(S.uid&&!editing){acts.push(el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit":"Paste it",onclick:function(){S.editDesc=j.id;renderRows()}}));
