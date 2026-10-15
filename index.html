@@ -232,7 +232,7 @@ body{background:var(--page)}
 .ed-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-block:18px 16px}
 .ed-head h2{font-size:24px;letter-spacing:-.025em}
 .ed-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
-.ed-body.solo{grid-template-columns:minmax(0,820px);justify-content:center}
+.ed-body.solo{grid-template-columns:minmax(0,880px);justify-content:center}
 @media (max-width:900px){.ed-body{grid-template-columns:1fr}}
 .ed-left{display:grid;gap:10px}
 .ed-text{width:100%;min-height:72vh;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:16px;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);resize:vertical}
@@ -357,18 +357,29 @@ body{background:var(--page)}
     }
     flush();return out.join("\n");
   }
-  function resumeDoc(md,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+RESUME_CSS+".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}body{padding:0}</style></head><body>"+resumeHTML(md)+"</body></html>"}
+  var HTML_MARK="<!--html-->";
+  function bodyOf(src){src=String(src||"");return src.indexOf(HTML_MARK)===0?src.slice(HTML_MARK.length):resumeHTML(src)}
+  function cleanHTML(root){
+    var ok={H1:1,H2:1,H3:1,P:1,DIV:1,SPAN:1,B:1,STRONG:1,I:1,EM:1,UL:1,OL:1,LI:1,BR:1};
+    (function walk(n){[].slice.call(n.childNodes).forEach(function(c){if(c.nodeType===1){if(!ok[c.tagName]){while(c.firstChild)n.insertBefore(c.firstChild,c);n.removeChild(c);return}
+      [].slice.call(c.attributes).forEach(function(a){if(a.name!=="class")c.removeAttribute(a.name)});walk(c)}else if(c.nodeType!==3)n.removeChild(c)})})(root);
+    return root.innerHTML;
+  }
+  function resumeDoc(md,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+RESUME_CSS+".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}body{padding:0}[contenteditable]:focus{outline:none}[contenteditable] p:hover,[contenteditable] li:hover,[contenteditable] .role:hover{background:#fff6ef}</style></head><body>"+bodyOf(md)+"</body></html>"}
   function printResume(md,title){
     var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
     var d=f.contentDocument;d.open();d.write(resumeDoc(md,title));d.close();
     setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
   }
-  function previewInto(box,md){
+  function previewInto(box,md,editable,onEdit){
     var holder=box.querySelector(".paper-scale");var f=box.querySelector("iframe");
     if(!f){holder=el("div",{class:"paper-scale"});f=el("iframe",{class:"paper-frame",title:"Resume preview"});holder.appendChild(f);box.appendChild(holder)}
     var fit=function(){var sc=Math.min(1,(box.clientWidth-36)/816);f.style.transform="scale("+sc+")";holder.style.height=(1056*sc)+"px";holder.style.width=(816*sc)+"px"};
     fit();if(!box._fit){box._fit=1;window.addEventListener("resize",fit)}
-    var d=f.contentDocument;d.open();d.write(resumeDoc(md,"Preview").replace("<body>","<body style='margin:0.5in 0.62in'>"));d.close()}
+    var d=f.contentDocument;d.open();d.write(resumeDoc(md,"Preview").replace("<body>","<body style='margin:0.5in 0.62in'"+(editable?" contenteditable='true' spellcheck='true'":"")+">"));d.close();
+    if(editable){d.body.addEventListener("input",function(){if(onEdit)onEdit()});
+      var grow=function(){var h=Math.max(1056,d.body.scrollHeight+96);f.style.height=h+"px";var sc=Math.min(1,(box.clientWidth-36)/816);holder.style.height=(h*sc)+"px"};setTimeout(grow,50);d.body.addEventListener("input",grow)}
+    box._doc=function(){return f.contentDocument}}
   function fileTitle(j){return "Ifeanyi_Ezurike_Resume"+(j?"_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"):"")}
   function openEditor(j){
     S.editorJob=j?j.id:"base";S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0);
@@ -379,7 +390,7 @@ body{background:var(--page)}
     var editing=!!j||(S.editorJob==="base"&&S.isOwner);
     var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:j?"Resume for "+j.company:"Base resume"}),el("p",{class:"muted-line",text:j?j.role+". Edit the copy on the left, it only changes this job's resume.":"This is the master version every tailored copy starts from."+(S.isOwner?"":" Only Ifeanyi can change it.")})])]);
     var actions=el("div",{class:"acts"});head.appendChild(actions);
-    var body=el("div",{class:"ed-body"+(editing?"":" solo")});
+    var body=el("div",{class:"ed-body solo"});
     var box=el("div",{class:"paper-box"});
     V.appendChild(head);V.appendChild(body);
     var url=j?"/api/resume/job/"+j.id:"/api/resume/base";
@@ -387,13 +398,15 @@ body{background:var(--page)}
       var md=(r[0]&&r[0].md)||(r[1]&&r[1].md)||"";
       var fresh=j&&!(r[0]&&r[0].md);
       if(editing){
-        var ta=el("textarea",{id:"rz-md",class:"ed-text",spellcheck:"true"});ta.value=md;
-        var t;ta.addEventListener("input",function(){clearTimeout(t);t=setTimeout(function(){previewInto(box,ta.value)},250);saveBtn.disabled=false;saveBtn.textContent="Save"});
-        var tips=el("details",{class:"ed-tips"},[el("summary",{text:"How to edit"}),el("p",{text:"Change words freely. Keep the markers: lines starting with \"- \" are bullets, \"## \" starts a section, and **double stars** make text bold. Match keywords from the job description, but never add a skill or result Ifeanyi doesn't have."})]);
-        body.appendChild(el("div",{class:"ed-left"},[tips,ta]));
-        var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;api("PUT",url,{md:ta.value}).then(function(){saveBtn.textContent="Saved";toast(j?"Resume saved for "+j.company:"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
+        var current=function(){return HTML_MARK+cleanHTML(box._doc().body.cloneNode(true))};
+        var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;api("PUT",url,{md:current()}).then(function(){saveBtn.textContent="Saved";toast(j?"Resume saved for "+j.company:"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
         actions.appendChild(saveBtn);
-        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(ta.value,fileTitle(j))}}));
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(current(),fileTitle(j))}}));
+        head.querySelector(".muted-line").textContent=(j?j.role+". ":"")+"Click any line on the page to change it. Press Enter at the end of a bullet to add a new one. Only add skills and results Ifeanyi really has.";
+        body.className="ed-body solo";body.appendChild(box);
+        previewInto(box,md,true,function(){saveBtn.disabled=false;saveBtn.textContent="Save"});
+        if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
+        return;
       }else{
         actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,fileTitle(null))}}));
         if(S.isOwner)actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
