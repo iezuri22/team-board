@@ -166,6 +166,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .muted-line{color:var(--muted);font-size:14px}
 .desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
 .desc-edit{min-height:180px}
+.textbox{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:16px}.textbox .acts{align-items:center}
 .src-add{display:flex;gap:6px;align-items:center}.src-add input{flex:1;min-width:0}
 .drop{display:grid;gap:3px;place-items:center;text-align:center;border:1.5px dashed var(--line);border-radius:14px;padding:18px 16px;margin:4px 0 12px;cursor:pointer;background:var(--soft);transition:border-color .15s,background .15s}
 .drop:hover,.drop:focus-visible,.drop.over{border-color:var(--accent);outline:none}
@@ -319,7 +320,7 @@ body{background:var(--page)}
     <div class="brand">Apply Yourself</div>
     <nav class="views" role="tablist" aria-label="Views">
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
-      <button role="tab" id="tab-replies" aria-selected="false">Replies <span class="badge" id="reply-badge" hidden></span></button>
+      <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
       <button role="tab" id="tab-resume" aria-selected="false">Resume</button>
       <button role="tab" id="tab-brief" aria-selected="false">How we work</button>
@@ -339,7 +340,7 @@ body{background:var(--page)}
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -400,9 +401,9 @@ body{background:var(--page)}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
-  function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){toast(L[k]);refresh()},fail)}
+  function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
   function clearFlag(j){api("PATCH","/api/jobs/"+j.id,{needsIfeanyi:false,note:"Ifeanyi marked this handled"}).then(function(){toast("Marked handled");refresh()},fail)}
   function del(j){api("DELETE","/api/jobs/"+j.id).then(function(){S.open=null;toast("Deleted");refresh()},fail)}
@@ -606,7 +607,7 @@ body{background:var(--page)}
       var who=j.addedBy||"owner",s=sentAt(j);
       if(s){var p=P(who);var k=dayKey(s);p.apps[k]=(p.apps[k]||0)+1;p.events.push({at:s,pts:PTS.app,kind:"app"})}
       (j.contacts||[]).forEach(function(c){P(c.addedBy||"owner").events.push({at:c.addedAt,pts:PTS.contact,kind:"contact"})});
-      (j.history||[]).forEach(function(h){if(REPLY_TYPES.some(function(r){return h.text.indexOf(r)===0})){P(h.by||"owner").events.push({at:h.at,pts:PTS.reply,kind:"reply"})}
+      (j.history||[]).forEach(function(h){if(h.text==="Changed status to Heard back"||REPLY_TYPES.some(function(r){return h.text.indexOf(r)===0})){P(h.by||"owner").events.push({at:h.at,pts:PTS.reply,kind:"reply"})}
         if(h.text.indexOf("Followed up")===0){P(h.by||"owner").events.push({at:h.at,pts:PTS.follow,kind:"follow"})}
         if(h.text==="Changed status to Interview"||h.text.indexOf("Interview request")===0){P(who).events.push({at:h.at,pts:PTS.interview,kind:"interview"})}});
     });
@@ -678,7 +679,7 @@ body{background:var(--page)}
     function n(count,label,act){if(!count)return;list.appendChild(el("button",{type:"button",class:"nudge",onclick:act},[el("b",{text:String(count)})," "+label]))}
     n(need,need===1?"application could use a contact":"applications could use a contact",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(stale,stale===1?"application needs a follow-up":"applications need a follow-up",function(){S.status="followup";$("f-status").value="followup";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
-    n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"flagged for Ifeanyi",function(){S.tab="replies";render()});
+    n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"waiting on Ifeanyi",function(){S.status="flagged";$("f-status").value="flagged";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     if(list.children.length===1)list.appendChild(el("p",{class:"muted-line",text:"You're all caught up."}));
     return list;
   }
@@ -703,7 +704,7 @@ body{background:var(--page)}
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
@@ -739,11 +740,11 @@ body{background:var(--page)}
     var acts=el("div",{class:"acts"},[]);
     if(S.uid){
       acts.appendChild(el("button",{class:"btn small",type:"button",text:"Save notes",onclick:function(){saveNotes(j,ta.value)}}));
-      acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Log a reply",onclick:function(){S.tab="replies";S.replying=j.id;render();window.scrollTo(0,0)}}));
+      if(!S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Text Ifeanyi about this",onclick:function(){S.texting=j.id;renderRows()}}));
       if(S.isOwner&&j.needsIfeanyi)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
       if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
     }
-    var left=el("div",{},[f,ta,acts,followBlock(j),resumeBlock(j),coverBlock(j),descBlock(j),contactsBlock(j)]);
+    var left=el("div",{},[f,ta,acts,textBlock(j),followBlock(j),resumeBlock(j),coverBlock(j),descBlock(j),contactsBlock(j)]);
     var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
     var h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
@@ -752,6 +753,16 @@ body{background:var(--page)}
     return el("div",{class:"detail"},[left,log]);
   }
 
+  function textBlock(j){
+    if(S.texting!==j.id||S.isOwner)return null;
+    var m=el("textarea",{id:"tx-"+j.id,rows:"3",placeholder:"What happened and what he needs to do. For example: Their recruiter emailed to set up a call. She offered Tue 2pm or Wed 11am."});
+    var out=el("span",{class:"msg"});
+    var box=el("form",{class:"block textbox",onsubmit:function(e){e.preventDefault();var b=this.querySelector("button[type=submit]");if(m.value.trim().length<2){m.focus();return}b.disabled=true;out.textContent="Sending...";
+      api("POST","/api/ping",{message:m.value,jobId:j.id}).then(function(){S.texting=null;if(document.activeElement)document.activeElement.blur();renderRows();toast("Sent. Ifeanyi got a text and an email.");refresh()},function(err){b.disabled=false;out.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't send. Call or text him directly."})}},[
+      el("h3",{text:"Text Ifeanyi about this job"}),el("p",{class:"muted-line",text:"He gets a text and an email with your name and this job on it. Don't reply to the company yourself."}),m,
+      el("div",{class:"acts"},[el("button",{class:"btn accent small",type:"submit",text:"Send"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.texting=null;renderRows()}}),out])]);
+    setTimeout(function(){m.focus()},0);return box;
+  }
   function followBlock(j){
     if(j.status!=="applied"&&!j.followedUpAt)return null;
     var wrap=el("div",{class:"block"},[el("h3",{text:"Follow-up"})]);
@@ -1045,7 +1056,7 @@ body{background:var(--page)}
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","replies","team","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","team","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
