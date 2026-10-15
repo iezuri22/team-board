@@ -14,18 +14,18 @@
 <style>
 /* Layout: one working column. Header with views, a plain summary line, filters, rows. Detail opens under its row. */
 :root{
-  --bg:#ffffff; --fg:#121417; --muted:#5f6670; --faint:#8d949e; --line:#e7e9ec; --soft:#f5f6f7;
+  --bg:#ffffff; --fg:#121417; --muted:#5f6670; --faint:#8d949e; --line:#e7e9ec; --soft:#f5f6f7; --soft2:#eceef1; --page:#fafafa; --card:#ffffff;
   --accent:#d9541a; --accent-wash:rgba(217,84,26,.08);
   --green:#1d7f55; --green-wash:rgba(29,127,85,.10); --blue:#2c64c9; --blue-wash:rgba(44,100,201,.09);
   --red:#b93a2b; --red-wash:rgba(185,58,43,.08); --amber:#a86a12; --amber-wash:rgba(168,106,18,.10);
   --font:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f;
+  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f; --soft2:#22262c; --page:#0c0e11; --card:#14171b;
   --accent:#f07a3e; --accent-wash:rgba(240,122,62,.12); --green:#43c08a; --green-wash:rgba(67,192,138,.13); --blue:#77a4ff; --blue-wash:rgba(119,164,255,.12);
   --red:#ef7565; --red-wash:rgba(239,117,101,.12); --amber:#e2a94a; --amber-wash:rgba(226,169,74,.13); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f;
+  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f; --soft2:#22262c; --page:#0c0e11; --card:#14171b;
   --accent:#f07a3e; --accent-wash:rgba(240,122,62,.12); --green:#43c08a; --green-wash:rgba(67,192,138,.13); --blue:#77a4ff; --blue-wash:rgba(119,164,255,.12);
   --red:#ef7565; --red-wash:rgba(239,117,101,.12); --amber:#e2a94a; --amber-wash:rgba(226,169,74,.13); color-scheme:dark}
 
@@ -129,7 +129,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .reply .what p{color:var(--muted);font-size:14px;margin-top:2px}
 @media (max-width:700px){.reply{grid-template-columns:1fr;gap:6px}}
 
-.team-row{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(4,minmax(0,.6fr)) minmax(0,1.4fr);gap:14px;align-items:center;padding:14px 6px;border-bottom:1px solid var(--line)}
+.team-row{display:grid;grid-template-columns:minmax(0,1.3fr) repeat(6,minmax(0,.5fr)) minmax(0,1.2fr);gap:14px;align-items:center;padding:14px 6px;border-bottom:1px solid var(--line)}
 .team-row.head{font-size:13px;color:var(--muted);padding-block:10px}
 .team-row .n{font-weight:650;font-size:18px;font-variant-numeric:tabular-nums}
 .team-row .name{font-weight:600}
@@ -159,6 +159,73 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:600;letter-spacing:.08em}
 .roster-add{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.roster-add input{flex:1;min-width:180px}
 @media (max-width:760px){.roster-row{grid-template-columns:80px minmax(0,1fr);}.roster-row .btn{grid-column:auto}}
+.nocontact{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--amber);background:var(--amber-wash);border-radius:999px;padding:1px 8px;vertical-align:middle}
+.block{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.block h3{font-size:15px;margin-bottom:8px}
+.muted-line{color:var(--muted);font-size:14px}
+.desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
+.desc-edit{min-height:180px}
+.crow{padding:10px 0;border-bottom:1px solid var(--line);display:grid;gap:4px}
+.crow:last-of-type{border-bottom:0}
+.cmain b{font-weight:600}.cmain span{color:var(--muted)}
+.clinks{display:flex;gap:14px;flex-wrap:wrap;font-size:14px}.clinks a{color:var(--accent)}
+.sel{user-select:all;color:var(--fg)}
+.cmeta{font-size:12.5px;color:var(--faint)}
+.cdraft summary{cursor:pointer;font-size:13.5px;color:var(--muted)}
+.cdraft p{white-space:pre-wrap;font-size:14px;margin:8px 0}
+.contact-form{display:grid;gap:8px;margin:10px 0}
+.cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.contact-form input,.contact-form textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+@media (max-width:600px){.cgrid{grid-template-columns:1fr}}
+
+/* refresh 2026-10-14: friendlier, cleaner */
+body{background:var(--page)}
+.wrap{max-width:1120px}
+.top{padding-block:20px 10px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand::before{content:"";width:26px;height:26px;border-radius:8px;background:var(--accent);box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.views{background:var(--card);border:1px solid var(--line);padding:4px;border-radius:999px}
+.views button{padding:7px 14px}
+.today-wrap{display:block;padding-block:14px 18px}
+.today{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,300px);gap:28px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:24px 28px;box-shadow:0 1px 2px rgba(18,20,23,.04),0 12px 30px -18px rgba(18,20,23,.18)}
+.today.owner{grid-template-columns:minmax(0,1fr) minmax(0,300px);grid-template-areas:"head nudges" "rings nudges"}
+.today.owner .today-head{grid-area:head}.today.owner .team-rings{grid-area:rings}.today.owner .nudges{grid-area:nudges}
+@media (max-width:860px){.today,.today.owner{grid-template-columns:1fr;grid-template-areas:none}.today.owner>*{grid-area:auto!important}}
+.today h2,.today-head h2{font-size:24px;letter-spacing:-.025em}
+.today-head p,.today-line{color:var(--muted);margin-top:4px;font-size:16px}
+.ringbox{position:relative;display:grid;place-items:center}
+.ring .track{fill:none;stroke:var(--soft2);stroke-width:10}
+.ring .fill{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1s cubic-bezier(.16,1,.3,1)}
+.ring.done .fill{stroke:var(--green)}
+.rcenter{position:absolute;inset:0;display:grid;place-items:center;align-content:center;text-align:center}
+.rcenter b{font-size:34px;font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.rcenter span{font-size:13px;color:var(--muted)}
+.rnum{position:absolute;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{background:var(--soft);border-radius:999px;padding:6px 12px;font-size:13.5px;color:var(--muted)}
+.chip b{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
+.chip.hot{background:var(--accent-wash);color:var(--accent)}.chip.hot b{color:var(--accent)}
+.chip.cold{background:var(--soft);color:var(--muted)}.chip.cold b{color:var(--fg)}
+.nudges{display:grid;gap:6px;align-content:start}
+.nudges h3{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.nudge{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:9px 12px;cursor:pointer;font-size:14px;color:var(--fg);transition:transform .15s,border-color .15s}
+.nudge:hover{border-color:var(--accent);transform:translateX(2px)}
+.nudge b{color:var(--accent)}
+.team-rings{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px}
+.mini{display:flex;align-items:center;gap:12px}
+.mini b{display:block;font-weight:600}.mini span{font-size:13px;color:var(--muted)}
+.rows{border-top:0;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.row{grid-template-columns:40px minmax(0,1fr) 190px 150px 140px;padding:12px 16px;transition:background .15s}
+.row:last-child{border-bottom:0}
+.co-av{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:13px;color:hsl(var(--h),55%,32%);background:hsl(var(--h),70%,93%)}
+.ccount{color:var(--muted);font-weight:400}
+.detail{padding:8px 16px 24px 72px;background:var(--soft)}
+@media (max-width:760px){.row{grid-template-columns:36px minmax(0,1fr) 120px;gap:4px 12px}.row .meta{grid-column:2}.row .meta.when{display:none}.row .st{grid-column:3;grid-row:1}.detail{padding:8px 16px 20px}}
+.filters{padding-block:10px 12px}
+.panel{border-radius:18px;background:var(--card)}
+.team-row .n.pts{color:var(--accent)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+@media (prefers-reduced-motion:reduce){.ring .fill,.nudge{transition:none}}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -173,18 +240,20 @@ button,input,select,textarea{font:inherit;color:inherit}
       <button role="tab" id="tab-brief" aria-selected="false">How we work</button>
     </nav>
     <div class="spacer"></div>
+    <button class="btn accent small" id="ping-btn" type="button" hidden>Reach Ifeanyi now</button>
     <div class="who-me" id="who-me"></div>
   </header>
   <div id="banner"></div>
   <div id="welcome-slot"></div>
+  <div id="ping-slot"></div>
 
   <div id="view-apps">
-    <p class="summary" id="summary"></p>
+    <div id="summary" class="today-wrap"></div>
     <div id="add-slot"></div>
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="contacts">Needs contacts</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -213,6 +282,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   var ST=[{k:"saved",l:"Saved"},{k:"applied",l:"Applied"},{k:"heard",l:"Heard back"},{k:"interview",l:"Interview"},{k:"offer",l:"Offer"},{k:"rejected",l:"Rejected"},{k:"skipped",l:"Not a fit"}];
   var L={};ST.forEach(function(s){L[s.k]=s.l});
   var SENT={applied:1,heard:1,interview:1,offer:1,rejected:1}, REPLIED={heard:1,interview:1,offer:1};
+  var NEEDS_CONTACTS={applied:1,heard:1,interview:1};function noContacts(j){return NEEDS_CONTACTS[j.status]&&!(j.contacts&&j.contacts.length)}
   var REPLY_TYPES=["Interview request","Recruiter wants to talk","Assessment or task","Rejection","Other"];
   var S={db:null,user:null,uid:null,isOwner:false,readOnly:false,jobs:[],loaded:false,brief:null,briefLoaded:false,people:{},peopleLoaded:false,
     tab:"apps",who:"all",status:"open",q:"",open:null,limit:150,adding:false,replying:false,editingBrief:false,renaming:false};
@@ -241,7 +311,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code|tm-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code|tm-|desc-|ct-|ping-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -251,7 +321,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   // ---------- render ----------
   function render(){
     ["apps","replies","team","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
-    renderMe();renderWelcome();if(!S.db||!S.uid)return;
+    renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
     $("add-btn").hidden=!canAdd;$("reply-btn").hidden=!canAdd;
@@ -259,6 +329,20 @@ button,input,select,textarea{font:inherit;color:inherit}
     if(S.tab==="replies"){renderReplyAdd();renderReplies()}
     if(S.tab==="team")renderTeam();
     if(S.tab==="brief")renderBrief();
+  }
+  function renderPing(){
+    var slot=$("ping-slot");$("ping-btn").hidden=!(S.db&&S.uid&&!S.isOwner);
+    if(!S.pinging){slot.textContent="";return}if(slot.firstChild)return;
+    var job=el("select",{id:"ping-job"});job.appendChild(el("option",{value:"",text:"Not about a specific job"}));
+    S.jobs.slice().sort(function(a,b){return String(b.updatedAt).localeCompare(String(a.updatedAt))}).slice(0,80).forEach(function(j){job.appendChild(el("option",{value:j.id,text:j.company+", "+j.role}))});
+    var msgEl=el("textarea",{id:"ping-msg",rows:"3",placeholder:"What's going on? For example: Ramp wants to schedule an interview this week, they offered Tue 2pm or Wed 11am."});
+    var out=el("p",{class:"help"});
+    slot.appendChild(el("form",{class:"panel",onsubmit:function(e){e.preventDefault();var b=this.querySelector("button[type=submit]");b.disabled=true;out.textContent="Sending...";
+      api("POST","/api/ping",{message:msgEl.value,jobId:job.value||null}).then(function(r){out.textContent=(r.sms&&r.email)?"Sent. Ifeanyi got a text and an email.":(r.sms?"Sent by text.":"Sent by email.");msgEl.value="";b.disabled=false;setTimeout(function(){S.pinging=false;renderPing()},2500)},function(err){b.disabled=false;out.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't send. Call or text Ifeanyi directly."})}},[
+      el("h2",{text:"Reach Ifeanyi now"}),el("p",{class:"help",text:"Sends him a text and an email right away, with your name on it. Use it for interview requests and anything time-sensitive."}),
+      el("div",{class:"grid"},[field("ping-job","About which job","c6",job),field("ping-msg","Message","c6",msgEl)]),
+      out,el("div",{class:"foot"},[el("button",{class:"btn ghost",type:"button",text:"Cancel",onclick:function(){S.pinging=false;renderPing()}}),el("button",{class:"btn accent",type:"submit",text:"Send text and email"})])]));
+    msgEl.focus();
   }
   function renderMe(){var w=$("who-me");w.textContent="";if(!S.db||!S.uid)return;var n=S.isOwner?"Ifeanyi":(myName()||"Teammate");w.appendChild(document.createTextNode("Signed in as "));w.appendChild(el("b",{text:n}));w.appendChild(el("button",{type:"button",text:"Sign out",onclick:function(){setTok("");S.db=null;S.uid=null;S.jobs=[];render()}}))}
   function renderWelcome(){
@@ -279,15 +363,94 @@ button,input,select,textarea{font:inherit;color:inherit}
     ]));
   }
   function target(){var n=S.brief&&Number(S.brief.dailyTarget);return n>0?n:10}
+  // points: 1 per application, 1 per contact, 3 per reply logged, 10 per interview
+  var PTS={app:1,contact:1,reply:3,interview:10};
+  function dayKey(d){var x=new Date(d);return x.getFullYear()+"-"+(x.getMonth()+1)+"-"+x.getDate()}
+  function activity(){
+    // returns {pid:{apps:{dayKey:n}, events:[{at,pts,kind}]}}
+    var A={};function P(k){return A[k]||(A[k]={apps:{},events:[]})}
+    S.jobs.forEach(function(j){
+      var who=j.addedBy||"owner",s=sentAt(j);
+      if(s){var p=P(who);var k=dayKey(s);p.apps[k]=(p.apps[k]||0)+1;p.events.push({at:s,pts:PTS.app,kind:"app"})}
+      (j.contacts||[]).forEach(function(c){P(c.addedBy||"owner").events.push({at:c.addedAt,pts:PTS.contact,kind:"contact"})});
+      (j.history||[]).forEach(function(h){if(REPLY_TYPES.some(function(r){return h.text.indexOf(r)===0})){P(h.by||"owner").events.push({at:h.at,pts:PTS.reply,kind:"reply"})}
+        if(h.text==="Changed status to Interview"||h.text.indexOf("Interview request")===0){P(who).events.push({at:h.at,pts:PTS.interview,kind:"interview"})}});
+    });
+    return A;
+  }
+  function weekPoints(a){var w=weekStart();return (a?a.events:[]).reduce(function(n,e){return new Date(e.at)>=w?n+e.pts:n},0)}
+  function streak(a){
+    if(!a)return 0;var tg=target(),n=0,d=today();
+    var todayHit=(a.apps[dayKey(d)]||0)>=tg;if(!todayHit)d.setDate(d.getDate()-1);
+    for(var i=0;i<60;i++){var dow=d.getDay();if(dow===0||dow===6){d.setDate(d.getDate()-1);continue}
+      if((a.apps[dayKey(d)]||0)>=tg){n++;d.setDate(d.getDate()-1)}else break}
+    return n;
+  }
+  function ring(done,goal,size){
+    var r=(size/2)-7,c=2*Math.PI*r,pct=Math.min(1,goal?done/goal:0);
+    var ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");svg.setAttribute("viewBox","0 0 "+size+" "+size);svg.setAttribute("width",size);svg.setAttribute("height",size);svg.setAttribute("class","ring"+(pct>=1?" done":""));svg.setAttribute("aria-hidden","true");
+    function circ(cls,dash){var e=document.createElementNS(ns,"circle");e.setAttribute("cx",size/2);e.setAttribute("cy",size/2);e.setAttribute("r",r);e.setAttribute("class",cls);if(dash!=null){e.setAttribute("stroke-dasharray",c);e.setAttribute("stroke-dashoffset",c*(1-dash))}return e}
+    svg.appendChild(circ("track"));svg.appendChild(circ("fill",pct));return svg;
+  }
+  function firstName(id){return nameOf(id).replace(" (you)","").split(" ")[0]}
+  function greet(){var h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"}
   function renderSummary(){
-    var t=today(),w=weekStart(),mine=0,all=0,wk=0,rep=0,iv=0;
-    S.jobs.forEach(function(j){var s=sentAt(j);if(s){var d=new Date(s);if(d>=t){all++;if(j.addedBy===S.uid)mine++}if(d>=w)wk++}if(REPLIED[j.status])rep++;if(j.status==="interview")iv++});
-    var x=$("summary");x.textContent="";
-    if(S.isOwner)x.appendChild(el("span",{class:"goal"},["Team sent ",el("b",{text:String(all)})," today"]));
-    else x.appendChild(el("span",{class:"goal"},["You sent ",el("b",{text:mine+" of "+target()})," today"]));
-    x.appendChild(el("span",{},[el("b",{text:String(wk)})," this week"]));
-    x.appendChild(el("span",{},[el("b",{text:String(rep)})," replies"]));
-    x.appendChild(el("span",{},[el("b",{text:String(iv)})," interviews"]));
+    var x=$("summary");x.textContent="";x.className="today-wrap";
+    var A=activity(),tg=target(),tk=dayKey(new Date());
+    if(S.isOwner){
+      var ids=Object.keys(S.people).filter(function(k){return k!=="owner"});
+      var head=el("div",{class:"today-head"},[el("h2",{text:greet()+", Ifeanyi"}),el("p",{text:"Here's how the team is doing today."})]);
+      var row=el("div",{class:"team-rings"});
+      ids.forEach(function(k){var a=A[k],n=a?(a.apps[tk]||0):0;
+        row.appendChild(el("div",{class:"mini"},[el("div",{class:"ringbox"},[ring(n,tg,64),el("span",{class:"rnum",text:String(n)})]),el("div",{},[el("b",{text:firstName(k)}),el("span",{text:weekPoints(a)+" pts this week"+(streak(a)>1?" · "+streak(a)+"-day streak":"")})])]))});
+      if(!ids.length)row.appendChild(el("p",{class:"muted-line",text:"Add teammates in the Team tab to see their progress here."}));
+      x.appendChild(el("div",{class:"today owner"},[head,row,nudges()]));
+      return;
+    }
+    var me=A[S.uid],n=me?(me.apps[tk]||0):0,st=streak(me),wp=weekPoints(me);
+    var contactsToday=me?me.events.filter(function(e){return e.kind==="contact"&&dayKey(e.at)===tk}).length:0;
+    var left=Math.max(0,tg-n);
+    var line=n===0?"Let's get the first one in.":left>0?left+" more to hit today's goal.":"Goal hit. Anything more is a bonus.";
+    x.appendChild(el("div",{class:"today"},[
+      el("div",{class:"ringbox big"},[ring(n,tg,112),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+tg})])]),
+      el("div",{class:"today-main"},[
+        el("h2",{text:greet()+", "+firstName(S.uid)}),el("p",{class:"today-line",text:line}),
+        el("div",{class:"chips"},[
+          el("span",{class:"chip hot"+(st?"":" cold")},[el("b",{text:String(st)})," day streak"]),
+          el("span",{class:"chip"},[el("b",{text:String(wp)})," points this week"]),
+          el("span",{class:"chip"},[el("b",{text:String(contactsToday)})," contacts today"])
+        ])
+      ]),
+      nudges()
+    ]));
+    maybeCelebrate(n,tg);
+  }
+  function nudges(){
+    var mine=S.isOwner?S.jobs:S.jobs.filter(function(j){return j.addedBy===S.uid});
+    var need=mine.filter(noContacts).length;
+    var weekAgo=new Date(Date.now()-7*864e5);
+    var stale=mine.filter(function(j){return j.status==="applied"&&new Date(sentAt(j)||j.addedAt)<weekAgo&&!j.lastReply}).length;
+    var waiting=S.jobs.filter(function(j){return j.needsIfeanyi}).length;
+    var list=el("div",{class:"nudges"},[el("h3",{text:"Up next"})]);
+    function n(count,label,act){if(!count)return;list.appendChild(el("button",{type:"button",class:"nudge",onclick:act},[el("b",{text:String(count)})," "+label]))}
+    n(need,need===1?"application needs contacts":"applications need contacts",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
+    n(stale,"applied over a week ago with no reply",function(){S.status="open";$("f-status").value="open";renderRows()});
+    n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"flagged for Ifeanyi",function(){S.tab="replies";render()});
+    if(list.children.length===1)list.appendChild(el("p",{class:"muted-line",text:"You're all caught up."}));
+    return list;
+  }
+  function maybeCelebrate(n,tg){
+    var k="ay-cel-"+dayKey(new Date())+"-"+S.uid;var done=false;try{done=localStorage.getItem(k)==="1"}catch(e){}
+    if(n>=tg&&!done){try{localStorage.setItem(k,"1")}catch(e){}if(S.celebrateArmed)confetti();}
+    S.celebrateArmed=true;
+  }
+  function confetti(){
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){toast("Daily goal hit. Nice work.");return}
+    toast("Daily goal hit. Nice work.");
+    var c=document.createElement("canvas");c.className="confetti";c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
+    var g=c.getContext("2d"),cols=["#e8621a","#1d7f55","#2c64c9","#e2a94a","#121417"],ps=[];
+    for(var i=0;i<120;i++)ps.push({x:innerWidth/2+(Math.random()-.5)*160,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,s:Math.random()*6+4,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[i%cols.length]});
+    var t0=performance.now();(function f(t){var dt=(t-t0);g.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore()});if(dt<2200)requestAnimationFrame(f);else c.remove()})(t0);
   }
   function renderWho(){
     var s=$("f-who"),cur=S.who;s.textContent="";
@@ -297,7 +460,9 @@ button,input,select,textarea{font:inherit;color:inherit}
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
+  function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
+  function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
   function renderRows(){
     var R=$("rows");R.textContent="";
@@ -308,8 +473,8 @@ button,input,select,textarea{font:inherit;color:inherit}
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
     rows.slice(0,S.limit).forEach(function(j){
       R.appendChild(el("div",{class:"row",tabindex:"0",role:"button","aria-expanded":S.open===j.id?"true":"false",onclick:function(){S.open=S.open===j.id?null:j.id;renderRows()},onkeydown:function(e){if(e.key==="Enter"){e.preventDefault();this.click()}}},[
-        el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled"]),el("div",{class:"ro",text:j.role||""})]),
-        el("div",{class:"meta"},[el("b",{text:nameOf(j.addedBy).replace(" (you)","")})]),
+        el("div",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled",noContacts(j)?el("span",{class:"nocontact",text:"No contacts yet"}):null]),el("div",{class:"ro",text:j.role||""})]),
+        el("div",{class:"meta"},[el("b",{text:nameOf(j.addedBy).replace(" (you)","")}),(j.contacts&&j.contacts.length)?el("span",{class:"ccount",text:" · "+j.contacts.length+" contact"+(j.contacts.length>1?"s":"")}):null]),
         el("div",{class:"meta when",text:j.interviewAt&&j.status==="interview"?"Interview "+rel(j.interviewAt):"Sent "+(rel(sentAt(j))||rel(j.addedAt))}),
         el("div",{class:"st"},[statusSel(j)])
       ]));
@@ -335,13 +500,58 @@ button,input,select,textarea{font:inherit;color:inherit}
       if(S.isOwner&&j.needsIfeanyi)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
       if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
     }
-    var left=el("div",{},[f,ta,acts]);
+    var left=el("div",{},[f,ta,acts,descBlock(j),contactsBlock(j)]);
     var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
     var h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
     h.forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
     log.appendChild(ol);
     return el("div",{class:"detail"},[left,log]);
+  }
+
+  function descBlock(j){
+    var wrap=el("div",{class:"block"},[el("h3",{text:"Job description"})]);
+    if(S.editDesc===j.id){
+      var t=el("textarea",{id:"desc-"+j.id,class:"desc-edit",placeholder:"Paste the full job description"});t.value=j.description||"";
+      wrap.appendChild(t);
+      wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn small",type:"button",text:"Save description",onclick:function(){api("PATCH","/api/jobs/"+j.id,{description:t.value,note:"Saved the job description"}).then(function(){S.editDesc=null;toast("Saved");refresh()},fail)}}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editDesc=null;renderRows()}})]));
+      return wrap;
+    }
+    if(j.description){var d=el("div",{class:"desc"});d.textContent=j.description;wrap.appendChild(d)}
+    else wrap.appendChild(el("p",{class:"muted-line",text:"Not saved yet. Paste it in so it's here even after the posting comes down."}));
+    if(S.uid)wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit description":"Paste description",onclick:function(){S.editDesc=j.id;renderRows()}})]));
+    return wrap;
+  }
+  function contactForm(j,c){
+    var id=c?c.id:"new",v=c||{};
+    function inp(k,ph,type){var i=el("input",{id:"ct-"+id+"-"+k,placeholder:ph,type:type||"text"});i.value=v[k]||"";return i}
+    var name=inp("name","Full name"),title=inp("title","Title, like Senior Recruiter"),li=inp("linkedin","LinkedIn profile link"),em=inp("email","Work email, if you found it"),src=inp("source","How you found them");
+    var draft=el("textarea",{id:"ct-"+id+"-draft",rows:"3",placeholder:"Optional: a short message Ifeanyi could send"});draft.value=v.draft||"";
+    return el("form",{class:"contact-form",onsubmit:function(e){e.preventDefault();var body={name:name.value,title:title.value,linkedin:li.value,email:em.value,source:src.value,draft:draft.value};if(!body.name.trim()){toast("Add their name");return}
+      (c?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,body):api("POST","/api/jobs/"+j.id+"/contacts",body)).then(function(){S.editContact=null;toast(c?"Contact updated":"Contact added");refresh()},fail)}},[
+      el("div",{class:"cgrid"},[name,title,li,em,src]),draft,
+      el("div",{class:"acts"},[el("button",{class:"btn small",type:"submit",text:c?"Save contact":"Add contact"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editContact=null;renderRows()}})])]);
+  }
+  function contactsBlock(j){
+    var cs=j.contacts||[];
+    var wrap=el("div",{class:"block"},[el("h3",{text:"People to contact ("+cs.length+")"})]);
+    if(!cs.length&&S.editContact!==j.id+":new")wrap.appendChild(el("p",{class:"muted-line",text:"No one yet. Find the recruiter and the hiring manager or team lead."}));
+    cs.forEach(function(c){
+      if(S.editContact===j.id+":"+c.id){wrap.appendChild(contactForm(j,c));return}
+      var links=el("div",{class:"clinks"},[]);
+      if(c.linkedin)links.appendChild(el("a",{href:/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin,target:"_blank",rel:"noopener",text:"LinkedIn"}));
+      if(c.email)links.appendChild(el("span",{class:"sel",text:c.email}));
+      var row=el("div",{class:"crow"},[
+        el("div",{class:"cmain"},[el("b",{text:c.name}),c.title?el("span",{text:" · "+c.title}):null]),
+        links,
+        el("div",{class:"cmeta",text:(c.source?c.source+". ":"")+"Found by "+nameOf(c.addedBy).replace(" (you)","")+", "+rel(c.addedAt)}),
+      ]);
+      if(c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
+      if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}})]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
+      wrap.appendChild(row);
+    });
+    if(S.uid){if(S.editContact===j.id+":new")wrap.appendChild(contactForm(j,null));else wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn accent small",type:"button",text:"Add a person",onclick:function(){S.editContact=j.id+":new";renderRows()}})]))}
+    return wrap;
   }
 
   // add application
@@ -353,13 +563,14 @@ button,input,select,textarea{font:inherit;color:inherit}
     var res=el("select",{id:"a-res"});["Default","AI","Salesforce","Health"].forEach(function(x){res.appendChild(el("option",{text:x}))});
     var st=el("select",{id:"a-st"});ST.forEach(function(s){st.appendChild(el("option",{value:s.k,selected:s.k==="applied"?true:null,text:s.l}))});
     var notes=el("textarea",{id:"a-notes",rows:"1",placeholder:"Anything worth knowing"});
+    var desc=el("textarea",{id:"a-desc",rows:"3",placeholder:"Paste the full job description. Postings come down, this keeps a copy."});
     var warn=el("div"),msg=el("span",{class:"msg"}),force=false;
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:"Already logged: "+j.company+", "+j.role+" ("+L[j.status]+", logged by "+nameOf(j.addedBy).replace(" (you)","")+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
-    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();toast("Logged "+doc.company);form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
+    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var A0=activity(),me0=A0[S.uid],n0=(me0?(me0.apps[dayKey(new Date())]||0):0)+1,left0=target()-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go today.":"Logged "+doc.company+".");form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
       el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Log it right after you submit. Paste the link first, it catches repeats."}),
-      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",src),field("a-res","Resume sent","c2",res),field("a-st","Status","c2",st),field("a-notes","Notes","c4",notes)]),
+      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",src),field("a-res","Resume sent","c2",res),field("a-st","Status","c2",st),field("a-notes","Notes","c4",notes),field("a-desc","Job description","c6",desc)]),
       warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn accent",type:"submit",text:"Save"})])]);
     slot.appendChild(form);url.focus();
   }
@@ -423,12 +634,13 @@ button,input,select,textarea{font:inherit;color:inherit}
   }
   function renderTeam(){
     var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);var g={},t=today(),w=weekStart();
-    S.jobs.forEach(function(j){var k=j.addedBy||"owner";var x=g[k]||(g[k]={t:0,w:0,n:0,r:0,days:new Array(14).fill(0)});var s=sentAt(j);if(!s)return;var d=new Date(s);x.n++;if(d>=t)x.t++;if(d>=w)x.w++;if(REPLIED[j.status])x.r++;var a=Math.round((t-d0(d))/864e5);if(a>=0&&a<14)x.days[13-a]++});
-    Object.keys(S.people).forEach(function(k){if(k==="owner")return;if(!g[k])g[k]={t:0,w:0,n:0,r:0,days:new Array(14).fill(0)}});
-    T.appendChild(el("p",{class:"summary",text:"Daily goal: "+target()+" good applications per person."}));
-    T.appendChild(el("div",{class:"team-row head"},[el("span",{text:"Person"}),el("span",{text:"Today"}),el("span",{text:"This week"}),el("span",{text:"Total"}),el("span",{class:"hide",text:"Replies"}),el("span",{class:"hide",text:"Last 14 days"})]));
-    Object.keys(g).sort(function(a,b){if(a==="owner")return 1;if(b==="owner")return-1;return g[b].w-g[a].w}).forEach(function(k){var x=g[k],mx=Math.max(target(),Math.max.apply(null,x.days));
-      T.appendChild(el("div",{class:"team-row"},[el("span",{class:"name",text:nameOf(k)}),el("span",{class:"n",text:String(x.t)}),el("span",{class:"n",text:String(x.w)}),el("span",{class:"n",text:String(x.n)}),el("span",{class:"n hide",text:x.r+(x.n?" ("+Math.round(x.r/x.n*100)+"%)":"")}),el("div",{class:"bars hide"},x.days.map(function(n,i){return el("i",{class:i===13?"today":null,style:"height:"+Math.max(6,Math.round(n/mx*100))+"%",title:n+" sent"})}))]))});
+    S.jobs.forEach(function(j){var k=j.addedBy||"owner";var x=g[k]||(g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)});var s=sentAt(j);if(!s)return;var d=new Date(s);x.n++;if(d>=t)x.t++;if(d>=w)x.w++;if(REPLIED[j.status])x.r++;var a=Math.round((t-d0(d))/864e5);if(a>=0&&a<14)x.days[13-a]++});
+    Object.keys(S.people).forEach(function(k){if(k==="owner")return;if(!g[k])g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)}});
+    S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){var k=c.addedBy||"owner";if(!g[k])g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)};g[k].c++})});
+    T.appendChild(el("p",{class:"summary",text:"Daily goal: "+target()+" good applications per person. Points this week: 1 per application, 1 per contact found, 3 per reply logged, 10 per interview."}));
+    T.appendChild(el("div",{class:"team-row head"},[el("span",{text:"Person"}),el("span",{text:"Today"}),el("span",{text:"This week"}),el("span",{text:"Total"}),el("span",{class:"hide",text:"Replies"}),el("span",{class:"hide",text:"Contacts"}),el("span",{text:"Points"}),el("span",{class:"hide",text:"Last 14 days"})]));
+    Object.keys(g).sort(function(a,b){if(a==="owner")return 1;if(b==="owner")return-1;var AA=activity();return weekPoints(AA[b])-weekPoints(AA[a])}).forEach(function(k){var x=g[k],mx=Math.max(target(),Math.max.apply(null,x.days));
+      T.appendChild(el("div",{class:"team-row"},[el("span",{class:"name",text:nameOf(k)}),el("span",{class:"n",text:String(x.t)}),el("span",{class:"n",text:String(x.w)}),el("span",{class:"n",text:String(x.n)}),el("span",{class:"n hide",text:x.r+(x.n?" ("+Math.round(x.r/x.n*100)+"%)":"")}),el("span",{class:"n hide",text:String(x.c)}),el("span",{class:"n pts",text:String(weekPoints(activity()[k]))}),el("div",{class:"bars hide"},x.days.map(function(n,i){return el("i",{class:i===13?"today":null,style:"height:"+Math.max(6,Math.round(n/mx*100))+"%",title:n+" sent"})}))]))});
   }
 
   // brief
@@ -451,6 +663,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
   // events
   ["apps","replies","team","brief"].forEach(function(t){$("tab-"+t).onclick=function(){S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  $("ping-btn").onclick=function(){S.pinging=!S.pinging;$("ping-slot").textContent="";renderPing()};
   $("add-btn").onclick=function(){S.adding=!S.adding;$("add-slot").textContent="";render()};
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
