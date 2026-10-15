@@ -182,7 +182,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .res-chip:hover{color:var(--fg)}.res-chip.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .res-preview{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
 .res-preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.modal-wrap{position:fixed;inset:0;z-index:50;background:rgba(10,12,15,.45);display:grid;place-items:center;padding:16px;animation:fadein .15s ease}
+.modal-wrap{position:fixed;inset:0;z-index:50;background:rgba(10,12,15,.45);display:grid;place-items:center;padding:16px}
 .modal{width:min(440px,100%);background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
 .modal h3{font-size:18px;letter-spacing:-.015em;margin:0 0 8px}.modal p{margin:0 0 18px;color:var(--muted);font-size:14.5px;line-height:1.55}
 .modal-acts{display:flex;justify-content:flex-end;gap:8px}
@@ -434,6 +434,37 @@ body{background:var(--page)}
 .brow-when{font-size:13px;color:var(--faint)}.brow-mine{font-size:12px;font-weight:600;color:var(--accent)}
 .status-pill{justify-self:start;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--soft2);color:var(--muted)}
 .status-pill.s-applied{background:var(--blue-wash);color:var(--blue)}.status-pill.s-interview,.status-pill.s-offer{background:var(--green-wash);color:var(--green)}.status-pill.s-heard{background:var(--amber-wash);color:var(--amber)}
+/* how we work */
+#brief-bar{border:0;padding:0}
+.hw-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:22px 0 18px;width:100%}
+.hw-head h1{font-size:30px;letter-spacing:-.03em;margin:0}.hw-head p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.hw-acts{display:flex;gap:8px}.hw-acts a.btn{text-decoration:none}
+.hw-edit-acts{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:10px}.hw-edit-acts .muted-line{margin-right:auto}
+.guide{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:28px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;outline:none}
+.guide:focus-visible{border-color:var(--accent)}
+@media (max-width:860px){.guide{grid-template-columns:1fr}.g-text{order:2}}
+.g-text{display:grid;gap:10px;align-content:center}
+.g-n{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+.g-text h3{font-size:24px;letter-spacing:-.025em;line-height:1.2;margin:0}
+.g-text p{margin:0;color:var(--muted);font-size:15.5px;line-height:1.6;min-height:75px}
+.g-nav{display:flex;gap:8px;margin-top:6px}
+.g-dots{display:flex;gap:6px;margin-top:4px}.g-dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--soft2);cursor:pointer}.g-dots button.on{background:var(--accent);width:22px;border-radius:99px}
+.g-shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--soft);aspect-ratio:16/10}
+.g-shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.hw-body{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;margin-top:40px}
+@media (max-width:860px){.hw-body{grid-template-columns:1fr;gap:10px}.hw-toc{display:none}}
+.hw-toc{position:sticky;top:20px;align-self:start;display:grid;gap:2px}
+.hw-toc-t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.hw-toc a{font-size:14px;color:var(--muted);text-decoration:none;padding:5px 0 5px 12px;border-left:2px solid var(--line)}.hw-toc a:hover{color:var(--fg);border-left-color:var(--accent)}
+.brief{max-width:740px;padding:0}
+.brief h2{font-size:21px;letter-spacing:-.02em;margin:40px 0 10px;scroll-margin-top:16px}
+.brief h2:first-child{margin-top:0}
+.brief p,.brief ul{font-size:15.5px;line-height:1.7}
+.brief li{margin:3px 0}.brief li::marker{color:var(--faint)}
+.brief strong,.brief b{font-weight:650}
+.brief blockquote{margin:14px 0;padding:2px 0 2px 16px;background:none;border-left:3px solid var(--accent);border-radius:0;font-size:15.5px;font-weight:500}
+.brief table{font-size:14.5px;margin:10px 0}.brief td{padding:9px 14px 9px 0}.brief td:first-child{width:36%;font-weight:500;color:var(--muted)}
+.hw-upd{font-size:12.5px;color:var(--faint);margin:40px 0 0}
 </style>
 
 <div class="wrap">
@@ -1339,18 +1370,35 @@ body{background:var(--page)}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
   function inline(s){s=esc(s);s=s.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');s=s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');return s.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")}
   function md(text){var o=[],ls=String(text||"").split(/\r?\n/),i=0;while(i<ls.length){var l=ls[i];if(/^##\s+/.test(l)){o.push("<h2>"+inline(l.replace(/^##\s+/,""))+"</h2>");i++;continue}if(/^[-*]\s+/.test(l)){var it=[];while(i<ls.length&&/^[-*]\s+/.test(ls[i])){it.push("<li>"+inline(ls[i].replace(/^[-*]\s+/,""))+"</li>");i++}o.push("<ul>"+it.join("")+"</ul>");continue}if(/^\|/.test(l)){var rs=[];while(i<ls.length&&/^\|/.test(ls[i])){var c=ls[i].replace(/^\||\|$/g,"").split("|");if(!/^\s*-+\s*$/.test(c[0]))rs.push("<tr>"+c.map(function(x){return"<td>"+inline(x.trim())+"</td>"}).join("")+"</tr>");i++}o.push('<div class="table-x"><table>'+rs.join("")+"</table></div>");continue}if(/^>\s?/.test(l)){o.push("<blockquote>"+inline(l.replace(/^>\s?/,""))+"</blockquote>");i++;continue}if(!l.trim()){i++;continue}var p=[];while(i<ls.length&&ls[i].trim()&&!/^(##|[-*]\s|\||>)/.test(ls[i])){p.push(ls[i]);i++}o.push("<p>"+inline(p.join(" "))+"</p>")}return o.join("")}
+  var GUIDE=[["01-home", "Your week at a glance", "Your goal, your progress and what to do next sit at the top. Weeks run Monday to Sunday."], ["02-log", "Log a job by pasting it", "On the posting, press Cmd+A, then Cmd+C. Paste it into Log an application. AI fills in the details and picks the resume."], ["03-repeat", "Repeats get flagged", "If the job is already on the list, you'll see a warning. Companies Ifeanyi applied to can still be logged, but they don't count toward your goal."], ["04-steps", "Apply in three steps", "Save and start applying opens this checklist. The orange step is next: resume, cover letter, then I applied."], ["05-resume", "Edit the resume like a Word doc", "Pick a version, click into the page and edit. Save as template to reuse it on other jobs."], ["06-cover", "Cover letters, only when asked", "Write with AI drafts one from the job description. Read it, edit it, then download the PDF."], ["07-reply", "When a company writes back", "Change the job's status. A box opens to text Ifeanyi what they said. Never reply to the company yourself."], ["08-team", "Check the team list first", "All team applications shows every job on the board, Ifeanyi's included. If it's there, it's taken."], ["09-week", "Track your week", "My week shows applications, contacts and points against your goal."]];
+  function guideDeck(){
+    var i=Math.min(S.slide||0,GUIDE.length-1),g=GUIDE[i];
+    var img=el("img",{src:"guide/"+g[0]+".jpg",alt:g[1],loading:"lazy"});
+    function go(n){S.slide=(n+GUIDE.length)%GUIDE.length;var old=$("guide");if(old)old.replaceWith(guideDeck())}
+    var dots=el("div",{class:"g-dots"},GUIDE.map(function(_,k){return el("button",{type:"button",class:k===i?"on":null,"aria-label":"Slide "+(k+1),onclick:function(){go(k)}})}));
+    var box=el("section",{class:"guide",id:"guide",tabindex:"0","aria-label":"How to use the board",onkeydown:function(e){if(e.key==="ArrowRight"){e.preventDefault();go(i+1)}if(e.key==="ArrowLeft"){e.preventDefault();go(i-1)}}},[
+      el("div",{class:"g-text"},[el("span",{class:"g-n",text:String(i+1).padStart(2,"0")+" / "+String(GUIDE.length).padStart(2,"0")}),el("h3",{text:g[1]}),el("p",{text:g[2]}),
+        el("div",{class:"g-nav"},[el("button",{type:"button",class:"btn ghost small","aria-label":"Previous",text:"\u2190",onclick:function(){go(i-1)}}),el("button",{type:"button",class:"btn small",text:i===GUIDE.length-1?"Start over":"Next \u2192",onclick:function(){go(i+1)}})]),dots]),
+      el("div",{class:"g-shot"},[img])]);
+    return box;
+  }
   function renderBrief(){
     var bar=$("brief-bar"),B=$("brief");bar.textContent="";B.textContent="";
     if(!S.briefLoaded&&S.db){B.appendChild(el("div",{class:"empty"},[el("p",{text:"Loading."})]));return}
-    var b=S.brief;bar.appendChild(el("span",{class:"meta",text:b&&b.updatedAt?"Updated "+rel(b.updatedAt):""}));
-    if(S.isOwner&&!S.editingBrief)bar.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editingBrief=true;renderBrief()}}));
-    if(S.editingBrief){var ta=el("textarea",{id:"brief-text","aria-label":"How we work text"});ta.value=(b&&b.text)||"";var tg=el("input",{id:"brief-target",type:"number",min:"1",max:"100",value:String(target()),style:"width:76px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 10px"});
-      
-      bar.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingBrief=false;renderBrief()}}));
-      bar.appendChild(el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PUT","/api/brief",{text:ta.value,dailyTarget:Number(tg.value)||10}).then(function(){S.editingBrief=false;toast("Saved");refresh()},fail)}}));
+    var b=S.brief;
+    var head=el("div",{class:"hw-head"},[el("div",{},[el("h1",{text:"How we work"}),el("p",{text:"Flip through the guide once, then keep the rules below handy."})]),
+      el("div",{class:"hw-acts"},[el("a",{class:"btn ghost small",href:"guide/Apply-Yourself-Guide.pptx",download:"Apply-Yourself-Guide.pptx",text:"Download PowerPoint"}),S.isOwner&&!S.editingBrief?el("button",{class:"btn ghost small",type:"button",text:"Edit rules",onclick:function(){S.editingBrief=true;renderBrief()}}):null])]);
+    bar.appendChild(head);
+    if(S.editingBrief){var ta=el("textarea",{id:"brief-text","aria-label":"How we work text"});ta.value=(b&&b.text)||"";
+      B.appendChild(el("div",{class:"hw-edit-acts"},[el("span",{class:"muted-line",text:"Markdown: ## for a section, - for a bullet, **bold**, | for a table."}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingBrief=false;renderBrief()}}),el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PUT","/api/brief",{text:ta.value,dailyTarget:(b&&b.dailyTarget)||10}).then(function(){S.editingBrief=false;toast("Saved");refresh()},fail)}})]));
       B.appendChild(el("div",{class:"brief-edit"},[ta]));return}
-    if(!b||!b.text){B.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here yet"})]));return}
-    var d=el("div",{class:"brief"});d.innerHTML=md(b.text);B.appendChild(d);
+    B.appendChild(guideDeck());
+    if(!b||!b.text)return;
+    var d=el("div",{class:"brief"});d.innerHTML=md(b.text);
+    var toc=el("nav",{class:"hw-toc","aria-label":"Sections"},[el("span",{class:"hw-toc-t",text:"On this page"})]);
+    [].slice.call(d.querySelectorAll("h2")).forEach(function(h,k){h.id="hw-"+k;toc.appendChild(el("a",{href:"#hw-"+k,text:h.textContent,onclick:function(e){e.preventDefault();h.scrollIntoView({behavior:"smooth",block:"start"})}}))});
+    B.appendChild(el("div",{class:"hw-body"},[toc,d]));
+    if(b.updatedAt)B.appendChild(el("p",{class:"hw-upd",text:"Rules updated "+rel(b.updatedAt)+"."}));
   }
   function renderCoverView(V){
     var c=S.cover,actions=el("div",{class:"acts"});
