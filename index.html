@@ -166,18 +166,26 @@ button,input,select,textarea{font:inherit;color:inherit}
 .muted-line{color:var(--muted);font-size:14px}
 .desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
 .desc-edit{min-height:180px}
-.steps{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:18px}
-.steps-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.steps-head h3{font-size:16px}.steps-head span{font-size:13px;color:var(--muted)}
-.step-list{list-style:none;margin:0;padding:0}
-.step{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
-.step:first-child{border-top:0}
-.step-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--soft2);color:var(--muted)}
+.steps{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px 20px}
+.steps-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}.steps-head h3{font-size:17px;letter-spacing:-.01em}.steps-head span{font-size:13px;color:var(--muted)}
+.step-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:1100px){.step-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.step-list{grid-template-columns:1fr}}
+.step{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--bg);transition:border-color .2s,box-shadow .2s}
+.step.cur{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.step.done{background:transparent}
+.step-top{display:flex;align-items:center;gap:10px}.step-top b{font-size:15px}
+.step.done .step-top b{color:var(--muted)}
+.step-n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--soft2);color:var(--muted)}
 .step.cur .step-n{background:var(--accent);color:#fff}
 .step.done .step-n{background:var(--green-wash);color:var(--green)}
-.step-body{display:grid;gap:2px}.step-body b{font-size:14.5px}.step-body span{font-size:13px;color:var(--muted)}
-.step.done .step-body b{color:var(--muted)}
-.step-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.step-acts a.btn{text-decoration:none}
-@media (max-width:640px){.step{grid-template-columns:30px minmax(0,1fr)}.step-acts{grid-column:2;justify-content:flex-start}}
+.step-sub{margin:0;font-size:13px;line-height:1.45;color:var(--muted)}
+.step-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px}.step-acts a.btn{text-decoration:none}
+.res-chips{display:flex;flex-wrap:wrap;gap:6px}
+.res-chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer}
+.res-chip:hover{color:var(--fg)}.res-chip.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.res-preview{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.res-preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .fromif{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:99px;padding:2px 8px;vertical-align:middle}
 .send-row{display:inline-flex;gap:6px;align-items:center}.send-sel{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 10px;font-size:13px}
 .edit-pick{display:flex;justify-content:space-between;align-items:center;gap:12px 18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 16px}
@@ -263,7 +271,7 @@ body{background:var(--page)}
 .row:last-child{border-bottom:0}
 .co-av{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:13px;color:hsl(var(--h),55%,32%);background:hsl(var(--h),70%,93%)}
 .ccount{color:var(--muted);font-weight:400}
-.detail{padding:8px 16px 24px 72px;background:var(--soft)}
+.detail{padding:12px 16px 24px;background:var(--soft)}
 @media (max-width:760px){.row{grid-template-columns:36px minmax(0,1fr) 120px;gap:4px 12px}.row .meta{grid-column:2}.row .meta.when{display:none}.row .st{grid-column:3;grid-row:1}.detail{padding:8px 16px 20px}}
 .filters{padding-block:10px 12px}
 .panel{border-radius:18px;background:var(--card)}
@@ -777,33 +785,50 @@ body{background:var(--page)}
       if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
     }
     var saved=j.status==="saved";
-    var left=el("div",{},[stepsCard(j),f,ta,acts,textBlock(j),followBlock(j),saved?null:resumeBlock(j),saved&&!j.cover?null:coverBlock(j),descBlock(j),contactsBlock(j)]);
+    var left=el("div",{},[f,ta,acts,textBlock(j),followBlock(j),saved?null:resumeBlock(j),saved&&!j.cover?null:coverBlock(j),descBlock(j),contactsBlock(j)]);
     var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
     var h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
     h.forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
     log.appendChild(ol);
-    return el("div",{class:"detail"},[left,log]);
+    return el("div",{class:"detail"},[stepsCard(j),left,log]);
   }
 
   function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
   function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
-  function resumeFor(j){return Promise.all([api("GET","/api/resume/job/"+j.id),api("GET","/api/resume/base")]).then(function(r){return (r[0]&&r[0].md)||variantMd((r[1]&&r[1].md)||"",j.resume)})}
+  function baseMd(){return S.baseMd?Promise.resolve(S.baseMd):api("GET","/api/resume/base").then(function(b){S.baseMd=(b&&b.md)||"";return S.baseMd})}
+  function mdFor(j,k){if(k==="Tailored")return api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return variantMd(b,j.resume)})});return baseMd().then(function(b){return variantMd(b,k)})}
+  function pickedRes(j){S.pickRes=S.pickRes||{};return S.pickRes[j.id]||(j.tailoredAt?"Tailored":(VARIANTS[j.resume]?j.resume:"Default"))}
+  function resLabel(k){return k==="Tailored"?"Edited copy":VARIANTS[k].label}
   function stepsCard(j){
     if(j.status!=="saved"||!S.uid)return null;
-    var mem=stepState(j),vname=(VARIANTS[j.resume]||VARIANTS.Default).label;
+    var mem=stepState(j),pick=pickedRes(j);
     var done=[!!j.description,!!(j.tailoredAt||mem.resume),!!(j.cover||mem.cover),false];
     var cur=done.indexOf(false);
-    function step(i,title,sub,acts){return el("li",{class:"step"+(done[i]?" done":"")+(i===cur?" cur":"")},[el("span",{class:"step-n","aria-hidden":"true",text:done[i]?"\u2713":String(i+1)}),el("div",{class:"step-body"},[el("b",{text:title}),el("span",{text:sub})]),el("div",{class:"step-acts"},acts)])}
-    var B=function(t,fn,cls){return el("button",{class:"btn small "+(cls||"ghost"),type:"button",text:t,onclick:fn})};
+    var B=function(t,fn,on){return el("button",{class:"btn small "+(on?"accent":"ghost"),type:"button",text:t,onclick:fn})};
+    function step(i,title,sub,body,acts){return el("li",{class:"step"+(done[i]?" done":"")+(i===cur?" cur":"")},[
+      el("div",{class:"step-top"},[el("span",{class:"step-n","aria-hidden":"true",text:done[i]?"\u2713":String(i+1)}),el("b",{text:title})]),
+      el("p",{class:"step-sub",text:sub}),body||null,el("div",{class:"step-acts"},acts)])}
+    // resume versions
+    var keys=Object.keys(VARIANTS).concat(j.tailoredAt?["Tailored"]:[]);
+    var chips=el("div",{class:"res-chips",role:"radiogroup","aria-label":"Resume version"},keys.map(function(k){return el("button",{type:"button",role:"radio","aria-checked":k===pick?"true":"false",class:"res-chip"+(k===pick?" on":""),text:resLabel(k),onclick:function(){S.pickRes[j.id]=k;if(k!=="Tailored"&&k!==j.resume){j.resume=k;api("PATCH","/api/jobs/"+j.id,{resume:k}).catch(function(){})}renderRows()}})}));
+    var suggested=VARIANTS[j.resume]&&!j.tailoredAt&&!(S.pickRes&&S.pickRes[j.id])?" Suggested: "+resLabel(j.resume)+".":"";
     var list=el("ol",{class:"step-list"},[
-      step(0,"Job description",done[0]?"Saved. AI uses it for the resume and cover letter.":"Paste it so the AI tools can read it.",done[0]?[]:[B("Paste description",function(){S.editDesc=j.id;renderRows()},i0())]),
-      step(1,"Resume",j.tailoredAt?"Edited copy for this job is ready.":"Use the "+vname+" resume. Edit a copy if the posting asks for something it doesn't say.",[B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)}),B("Download PDF",function(){resumeFor(j).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===1?"accent":"ghost")]),
-      step(2,"Cover letter",j.cover?"Written. It's below if you want to read or change it.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")})]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})}):null,B("Not needed",function(){markStep(j,"cover")})]),
-      step(3,"Apply",cur===3?"You're set. Apply on the company's site, then come back and mark it.":"Finish the steps above, then apply.",[j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;refresh()},fail)},cur===3?"accent":"ghost")])
+      step(0,"Job description",done[0]?"Saved. The AI tools read it for the resume and cover letter.":"Paste it so the AI tools can read it.",null,done[0]?[]:[B("Paste description",function(){S.editDesc=j.id;renderRows()},cur===0)]),
+      step(1,"Resume","Pick a version, preview it, then download."+suggested,chips,[
+        B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
+        B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===1),
+        B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
+      step(2,"Cover letter",j.cover?"Written. Read or change it further down.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",null,
+        j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===2)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})}):null,B("Not needed",function(){markStep(j,"cover")})]),
+      step(3,"Apply",cur===3?"You're set. Apply on their site, then come back and mark it.":"Finish the steps before this, then apply.",null,[
+        j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,
+        B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;S.preview=null;refresh()},fail)},cur===3)])
     ]);
-    function i0(){return cur===0?"accent":"ghost"}
-    return el("div",{class:"steps"},[el("div",{class:"steps-head"},[el("h3",{text:"Apply to this job"}),el("span",{text:done.filter(Boolean).length+" of 3 ready"})]),list]);
+    var card=el("div",{class:"steps"},[el("div",{class:"steps-head"},[el("h3",{text:"Apply to this job"}),el("span",{text:done.filter(Boolean).length+" of 3 ready"})]),list]);
+    if(S.preview===j.id){var box=el("div",{class:"paper-box"});card.appendChild(el("div",{class:"res-preview"},[el("div",{class:"res-preview-head"},[el("b",{text:resLabel(pick)+" resume"}),el("button",{class:"btn ghost small",type:"button",text:"Close preview",onclick:function(){S.preview=null;renderRows()}})]),box]));
+      mdFor(j,pick).then(function(md){previewInto(box,md)},fail)}
+    return card;
   }
   function textBlock(j){
     if(S.texting!==j.id||S.isOwner)return null;
