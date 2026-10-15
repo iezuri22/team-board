@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<script>try{var t=localStorage.getItem("tb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -265,6 +266,8 @@ body{background:var(--page)}
 .sug-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding-top:10px;border-top:1px solid var(--line)}
 .sug-text{font-size:14.5px;line-height:1.5}
 .sug-kw,.sug-note{font-size:14px;color:var(--muted)}.sug-kw b{color:var(--fg)}
+.theme-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.theme-btn:hover{color:var(--fg)}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -281,6 +284,7 @@ body{background:var(--page)}
     </nav>
     <div class="spacer"></div>
     <button class="btn accent small" id="ping-btn" type="button" hidden>Reach Ifeanyi now</button>
+    <button class="theme-btn" id="theme-btn" type="button" aria-label="Switch light or dark mode"></button>
     <div class="who-me" id="who-me"></div>
   </header>
   <div id="banner"></div>
@@ -853,6 +857,11 @@ body{background:var(--page)}
 
   // events
   ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  // theme toggle: system -> light -> dark
+  function themeNow(){return document.documentElement.getAttribute("data-theme")||"system"}
+  function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="light"?"Light":t==="dark"?"Dark":"Auto";$("theme-btn").title="Theme: "+(t==="system"?"follows your device":t)+". Click to change."}
+  $("theme-btn").onclick=function(){var t=themeNow(),n=t==="system"?"light":t==="light"?"dark":"system";if(n==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",n);try{if(n==="system")localStorage.removeItem("tb-theme");else localStorage.setItem("tb-theme",n)}catch(e){}paintTheme()};
+  paintTheme();
   $("ping-btn").onclick=function(){S.pinging=!S.pinging;$("ping-slot").textContent="";renderPing()};
   $("add-btn").onclick=function(){S.adding=!S.adding;$("add-slot").textContent="";render()};
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
