@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<script>try{var t=localStorage.getItem("tb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<script>var t="light";try{if(localStorage.getItem("tb-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)</script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -21,14 +21,10 @@
   --red:#b93a2b; --red-wash:rgba(185,58,43,.08); --amber:#a86a12; --amber-wash:rgba(168,106,18,.10);
   --font:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f; --soft2:#22262c; --page:#0c0e11; --card:#14171b;
-  --accent:#f07a3e; --accent-wash:rgba(240,122,62,.12); --green:#43c08a; --green-wash:rgba(67,192,138,.13); --blue:#77a4ff; --blue-wash:rgba(119,164,255,.12);
-  --red:#ef7565; --red-wash:rgba(239,117,101,.12); --amber:#e2a94a; --amber-wash:rgba(226,169,74,.13); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1114; --fg:#eceef1; --muted:#9aa1ab; --faint:#6d747e; --line:#23272d; --soft:#171a1f; --soft2:#22262c; --page:#0c0e11; --card:#14171b;
-  --accent:#f07a3e; --accent-wash:rgba(240,122,62,.12); --green:#43c08a; --green-wash:rgba(67,192,138,.13); --blue:#77a4ff; --blue-wash:rgba(119,164,255,.12);
-  --red:#ef7565; --red-wash:rgba(239,117,101,.12); --amber:#e2a94a; --amber-wash:rgba(226,169,74,.13); color-scheme:dark}
+  --bg:#1c1f24; --fg:#f2f4f6; --muted:#c3c8cf; --faint:#9ba2ac; --line:#3a3f47; --soft:#262a30; --soft2:#30353c; --page:#181b1f; --card:#23272d;
+  --accent:#f2844a; --accent-wash:rgba(242,132,74,.16); --green:#55c995; --green-wash:rgba(85,201,149,.16); --blue:#8cb2ff; --blue-wash:rgba(140,178,255,.15);
+  --red:#f28a7b; --red-wash:rgba(242,138,123,.15); --amber:#e8b45c; --amber-wash:rgba(232,180,92,.16); color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -408,6 +404,25 @@ body{background:var(--page)}
 .crow{grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
 .crow>.cmain{grid-column:1}.crow>.clinks{grid-column:2;grid-row:1;justify-content:flex-end}
 .crow>*:not(.cmain):not(.clinks){grid-column:1/-1}
+/* contacts tab */
+.ct-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:18px 0 14px}
+.ct-head h2{font-size:24px;letter-spacing:-.025em}
+.ct-tools{display:flex;gap:8px;align-items:center}.ct-tools input{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;min-width:260px;font-size:14px}
+.ct-list{border-top:1px solid var(--line)}
+.ct-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.1fr) minmax(0,1fr) minmax(0,1.1fr);gap:6px 20px;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line)}
+@media (max-width:900px){.ct-row{grid-template-columns:1fr 1fr}}
+.ct-who,.ct-job,.ct-meta{display:grid;gap:2px;min-width:0}.ct-who b{font-size:15px}.ct-who span,.ct-job span{font-size:13.5px;color:var(--muted)}
+.ct-job .linkish{text-align:left;font-weight:600;text-decoration:none;color:var(--fg);font-size:14.5px}.ct-job .linkish:hover{color:var(--accent)}
+.ct-links{display:flex;flex-direction:column;gap:2px;font-size:13.5px;min-width:0}.ct-links a{color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-meta span{font-size:12.5px;color:var(--faint)}.ct-meta .ct-last{color:var(--muted)}
+/* every application list for teammates */
+.board-note{font-size:13.5px;color:var(--muted);padding:10px 4px 12px}
+.brow{display:grid;grid-template-columns:36px minmax(0,1fr) 120px 110px 50px;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+@media (max-width:700px){.brow{grid-template-columns:36px minmax(0,1fr) 96px}.brow-when,.brow-mine{display:none}}
+.brow-main{display:grid;min-width:0}.brow-main b{font-size:14.5px}.brow-main span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow-when{font-size:13px;color:var(--faint)}.brow-mine{font-size:12px;font-weight:600;color:var(--accent)}
+.status-pill{justify-self:start;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--soft2);color:var(--muted)}
+.status-pill.s-applied{background:var(--blue-wash);color:var(--blue)}.status-pill.s-interview,.status-pill.s-offer{background:var(--green-wash);color:var(--green)}.status-pill.s-heard{background:var(--amber-wash);color:var(--amber)}
 </style>
 
 <div class="wrap">
@@ -417,6 +432,7 @@ body{background:var(--page)}
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
       <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
+      <button role="tab" id="tab-contacts" aria-selected="false" hidden>Contacts</button>
       <button role="tab" id="tab-resume" aria-selected="false">Resume</button>
       <button role="tab" id="tab-brief" aria-selected="false">How we work</button>
     </nav>
@@ -435,7 +451,7 @@ body{background:var(--page)}
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="board">All team applications</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -451,6 +467,8 @@ body{background:var(--page)}
   </div>
 
   <div id="view-team" hidden><div id="team"></div></div>
+
+  <div id="view-contacts" hidden><div id="contacts-view"></div></div>
 
   <div id="view-resume" hidden><div id="resume-view"></div></div>
 
@@ -719,11 +737,37 @@ body{background:var(--page)}
     col.appendChild(box);previewInto(box,j.cover.text,true,edited,build);
   }
 
+  function allContacts(){var out=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){var first=c.name.split(" ")[0];
+      var last=(j.history||[]).filter(function(h){return h.text.indexOf("Found a contact")!==0&&(h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0))}).pop();
+      out.push({c:c,j:j,last:last})})});return out.sort(function(a,b){return String(b.c.addedAt||"").localeCompare(String(a.c.addedAt||""))})}
+  function renderContacts(){
+    var V=$("contacts-view");if(V.querySelector("#ct-q")&&document.activeElement&&document.activeElement.id==="ct-q")return;V.textContent="";
+    var all=allContacts(),q=el("input",{id:"ct-q",type:"search",placeholder:"Search name, company or title","aria-label":"Search contacts"});q.value=S.ctq||"";
+    var list=el("div",{class:"ct-list"});
+    function lnk(u){return /^https?:/.test(u)?u:"https://"+u}
+    function draw(){list.textContent="";var t=norm(q.value);S.ctq=q.value;
+      var rows=all.filter(function(x){return !t||norm(x.c.name+" "+(x.c.title||"")+" "+x.j.company+" "+x.j.role).indexOf(t)>=0});
+      if(!rows.length){list.appendChild(el("div",{class:"empty"},[el("h3",{text:all.length?"No one matches":"No contacts yet"}),el("p",{text:all.length?"Try a different search.":"When anyone adds a person to a job, they show up here."})]));return}
+      rows.forEach(function(x){var c=x.c,j=x.j;
+        list.appendChild(el("div",{class:"ct-row"},[
+          el("div",{class:"ct-who"},[el("b",{text:c.name}),c.title?el("span",{text:c.title}):null]),
+          el("div",{class:"ct-job"},[el("button",{type:"button",class:"linkish",text:j.company,onclick:function(){S.tab="apps";S.status="all";$("f-status").value="all";S.open=j.id;render();setTimeout(function(){var r=document.querySelector('.row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"center"})},50)}}),el("span",{text:j.role})]),
+          el("div",{class:"ct-links"},[c.linkedin?el("a",{href:lnk(c.linkedin),target:"_blank",rel:"noopener",text:"LinkedIn"}):null,c.email?el("a",{href:"mailto:"+c.email,text:c.email}):null]),
+          el("div",{class:"ct-meta"},[el("span",{text:"Found by "+nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")}),x.last?el("span",{class:"ct-last",text:x.last.text+" \u00b7 "+rel(x.last.at)}):null])
+        ]))})}
+    q.addEventListener("input",draw);
+    var csv=function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Source"]].concat(all.map(function(x){return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",x.c.source||""]}));
+      var txt=rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\n");
+      var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));a.download="team-board-contacts.csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},100)};
+    V.appendChild(el("div",{class:"ct-head"},[el("div",{},[el("h2",{text:"Contacts"}),el("p",{class:"muted-line",text:all.length+" "+(all.length===1?"person":"people")+" the team found, across every job."})]),el("div",{class:"ct-tools"},[q,el("button",{class:"btn ghost small",type:"button",text:"Export CSV",onclick:csv,disabled:all.length?null:true})])]));
+    V.appendChild(list);draw();
+  }
+
   // ---------- render ----------
   function render(){
-    ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
+    ["apps","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
-    $("tab-team").textContent=S.isOwner?"Team":"My week";
+    $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=!S.isOwner;if(S.tab==="contacts"&&!S.isOwner)S.tab="apps";
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
     $("add-btn").hidden=!canAdd;$("reply-btn").hidden=!canAdd;
@@ -731,6 +775,7 @@ body{background:var(--page)}
     if(S.tab==="replies"){renderReplyAdd();renderReplies()}
     if(S.tab==="team")renderTeam();
     if(S.tab==="brief")renderBrief();
+    if(S.tab==="contacts")renderContacts();
     if(S.tab==="resume"&&!S.resumeShown){S.resumeShown=true;renderResumeTab()}
   }
   function renderPing(){
@@ -868,6 +913,7 @@ body{background:var(--page)}
     var t0=performance.now();(function f(t){var dt=(t-t0);g.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore()});if(dt<2200)requestAnimationFrame(f);else c.remove()})(t0);
   }
   function renderWho(){
+    var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;
     var s=$("f-who"),cur=S.who;s.textContent="";s.hidden=!S.isOwner;if(!S.isOwner){S.who="all";return}
     var ids={};S.jobs.forEach(function(j){var k=j.addedBy||"owner";ids[k]=(ids[k]||0)+1});
     s.appendChild(el("option",{value:"all",text:"Everyone ("+S.jobs.length+")"}));
@@ -879,10 +925,18 @@ body{background:var(--page)}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
+  function renderBoardList(R){
+    var q=norm(S.q),items=S.jobs.map(function(j){return {company:j.company,role:j.role,status:j.status,at:j.appliedAt||j.addedAt,mine:true}}).concat((S.taken||[]).map(function(t){return {company:t.company,role:t.role,status:t.status||(t.sent?"applied":"saved"),at:t.at}}));
+    items=items.filter(function(x){return !q||norm(x.company+" "+x.role).indexOf(q)>=0}).sort(function(a,b){return a.company.localeCompare(b.company)||String(b.at||"").localeCompare(String(a.at||""))});
+    R.appendChild(el("div",{class:"board-note",text:items.length+" applications from the whole team, Ifeanyi's included. Search before you apply. Anything here is taken."}));
+    if(!items.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Not on the board yet, so it's free to apply."})]));return}
+    items.forEach(function(x){R.appendChild(el("div",{class:"brow"},[el("div",{class:"co-av",style:"--h:"+hue(x.company),text:initials(x.company)}),el("div",{class:"brow-main"},[el("b",{text:x.company}),el("span",{text:x.role})]),el("span",{class:"brow-when",text:x.at?new Date(x.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""}),el("span",{class:"status-pill s-"+x.status,text:L[x.status]||x.status}),x.mine?el("span",{class:"brow-mine",text:"Yours"}):el("span")]))});
+  }
   function renderRows(){
     var R=$("rows");R.textContent="";
     if(!S.loaded){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Loading the list"})]));return}
     if(!S.db)return;
+    if(S.status==="board"){renderBoardList(R);return}
     if(!S.jobs.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing logged yet"}),el("p",{text:"Log the first application and it shows up here."})]));return}
     var rows=filtered();
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
@@ -1287,11 +1341,11 @@ body{background:var(--page)}
   }
 
   // events
-  ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  ["apps","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
-  function themeNow(){return document.documentElement.getAttribute("data-theme")||"system"}
-  function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="light"?"Light":t==="dark"?"Dark":"Auto";$("theme-btn").title="Theme: "+(t==="system"?"follows your device":t)+". Click to change."}
-  $("theme-btn").onclick=function(){var t=themeNow(),n=t==="system"?"light":t==="light"?"dark":"system";if(n==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",n);try{if(n==="system")localStorage.removeItem("tb-theme");else localStorage.setItem("tb-theme",n)}catch(e){}paintTheme()};
+  function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
+  function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="dark"?"Dark":"Light";$("theme-btn").title=(t==="dark"?"Dark mode":"Light mode")+". Click to switch."}
+  $("theme-btn").onclick=function(){var n=themeNow()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("tb-theme",n)}catch(e){}paintTheme()};
   paintTheme();
   $("ping-btn").onclick=function(){S.pinging=!S.pinging;$("ping-slot").textContent="";renderPing()};
   $("add-btn").onclick=function(){S.adding=!S.adding;$("add-slot").textContent="";render()};
@@ -1299,7 +1353,7 @@ body{background:var(--page)}
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","team","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","team","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
