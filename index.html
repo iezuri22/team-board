@@ -170,8 +170,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .cv-edit.tall{min-height:440px}
 .cv-show{max-height:none}
 .cv-changes{margin:8px 0 10px;padding-left:18px;font-size:13.5px;color:var(--muted)}
-.cv-tpl{margin-top:34px;padding-top:20px;border-top:1px solid var(--line)}
-.cv-tpl .acts{display:flex;gap:8px;margin-top:10px}
+.cv-wrap{max-width:860px;margin:0 auto}
+.doc-pick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px}
+.doc-pick button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+.doc-pick button:hover{color:var(--fg)}
+.doc-pick button.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .crow{padding:10px 0;border-bottom:1px solid var(--line);display:grid;gap:4px}
 .crow:last-of-type{border-bottom:0}
 .cmain b{font-weight:600}.cmain span{color:var(--muted)}
@@ -447,7 +450,7 @@ body{background:var(--page)}
       btn("Link","Add a link",function(){var u=window.prompt("Link address");if(u&&/^(https?:\/\/|mailto:)/i.test(u))cmd("createLink",u)}),
       btn("Clear","Clear formatting",function(){cmd("removeFormat")}),
       el("span",{class:"tb-grow"}),
-      btn("Start over","Replace this copy with the base resume",function(){if(window.confirm("Replace this copy with the base resume? Your edits here will be lost."))resetTo()},"tb-warn")
+      btn("Start over","Replace this copy with a fresh copy of the resume",function(){if(window.confirm("Start over from a fresh copy of the resume? Your edits here will be lost."))resetTo()},"tb-warn")
     ]);
   }
   function showSuggestions(sbox,r,box,edited){
@@ -463,6 +466,23 @@ body{background:var(--page)}
     if(r.keywords&&r.keywords.length)sbox.appendChild(el("p",{class:"sug-kw"},[el("b",{text:"Keywords to work in: "}),r.keywords.join(", ")]));
     if(r.note)sbox.appendChild(el("p",{class:"sug-note",text:r.note}));
   }
+  var VARIANTS={
+    Default:{label:"Base",about:"The master version. Use it when no other version fits better."},
+    Salesforce:{label:"Salesforce",headline:"Salesforce Administrator and Business Analyst | CRM Implementation | Requirements to Rollout",opener:"Salesforce Certified Administrator and technical project manager with 7+ years in CRM and technology delivery.",promote:"CRM & Salesforce:",about:"For Salesforce admin, business analyst and CRM roles. Same resume with a Salesforce headline and the Salesforce skills first."},
+    AI:{label:"AI",headline:"AI Implementation and Automation | Technical Project Manager | Microsoft 365 Integrations",opener:"AI implementation consultant and technical project manager with 7+ years in CRM and technology delivery.",promote:"AI & Building:",about:"For AI implementation, automation and AI project roles. Same resume with an AI headline and the AI skills first."},
+    Health:{label:"Healthcare",headline:"Healthcare Operations and Implementation | Technical Project Manager | CRM and Compliance Systems",opener:"Technical project manager who built the operations platform a licensed home care agency runs on, backed by 7+ years in CRM and technology delivery.",promote:"Microsoft 365:",about:"For healthcare and health tech roles. Same resume, opening with the home care platform."}
+  };
+  function variantMd(md,key){
+    var v=VARIANTS[key];if(!v||!v.headline||!md)return md;
+    var d=new DOMParser().parseFromString("<body>"+bodyOf(md)+"</body>","text/html"),b=d.body;
+    var tg=b.querySelector(".tagline");if(tg)tg.textContent=v.headline;
+    var hs=[].slice.call(b.querySelectorAll("h2"));
+    var sh=hs.find(function(x){return /summary/i.test(x.textContent)}),p=sh&&sh.nextElementSibling;while(p&&p.tagName!=="P")p=p.nextElementSibling;
+    if(p&&/^Technical project manager with 7\+ years/.test(p.textContent.trim())){var t=p.textContent.trim(),dot=t.indexOf(". ");if(dot>0)p.textContent=v.opener+" "+t.slice(dot+2)}
+    var kh=hs.find(function(x){return /skill/i.test(x.textContent)});
+    if(kh){var row=[].slice.call(b.querySelectorAll("p")).find(function(x){var f=x.querySelector("b");return f&&x.firstElementChild===f&&f.textContent.trim()===v.promote});if(row&&row!==kh.nextElementSibling)kh.parentNode.insertBefore(row,kh.nextElementSibling)}
+    return HTML_MARK+b.innerHTML;
+  }
   function fileTitle(j){return "Ifeanyi_Ezurike_Resume"+(j?"_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"):"")}
   function openEditor(j){
     S.editorJob=j?j.id:"base";S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0);
@@ -470,6 +490,10 @@ body{background:var(--page)}
   function renderResumeTab(){
     var V=$("resume-view");V.textContent="";
     var j=S.editorJob&&S.editorJob!=="base"?S.jobs.find(function(x){return x.id===S.editorJob}):null;
+    if(!S.editorJob){var pk=el("div",{class:"doc-pick",role:"tablist","aria-label":"Which document"});
+      Object.keys(VARIANTS).concat(["Cover"]).forEach(function(k){var on=(S.resumeView||"Default")===k;pk.appendChild(el("button",{type:"button",role:"tab","aria-selected":on?"true":"false",class:on?"on":null,text:k==="Cover"?"Cover letter":VARIANTS[k].label,onclick:function(){S.resumeView=k;S.editingCover=false;renderResumeTab()}}))});
+      V.appendChild(pk);
+      if(S.resumeView==="Cover"){renderCoverView(V);return}}
     var editing=!!j||(S.editorJob==="base"&&S.isOwner);
     var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:j?"Resume for "+j.company:"Base resume"}),el("p",{class:"muted-line",text:j?j.role+". Edit the copy on the left, it only changes this job's resume.":"This is the master version every tailored copy starts from."+(S.isOwner?"":" Only Ifeanyi can change it.")})])]);
     var actions=el("div",{class:"acts"});head.appendChild(actions);
@@ -478,7 +502,8 @@ body{background:var(--page)}
     V.appendChild(head);V.appendChild(body);
     var url=j?"/api/resume/job/"+j.id:"/api/resume/base";
     Promise.all([api("GET",url),j?api("GET","/api/resume/base"):Promise.resolve(null)]).then(function(r){
-      var md=(r[0]&&r[0].md)||(r[1]&&r[1].md)||"";
+      var start=j&&r[1]&&r[1].md?variantMd(r[1].md,j.resume):"";
+      var md=(r[0]&&r[0].md)||start||"";
       var fresh=j&&!(r[0]&&r[0].md);
       if(editing){
         var current=function(){return HTML_MARK+cleanHTML(box._doc().body.cloneNode(true))};
@@ -491,15 +516,17 @@ body{background:var(--page)}
         body.className="ed-body solo";
         var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save"};
         var col=el("div",{class:"ed-col"});body.appendChild(col);
-        col.appendChild(toolbar(box,edited,function(){api("GET","/api/resume/base").then(function(b){previewInto(box,(b&&b.md)||"",true,edited);edited()},fail)}));
+        col.appendChild(toolbar(box,edited,function(){api("GET","/api/resume/base").then(function(b){previewInto(box,j?variantMd((b&&b.md)||"",j.resume):(b&&b.md)||"",true,edited);edited()},fail)}));
         col.appendChild(sugBox);
         col.appendChild(box);
         previewInto(box,md,true,edited);
         if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
         return;
       }else{
-        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,fileTitle(null))}}));
-        if(S.isOwner)actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
+        var vk=S.resumeView||"Default",vv=VARIANTS[vk];
+        if(vk!=="Default"){md=variantMd(md,vk);head.querySelector("h2").textContent=vv.label+" resume";head.querySelector(".muted-line").textContent=vv.about+" Built from the base resume, so it updates when Ifeanyi changes the base."}
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,"Ifeanyi_Ezurike_Resume"+(vk==="Default"?"":"_"+vv.label))}}));
+        if(S.isOwner&&vk==="Default")actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
       }
       if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
       body.appendChild(box);previewInto(box,md);
@@ -930,17 +957,23 @@ body{background:var(--page)}
       bar.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingBrief=false;renderBrief()}}));
       bar.appendChild(el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PUT","/api/brief",{text:ta.value,dailyTarget:Number(tg.value)||10}).then(function(){S.editingBrief=false;toast("Saved");refresh()},fail)}}));
       B.appendChild(el("div",{class:"brief-edit"},[ta]));return}
-    if(!b||!b.text)B.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here yet"})]));
-    else{var d=el("div",{class:"brief"});d.innerHTML=md(b.text);B.appendChild(d)}
-    B.appendChild(coverTpl());
+    if(!b||!b.text){B.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here yet"})]));return}
+    var d=el("div",{class:"brief"});d.innerHTML=md(b.text);B.appendChild(d);
   }
-  function coverTpl(){
-    var c=S.cover,wrap=el("div",{class:"brief cv-tpl"},[el("h2",{text:"Cover letter template"}),el("p",{class:"muted-line",text:"AI starts from this for every job and fills in the company, role and greeting. The text in brackets is what it replaces."})]);
-    if(S.editingCover){var ta=el("textarea",{id:"cv-tpl","aria-label":"Cover letter template",class:"cv-edit tall"});ta.value=(c&&c.text)||"";wrap.appendChild(ta);
-      wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn small",type:"button",text:"Save template",onclick:function(){api("PUT","/api/cover/base",{text:ta.value}).then(function(){S.editingCover=false;toast("Template saved");refresh()},fail)}}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingCover=false;renderBrief()}})]));return wrap}
-    wrap.appendChild(c&&c.text?el("div",{class:"desc cv-show",text:c.text}):el("p",{class:"muted-line",text:"No template yet."}));
-    if(S.isOwner)wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit template",onclick:function(){S.editingCover=true;renderBrief()}})]));
-    return wrap;
+  function renderCoverView(V){
+    var c=S.cover,actions=el("div",{class:"acts"});
+    var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:"Cover letter template"}),el("p",{class:"muted-line",text:"AI starts from this for every job. It fills in the bracketed parts from the job description. Each job's finished letter is on its card under Cover letter."+(S.isOwner?"":" Only Ifeanyi can change the template.")})]),actions]);
+    V.appendChild(head);
+    if(S.editingCover){var ta=el("textarea",{id:"cv-tpl","aria-label":"Cover letter template",class:"cv-edit tall"});ta.value=(c&&c.text)||"";
+      actions.appendChild(el("button",{class:"btn accent small",type:"button",text:"Save template",onclick:function(){api("PUT","/api/cover/base",{text:ta.value}).then(function(){S.editingCover=false;toast("Template saved");refresh()},fail)}}));
+      actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingCover=false;renderResumeTab()}}));
+      V.appendChild(el("div",{class:"cv-wrap"},[ta]));return}
+    if(S.isOwner)actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit template",onclick:function(){S.editingCover=true;renderResumeTab()}}));
+    if(!c||!c.text){V.appendChild(el("div",{class:"empty"},[el("h3",{text:"No template yet"})]));return}
+    var box=el("div",{class:"paper-box"}),holder=el("div",{class:"paper-scale"}),f=el("iframe",{class:"paper-frame",title:"Cover letter template"});holder.appendChild(f);box.appendChild(holder);
+    V.appendChild(el("div",{class:"ed-body solo"},[box]));
+    var fit=function(){var sc=Math.min(1,(box.clientWidth-36)/816);f.style.transform="scale("+sc+")";holder.style.height=(1056*sc)+"px";holder.style.width=(816*sc)+"px"};fit();
+    var d=f.contentDocument;d.open();d.write(coverDoc(c.text,"Cover letter").replace("<body>","<body style='margin:0.9in 1in'>"));d.close();
   }
 
   // events
