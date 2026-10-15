@@ -154,7 +154,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brief-edit textarea{width:100%;min-height:60vh;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
 .table-x{overflow-x:auto}
 .roster{display:grid;gap:0;border-top:1px solid var(--line)}
-.roster-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.roster-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .roster-row.off{opacity:.5}
 .roster-row input,.roster-add input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
 .tcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:600;letter-spacing:.08em}
@@ -268,6 +268,23 @@ body{background:var(--page)}
 .sug-kw,.sug-note{font-size:14px;color:var(--muted)}.sug-kw b{color:var(--fg)}
 .theme-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
 .theme-btn:hover{color:var(--fg)}
+.goal-lab{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap}.goal-in{width:64px}
+.wk-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-block:18px 14px}
+.wk-head h2{font-size:24px;letter-spacing:-.025em}
+.wk-tot{text-align:right;display:grid}.wk-tot b{font-size:28px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.wk-tot span{font-size:13px;color:var(--muted)}
+.wk-delta.up{color:var(--green)!important}.wk-delta.down{color:var(--red)!important}
+.wk-card{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,300px);gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;margin-bottom:14px}
+@media (max-width:960px){.wk-card{grid-template-columns:1fr}}
+.wk-person{display:flex;gap:14px;align-items:center}.wk-person h3{font-size:19px}
+.wk-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}
+.wk-stats b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}.wk-stats span{font-size:12.5px;color:var(--muted)}
+.wk-chart{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;height:120px;align-items:end}
+.wk-col{display:grid;grid-template-rows:1fr 18px;height:100%;align-items:end;text-align:center}
+.wk-bar{background:var(--soft2);border-radius:6px 6px 2px 2px;position:relative;min-height:3px}
+.wk-bar.hit{background:var(--green-wash)}.wk-bar.cur{background:var(--accent)}.wk-bar.cur.hit{background:var(--green)}
+.wk-bar span{position:absolute;top:-17px;left:0;right:0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wk-col small{font-size:10.5px;color:var(--faint)}
+.wk-goal{position:absolute;left:0;right:0;border-top:1.5px dashed var(--accent);opacity:.6;pointer-events:none}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -545,12 +562,17 @@ body{background:var(--page)}
     });
     return A;
   }
+  function monday(d){var x=d0(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+  function weekKey(d){return dayKey(monday(d))}
+  function goalOf(pid){var p=S.people[pid];return (p&&p.weeklyGoal)||30}
+  function stretchOf(pid){var p=S.people[pid];return p&&p.weeklyStretch||null}
+  function weekCounts(a,kind,wk){wk=wk||weekKey(new Date());return (a?a.events:[]).filter(function(e){return e.kind===kind&&weekKey(e.at)===wk}).length}
+  function activePeople(A){return Object.keys(S.people).filter(function(k){return k!=="owner"&&(S.people[k].weeklyGoal||(A[k]&&A[k].events.length))})}
   function weekPoints(a){var w=weekStart();return (a?a.events:[]).reduce(function(n,e){return new Date(e.at)>=w?n+e.pts:n},0)}
-  function streak(a){
-    if(!a)return 0;var tg=target(),n=0,d=today();
-    var todayHit=(a.apps[dayKey(d)]||0)>=tg;if(!todayHit)d.setDate(d.getDate()-1);
-    for(var i=0;i<60;i++){var dow=d.getDay();if(dow===0||dow===6){d.setDate(d.getDate()-1);continue}
-      if((a.apps[dayKey(d)]||0)>=tg){n++;d.setDate(d.getDate()-1)}else break}
+  function streak(a,pid){
+    if(!a)return 0;var g=goalOf(pid),n=0,d=monday(new Date());
+    if(weekCounts(a,"app",dayKey(d))<g)d.setDate(d.getDate()-7);
+    for(var i=0;i<52;i++){if(weekCounts(a,"app",dayKey(d))>=g){n++;d.setDate(d.getDate()-7)}else break}
     return n;
   }
   function ring(done,goal,size){
@@ -563,34 +585,36 @@ body{background:var(--page)}
   function greet(){var h=new Date().getHours();return h<12?"Good morning":h<17?"Good afternoon":"Good evening"}
   function renderSummary(){
     var x=$("summary");x.textContent="";x.className="today-wrap";
-    var A=activity(),tg=target(),tk=dayKey(new Date());
+    var A=activity();
+    var dayIdx=(new Date().getDay()+6)%7,daysLeft=7-dayIdx;
     if(S.isOwner){
-      var ids=Object.keys(S.people).filter(function(k){return k!=="owner"});
-      var head=el("div",{class:"today-head"},[el("h2",{text:greet()+", Ifeanyi"}),el("p",{text:"Here's how the team is doing today."})]);
+      var ids=activePeople(A);
+      var tot=0,goalSum=0;ids.forEach(function(k){tot+=weekCounts(A[k],"app");goalSum+=goalOf(k)});
+      var head=el("div",{class:"today-head"},[el("h2",{text:greet()+", Ifeanyi"}),el("p",{text:"This week the team has sent "+tot+" of "+goalSum+". "+daysLeft+" day"+(daysLeft===1?"":"s")+" left."})]);
       var row=el("div",{class:"team-rings"});
-      ids.forEach(function(k){var a=A[k],n=a?(a.apps[tk]||0):0;
-        row.appendChild(el("div",{class:"mini"},[el("div",{class:"ringbox"},[ring(n,tg,64),el("span",{class:"rnum",text:String(n)})]),el("div",{},[el("b",{text:firstName(k)}),el("span",{text:weekPoints(a)+" pts this week"+(streak(a)>1?" · "+streak(a)+"-day streak":"")})])]))});
+      ids.forEach(function(k){var a=A[k],n=weekCounts(a,"app"),g=goalOf(k),st=streak(a,k);
+        row.appendChild(el("div",{class:"mini"},[el("div",{class:"ringbox"},[ring(n,g,64),el("span",{class:"rnum",text:String(n)})]),el("div",{},[el("b",{text:firstName(k)}),el("span",{text:n+" of "+g+" this week"+(st>1?" · "+st+"-week streak":"")})])]))});
       if(!ids.length)row.appendChild(el("p",{class:"muted-line",text:"Add teammates in the Team tab to see their progress here."}));
       x.appendChild(el("div",{class:"today owner"},[head,row,nudges()]));
       return;
     }
-    var me=A[S.uid],n=me?(me.apps[tk]||0):0,st=streak(me),wp=weekPoints(me);
-    var contactsToday=me?me.events.filter(function(e){return e.kind==="contact"&&dayKey(e.at)===tk}).length:0;
-    var left=Math.max(0,tg-n);
-    var line=n===0?"Let's get the first one in.":left>0?left+" more to hit today's goal.":"Goal hit. Anything more is a bonus.";
+    var me=A[S.uid],n=weekCounts(me,"app"),g=goalOf(S.uid),sg=stretchOf(S.uid),st=streak(me,S.uid),wp=weekPoints(me),cw=weekCounts(me,"contact");
+    var left=Math.max(0,g-n),pace=Math.round(g*Math.min(1,(dayIdx+1)/5));
+    var line=n>=g?(sg&&n<sg?"Goal hit. "+(sg-n)+" more reaches your stretch of "+sg+".":"Goal hit for the week. Anything more is a bonus."):
+      left+" to go, "+daysLeft+" day"+(daysLeft===1?"":"s")+" left. "+(n>=pace?"You're on pace.":"About "+(pace-n)+" behind pace.");
     x.appendChild(el("div",{class:"today"},[
-      el("div",{class:"ringbox big"},[ring(n,tg,112),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+tg})])]),
+      el("div",{class:"ringbox big"},[ring(n,g,112),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+g+" this week"})])]),
       el("div",{class:"today-main"},[
         el("h2",{text:greet()+", "+firstName(S.uid)}),el("p",{class:"today-line",text:line}),
         el("div",{class:"chips"},[
-          el("span",{class:"chip hot"+(st?"":" cold")},[el("b",{text:String(st)})," day streak"]),
+          el("span",{class:"chip hot"+(st?"":" cold")},[el("b",{text:String(st)})," week streak"]),
           el("span",{class:"chip"},[el("b",{text:String(wp)})," points this week"]),
-          el("span",{class:"chip"},[el("b",{text:String(contactsToday)})," contacts today"])
+          el("span",{class:"chip"},[el("b",{text:String(cw)})," contacts this week"])
         ])
       ]),
       nudges()
     ]));
-    maybeCelebrate(n,tg);
+    maybeCelebrate(n,g);
   }
   function nudges(){
     var mine=S.isOwner?S.jobs:S.jobs.filter(function(j){return j.addedBy===S.uid});
@@ -607,13 +631,13 @@ body{background:var(--page)}
     return list;
   }
   function maybeCelebrate(n,tg){
-    var k="ay-cel-"+dayKey(new Date())+"-"+S.uid;var done=false;try{done=localStorage.getItem(k)==="1"}catch(e){}
+    var k="ay-celw-"+weekKey(new Date())+"-"+S.uid;var done=false;try{done=localStorage.getItem(k)==="1"}catch(e){}
     if(n>=tg&&!done){try{localStorage.setItem(k,"1")}catch(e){}if(S.celebrateArmed)confetti();}
     S.celebrateArmed=true;
   }
   function confetti(){
-    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){toast("Daily goal hit. Nice work.");return}
-    toast("Daily goal hit. Nice work.");
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){toast("Weekly goal hit. Nice work.");return}
+    toast("Weekly goal hit. Nice work.");
     var c=document.createElement("canvas");c.className="confetti";c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
     var g=c.getContext("2d"),cols=["#e8621a","#1d7f55","#2c64c9","#e2a94a","#121417"],ps=[];
     for(var i=0;i<120;i++)ps.push({x:innerWidth/2+(Math.random()-.5)*160,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,s:Math.random()*6+4,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[i%cols.length]});
@@ -762,7 +786,7 @@ body{background:var(--page)}
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:"Already logged: "+j.company+", "+j.role+" ("+L[j.status]+", logged by "+nameOf(j.addedBy).replace(" (you)","")+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
-    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var A0=activity(),me0=A0[S.uid],n0=(me0?(me0.apps[dayKey(new Date())]||0):0)+1,left0=target()-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go today.":"Logged "+doc.company+".");form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
+    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
       el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Log it right after you submit. Paste the link first, it catches repeats."}),
       el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",src),field("a-res","Resume sent","c2",res),field("a-st","Status","c2",st),field("a-notes","Notes","c4",notes),field("a-desc","Job description","c6",desc)]),
       warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn accent",type:"submit",text:"Save"})])]);
@@ -811,10 +835,12 @@ body{background:var(--page)}
       if(!rows.length)list.appendChild(el("p",{class:"help",text:"No teammates yet."}));
       rows.forEach(function(r){
         var nm=el("input",{id:"tm-"+r.id,value:r.name,"aria-label":"Name for code "+r.code});
+        var gl=el("input",{id:"tm-g-"+r.id,type:"number",min:"1",value:String(r.weeklyGoal||30),class:"goal-in","aria-label":"Weekly goal for "+r.name,title:"Weekly goal"});
         list.appendChild(el("div",{class:"roster-row"+(r.active?"":" off")},[
           el("code",{class:"tcode",text:r.code}),
           nm,
-          el("button",{class:"btn small",type:"button",text:"Save name",onclick:function(){api("PATCH","/api/team/"+r.id,{name:nm.value}).then(function(){toast("Saved");load();refresh()},fail)}}),
+          el("label",{class:"goal-lab"},[gl," a week"]),
+          el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PATCH","/api/team/"+r.id,{name:nm.value,weeklyGoal:gl.value}).then(function(){toast("Saved");load();refresh()},fail)}}),
           el("button",{class:"btn ghost small",type:"button",text:"Copy code",onclick:function(){var b=this;try{navigator.clipboard.writeText(r.code).then(function(){b.textContent="Copied"},function(){})}catch(e){}}}),
           el("button",{class:"btn ghost small",type:"button",text:r.active?"Turn off":"Turn on",onclick:function(){api("PATCH","/api/team/"+r.id,{active:!r.active}).then(function(){toast(r.active?"Turned off":"Turned on");load()},fail)}}),
           el("button",{class:"btn ghost small",type:"button",text:"New code",onclick:function(){api("PATCH","/api/team/"+r.id,{newCode:true}).then(function(){toast("New code issued");load()},fail)}})
@@ -827,14 +853,33 @@ body{background:var(--page)}
     T.appendChild(box);load();
   }
   function renderTeam(){
-    var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);var g={},t=today(),w=weekStart();
-    S.jobs.forEach(function(j){var k=j.addedBy||"owner";var x=g[k]||(g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)});var s=sentAt(j);if(!s)return;var d=new Date(s);x.n++;if(d>=t)x.t++;if(d>=w)x.w++;if(REPLIED[j.status])x.r++;var a=Math.round((t-d0(d))/864e5);if(a>=0&&a<14)x.days[13-a]++});
-    Object.keys(S.people).forEach(function(k){if(k==="owner")return;if(!g[k])g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)}});
-    S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){var k=c.addedBy||"owner";if(!g[k])g[k]={t:0,w:0,n:0,r:0,c:0,days:new Array(14).fill(0)};g[k].c++})});
-    T.appendChild(el("p",{class:"summary",text:"Daily goal: "+target()+" good applications per person. Points this week: 1 per application, 1 per contact found, 3 per reply logged, 10 per interview."}));
-    T.appendChild(el("div",{class:"team-row head"},[el("span",{text:"Person"}),el("span",{text:"Today"}),el("span",{text:"This week"}),el("span",{text:"Total"}),el("span",{class:"hide",text:"Replies"}),el("span",{class:"hide",text:"Contacts"}),el("span",{text:"Points"}),el("span",{class:"hide",text:"Last 14 days"})]));
-    Object.keys(g).sort(function(a,b){if(a==="owner")return 1;if(b==="owner")return-1;var AA=activity();return weekPoints(AA[b])-weekPoints(AA[a])}).forEach(function(k){var x=g[k],mx=Math.max(target(),Math.max.apply(null,x.days));
-      T.appendChild(el("div",{class:"team-row"},[el("span",{class:"name",text:nameOf(k)}),el("span",{class:"n",text:String(x.t)}),el("span",{class:"n",text:String(x.w)}),el("span",{class:"n",text:String(x.n)}),el("span",{class:"n hide",text:x.r+(x.n?" ("+Math.round(x.r/x.n*100)+"%)":"")}),el("span",{class:"n hide",text:String(x.c)}),el("span",{class:"n pts",text:String(weekPoints(activity()[k]))}),el("div",{class:"bars hide"},x.days.map(function(n,i){return el("i",{class:i===13?"today":null,style:"height:"+Math.max(6,Math.round(n/mx*100))+"%",title:n+" sent"})}))]))});
+    var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);
+    var A=activity(),now=new Date(),wk=weekKey(now),lastWk=(function(){var d=monday(now);d.setDate(d.getDate()-7);return dayKey(d)})();
+    var ids=activePeople(A);
+    var tot=0,goalSum=0,last=0;ids.forEach(function(k){tot+=weekCounts(A[k],"app");last+=weekCounts(A[k],"app",lastWk);goalSum+=goalOf(k)});
+    var mon=monday(now),sun=new Date(mon);sun.setDate(sun.getDate()+6);
+    var fmt=function(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})};
+    T.appendChild(el("div",{class:"wk-head"},[
+      el("div",{},[el("h2",{text:"This week"}),el("p",{class:"muted-line",text:fmt(mon)+" to "+fmt(sun)+". Weeks run Monday to Sunday."})]),
+      el("div",{class:"wk-tot"},[el("b",{text:tot+" / "+goalSum}),el("span",{text:"team applications"}),el("span",{class:"wk-delta "+(tot>=last?"up":"down"),text:(tot>=last?"+":"")+(tot-last)+" vs last week"})])
+    ]));
+    var weeks=[];for(var w=7;w>=0;w--){var d=monday(now);d.setDate(d.getDate()-7*w);weeks.push(dayKey(d))}
+    ids.sort(function(a,b){return (weekCounts(A[b],"app")/goalOf(b))-(weekCounts(A[a],"app")/goalOf(a))});
+    if(!ids.length)T.appendChild(el("p",{class:"muted-line",text:"No teammates yet."}));
+    ids.forEach(function(k){
+      var a=A[k],g=goalOf(k),sg=stretchOf(k),n=weekCounts(a,"app");
+      var stats=[["Applied",n+" / "+g+(sg?" (stretch "+sg+")":"")],["Contacts",weekCounts(a,"contact")],["Follow-ups",weekCounts(a,"follow")],["Replies",weekCounts(a,"reply")],["Interviews",weekCounts(a,"interview")],["Points",weekPoints(a)]];
+      var mx=Math.max(g,sg||0);weeks.forEach(function(x){mx=Math.max(mx,weekCounts(a,"app",x))});
+      var chart=el("div",{class:"wk-chart",title:"Applications per week, last 8 weeks"},weeks.map(function(x,i){var v=weekCounts(a,"app",x);var d=new Date(x.replace(/-(\d)(?=-|$)/g,"-0$1"));
+        return el("div",{class:"wk-col"},[el("div",{class:"wk-bar"+(v>=g?" hit":"")+(i===weeks.length-1?" cur":""),style:"height:"+Math.max(3,Math.round(v/mx*100))+"%"},[el("span",{text:String(v)})]),el("small",{text:i===weeks.length-1?"This wk":(isNaN(d)?"":d.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}))})])}));
+      chart.appendChild(el("div",{class:"wk-goal",title:"Weekly goal: "+g,style:"bottom:calc(18px + (100% - 18px) * "+(g/mx).toFixed(3)+")"}));
+      T.appendChild(el("div",{class:"wk-card"},[
+        el("div",{class:"wk-person"},[el("div",{class:"ringbox"},[ring(n,g,72),el("span",{class:"rnum",text:String(n)})]),el("div",{},[el("h3",{text:nameOf(k).replace(" (you)","")}),el("span",{class:"muted-line",text:streak(a,k)>0?streak(a,k)+"-week streak":"Goal: "+g+" a week"})])]),
+        el("div",{class:"wk-stats"},stats.map(function(st){return el("div",{},[el("b",{text:String(st[1])}),el("span",{text:st[0]})])})),
+        chart
+      ]));
+    });
+    T.appendChild(el("p",{class:"team-note",text:"Points: 1 per application, 1 per contact found, 1 per follow-up, 3 per reply logged, 10 per interview."}));
   }
 
   // brief
@@ -847,7 +892,7 @@ body{background:var(--page)}
     var b=S.brief;bar.appendChild(el("span",{class:"meta",text:b&&b.updatedAt?"Updated "+rel(b.updatedAt):""}));
     if(S.isOwner&&!S.editingBrief)bar.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editingBrief=true;renderBrief()}}));
     if(S.editingBrief){var ta=el("textarea",{id:"brief-text","aria-label":"How we work text"});ta.value=(b&&b.text)||"";var tg=el("input",{id:"brief-target",type:"number",min:"1",max:"100",value:String(target()),style:"width:76px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 10px"});
-      bar.appendChild(el("label",{for:"brief-target",style:"font-size:14px;color:var(--muted)",text:"Daily goal"}));bar.appendChild(tg);
+      
       bar.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editingBrief=false;renderBrief()}}));
       bar.appendChild(el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PUT","/api/brief",{text:ta.value,dailyTarget:Number(tg.value)||10}).then(function(){S.editingBrief=false;toast("Saved");refresh()},fail)}}));
       B.appendChild(el("div",{class:"brief-edit"},[ta]));return}
