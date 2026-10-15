@@ -393,6 +393,12 @@ body{background:var(--page)}
 .d-main>.block+.block{border-top:1px solid var(--line);padding-top:24px}
 .detail .desc p{margin:0 0 14px;white-space:pre-wrap;break-inside:avoid-column}
 .detail .desc .dh{font-weight:650;color:var(--fg)}
+.detail .desc.short{columns:auto;max-width:820px}
+.c-hist{list-style:none;margin:4px 0 0;padding:0 0 0 12px;border-left:2px solid var(--line);display:grid;gap:4px}
+.c-hist li{font-size:13px;line-height:1.4}.c-hist li span{color:var(--faint);font-size:12px}
+.crow{grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:16px}
+.crow>.cmain{grid-column:1}.crow>.clinks{grid-column:2;grid-row:1;justify-content:flex-end}
+.crow>*:not(.cmain):not(.clinks){grid-column:1/-1}
 </style>
 
 <div class="wrap">
@@ -817,7 +823,7 @@ body{background:var(--page)}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
     var saved=j.status==="saved";
-    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),followBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j),contactsBlock(j)]);
+    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j)]);
     var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
     return el("div",{class:"detail"},[main,side]);
   }
@@ -957,7 +963,7 @@ body{background:var(--page)}
     }
     if(j.fit)wrap.appendChild(fitCard(j.fit));
     if(j.description){S.descOpen=S.descOpen||{};var open=!!S.descOpen[j.id],long=j.description.length>600;
-      var d=el("div",{class:"desc"+(open||!long?" open":"")});j.description.trim().split(/\n\s*\n/).forEach(function(para){para=para.trim();var nl=para.indexOf("\n"),first=nl<0?para:para.slice(0,nl);
+      var d=el("div",{class:"desc"+(!long?" open short":open?" open":"")});j.description.trim().split(/\n\s*\n/).forEach(function(para){para=para.trim();var nl=para.indexOf("\n"),first=nl<0?para:para.slice(0,nl);
         var head=first.length<=48&&!/[.,;:!?]$/.test(first)&&!/^[-*\u2022]/.test(first)&&/^[A-Z]/.test(first)&&(nl>0||para.length<=48);
         d.appendChild(head?el("p",{},[el("b",{class:"dh",text:first}),nl>0?document.createTextNode("\n"+para.slice(nl+1)):null]):el("p",{text:para}))});wrap.appendChild(d);
       if(long)wrap.appendChild(el("button",{class:"linkish more",type:"button",text:open?"Show less":"Show the full description",onclick:function(){S.descOpen[j.id]=!open;renderRows()}}))}
@@ -995,6 +1001,8 @@ body{background:var(--page)}
         links,
         el("div",{class:"cmeta",text:(c.source?c.source+". ":"")+"Found by "+nameOf(c.addedBy).replace(" (you)","")+", "+rel(c.addedAt)}),
       ]);
+      var first=c.name.split(" ")[0],seen=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0)}).filter(function(h){return h.text.indexOf("Found a contact")!==0}).slice(-3).reverse();
+      if(seen.length)row.appendChild(el("ul",{class:"c-hist"},seen.map(function(h){return el("li",{},[h.text,el("span",{text:" \u00b7 "+nameOf(h.by).replace(" (you)","")+", "+rel(h.at)})])})));
       if(c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
       if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}}),aiBtn(c.draft?"Redraft message":"Draft message with AI",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id}).then(function(){toast("Draft ready for "+c.name);refresh()})},true)]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
       wrap.appendChild(row);
