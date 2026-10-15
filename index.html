@@ -285,14 +285,19 @@ body{background:var(--page)}
 .wk-card{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,300px);gap:24px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;margin-bottom:14px}
 @media (max-width:960px){.wk-card{grid-template-columns:1fr}}
 .wk-person{display:flex;gap:14px;align-items:center}.wk-person h3{font-size:19px}
-.wk-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}
-.wk-stats b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}.wk-stats span{font-size:12.5px;color:var(--muted)}
-.wk-chart{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;height:120px;align-items:end}
+.wk-mid{display:grid;gap:10px}
+.wk-applied b{font-size:30px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.wk-applied span{color:var(--muted);font-size:15px}
+.wk-track{height:8px;border-radius:99px;background:var(--soft2);overflow:hidden}.wk-track i{display:block;height:100%;border-radius:99px;background:var(--accent);transition:width .6s ease}
+.wk-stats{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:4px}
+.wk-stats b{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;margin-right:5px}.wk-stats span{font-size:13px;color:var(--muted)}
+.wk-chart{position:relative;display:grid;gap:8px;height:120px;align-items:end;justify-content:end}
+.wk-chart.empty-chart{display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:14px;height:100px}.empty-chart p{color:var(--muted);font-size:13.5px;text-align:center;padding:0 12px}
+.wk-goal em{position:absolute;left:0;top:-16px;font-size:10.5px;font-style:normal;color:var(--accent)}
 .wk-col{display:grid;grid-template-rows:1fr 18px;height:100%;align-items:end;text-align:center}
 .wk-bar{background:var(--soft2);border-radius:6px 6px 2px 2px;position:relative;min-height:3px}
 .wk-bar.hit{background:var(--green-wash)}.wk-bar.cur{background:var(--accent)}.wk-bar.cur.hit{background:var(--green)}
 .wk-bar span{position:absolute;top:-17px;left:0;right:0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-.wk-col small{font-size:10.5px;color:var(--faint)}
+.wk-col small{font-size:10.5px;color:var(--faint);white-space:nowrap;padding-top:4px}
 .wk-goal{position:absolute;left:0;right:0;border-top:1.5px dashed var(--accent);opacity:.6;pointer-events:none}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
@@ -377,14 +382,14 @@ body{background:var(--page)}
   // matching
   function norm(s){return String(s||"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").replace(/\b(inc|llc|ltd|corp|co|the)\b/g,"").replace(/\s+/g," ").trim()}
   function normUrl(u){if(!u)return"";try{var x=new URL(u.trim()),keep="";["gh_jid","jobId","jobid","jk","currentJobId","token"].forEach(function(p){var v=x.searchParams.get(p);if(v)keep+="?"+p+"="+v});return(x.hostname.replace(/^www\./,"")+x.pathname.replace(/\/+$/,"")+keep).toLowerCase()}catch(e){return u.trim().toLowerCase()}}
-  function dupes(c,r,u){var nc=norm(c),nr=norm(r),nu=normUrl(u),ex=[],co=[];S.jobs.forEach(function(j){if(nu&&j.url&&normUrl(j.url)===nu){ex.push(j);return}if(nc&&norm(j.company)===nc){if(nr&&norm(j.role)===nr)ex.push(j);else co.push(j)}});return{ex:ex,co:co}}
+  function dupes(c,r,u){var nc=norm(c),nr=norm(r),nu=normUrl(u),ex=[],co=[];S.jobs.concat((S.taken||[]).map(function(t){return{company:t.company,role:t.role,url:t.url,status:t.sent?"applied":"saved",taken:true}})).forEach(function(j){if(nu&&j.url&&normUrl(j.url)===nu){ex.push(j);return}if(nc&&norm(j.company)===nc){if(nr&&norm(j.role)===nr)ex.push(j);else co.push(j)}});return{ex:ex,co:co}}
 
   // writes
   var API="https://team-board-api.iezuri22.workers.dev";
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -537,6 +542,7 @@ body{background:var(--page)}
   function render(){
     ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
+    $("tab-team").textContent=S.isOwner?"Team":"My week";
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
     $("add-btn").hidden=!canAdd;$("reply-btn").hidden=!canAdd;
@@ -595,6 +601,7 @@ body{background:var(--page)}
     });
     return A;
   }
+  var TEAM_START=new Date(2026,9,19);
   function monday(d){var x=d0(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
   function weekKey(d){return dayKey(monday(d))}
   function goalOf(pid){var p=S.people[pid];return (p&&p.weeklyGoal)||30}
@@ -633,8 +640,9 @@ body{background:var(--page)}
     }
     var me=A[S.uid],n=weekCounts(me,"app"),g=goalOf(S.uid),sg=stretchOf(S.uid),st=streak(me,S.uid),wp=weekPoints(me),cw=weekCounts(me,"contact");
     var left=Math.max(0,g-n),pace=Math.round(g*Math.min(1,(dayIdx+1)/5));
-    var line=n>=g?(sg&&n<sg?"Goal hit. "+(sg-n)+" more reaches your stretch of "+sg+".":"Goal hit for the week. Anything more is a bonus."):
+    var line=n>=g?"Goal hit for the week. Anything more is a bonus.":
       left+" to go, "+daysLeft+" day"+(daysLeft===1?"":"s")+" left. "+(n>=pace?"You're on pace.":"About "+(pace-n)+" behind pace.");
+    if(monday(new Date())<TEAM_START&&!n)line="You start Monday, "+TEAM_START.toLocaleDateString(undefined,{month:"short",day:"numeric"})+". Your goal is "+g+" applications a week.";
     x.appendChild(el("div",{class:"today"},[
       el("div",{class:"ringbox big"},[ring(n,g,112),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+g+" this week"})])]),
       el("div",{class:"today-main"},[
@@ -677,7 +685,7 @@ body{background:var(--page)}
     var t0=performance.now();(function f(t){var dt=(t-t0);g.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore()});if(dt<2200)requestAnimationFrame(f);else c.remove()})(t0);
   }
   function renderWho(){
-    var s=$("f-who"),cur=S.who;s.textContent="";
+    var s=$("f-who"),cur=S.who;s.textContent="";s.hidden=!S.isOwner;if(!S.isOwner){S.who="all";return}
     var ids={};S.jobs.forEach(function(j){var k=j.addedBy||"owner";ids[k]=(ids[k]||0)+1});
     s.appendChild(el("option",{value:"all",text:"Everyone ("+S.jobs.length+")"}));
     if(S.uid&&!S.isOwner)s.appendChild(el("option",{value:S.uid,text:"Mine ("+(ids[S.uid]||0)+")"}));
@@ -692,7 +700,7 @@ body{background:var(--page)}
     var R=$("rows");R.textContent="";
     if(!S.loaded){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Loading the list"})]));return}
     if(!S.db)return;
-    if(!S.jobs.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing logged yet"}),el("p",{text:"Log the first application and it shows up here for everyone."})]));return}
+    if(!S.jobs.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing logged yet"}),el("p",{text:"Log the first application and it shows up here."})]));return}
     var rows=filtered();
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
     rows.slice(0,S.limit).forEach(function(j){
@@ -844,7 +852,7 @@ body{background:var(--page)}
     var notes=el("textarea",{id:"a-notes",rows:"1",placeholder:"Anything worth knowing"});
     var desc=el("textarea",{id:"a-desc",rows:"3",placeholder:"Paste the full job description. Postings come down, this keeps a copy."});
     var warn=el("div"),msg=el("span",{class:"msg"}),force=false;
-    function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:"Already logged: "+j.company+", "+j.role+" ("+L[j.status]+", logged by "+nameOf(j.addedBy).replace(" (you)","")+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
+    function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:j.taken?"Already on the team's list: "+j.company+", "+j.role+". Don't apply again.":"You already logged this: "+j.company+", "+j.role+" ("+L[j.status]+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
     var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
@@ -916,27 +924,33 @@ body{background:var(--page)}
   function renderTeam(){
     var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);
     var A=activity(),now=new Date(),wk=weekKey(now),lastWk=(function(){var d=monday(now);d.setDate(d.getDate()-7);return dayKey(d)})();
-    var ids=activePeople(A);
+    var ids=S.isOwner?activePeople(A):[S.uid];
+    var started=monday(now)>=TEAM_START,lastOk=monday(now)>TEAM_START;
     var tot=0,goalSum=0,last=0;ids.forEach(function(k){tot+=weekCounts(A[k],"app");last+=weekCounts(A[k],"app",lastWk);goalSum+=goalOf(k)});
     var mon=monday(now),sun=new Date(mon);sun.setDate(sun.getDate()+6);
     var fmt=function(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})};
     T.appendChild(el("div",{class:"wk-head"},[
-      el("div",{},[el("h2",{text:"This week"}),el("p",{class:"muted-line",text:fmt(mon)+" to "+fmt(sun)+". Weeks run Monday to Sunday."})]),
-      el("div",{class:"wk-tot"},[el("b",{text:tot+" / "+goalSum}),el("span",{text:"team applications"}),el("span",{class:"wk-delta "+(tot>=last?"up":"down"),text:(tot>=last?"+":"")+(tot-last)+" vs last week"})])
+      el("div",{},[el("h2",{text:started?"This week":"Starts Monday, "+fmt(TEAM_START)}),el("p",{class:"muted-line",text:started?fmt(mon)+" to "+fmt(sun)+". Weeks run Monday to Sunday.":"Weeks run Monday to Sunday. "+(S.isOwner?"Progress shows up here once they start logging.":"Your progress shows up here once you start logging.")})]),
+      el("div",{class:"wk-tot"},[el("b",{text:tot+" / "+goalSum}),el("span",{text:S.isOwner?"team applications":"your applications"}),lastOk?el("span",{class:"wk-delta "+(tot>=last?"up":"down"),text:(tot>=last?"+":"")+(tot-last)+" vs last week"}):null])
     ]));
-    var weeks=[];for(var w=7;w>=0;w--){var d=monday(now);d.setDate(d.getDate()-7*w);weeks.push(dayKey(d))}
+    var weeks=[];for(var w=7;w>=0;w--){var d=monday(now);d.setDate(d.getDate()-7*w);if(d>=TEAM_START)weeks.push(dayKey(d))}
     ids.sort(function(a,b){return (weekCounts(A[b],"app")/goalOf(b))-(weekCounts(A[a],"app")/goalOf(a))});
     if(!ids.length)T.appendChild(el("p",{class:"muted-line",text:"No teammates yet."}));
     ids.forEach(function(k){
       var a=A[k],g=goalOf(k),sg=stretchOf(k),n=weekCounts(a,"app");
-      var stats=[["Applied",n+" / "+g+(sg?" (stretch "+sg+")":"")],["Contacts",weekCounts(a,"contact")],["Follow-ups",weekCounts(a,"follow")],["Replies",weekCounts(a,"reply")],["Interviews",weekCounts(a,"interview")],["Points",weekPoints(a)]];
-      var mx=Math.max(g,sg||0);weeks.forEach(function(x){mx=Math.max(mx,weekCounts(a,"app",x))});
-      var chart=el("div",{class:"wk-chart",title:"Applications per week, last 8 weeks"},weeks.map(function(x,i){var v=weekCounts(a,"app",x);var d=new Date(x.replace(/-(\d)(?=-|$)/g,"-0$1"));
-        return el("div",{class:"wk-col"},[el("div",{class:"wk-bar"+(v>=g?" hit":"")+(i===weeks.length-1?" cur":""),style:"height:"+Math.max(3,Math.round(v/mx*100))+"%"},[el("span",{text:String(v)})]),el("small",{text:i===weeks.length-1?"This wk":(isNaN(d)?"":d.toLocaleDateString(undefined,{month:"numeric",day:"numeric"}))})])}));
-      chart.appendChild(el("div",{class:"wk-goal",title:"Weekly goal: "+g,style:"bottom:calc(18px + (100% - 18px) * "+(g/mx).toFixed(3)+")"}));
+      var stats=[["Contacts",weekCounts(a,"contact")],["Follow-ups",weekCounts(a,"follow")],["Replies",weekCounts(a,"reply")],["Interviews",weekCounts(a,"interview")],["Points",weekPoints(a)]];
+      var mx=g;weeks.forEach(function(x){mx=Math.max(mx,weekCounts(a,"app",x))});
+      var chart;
+      if(!weeks.length)chart=el("div",{class:"wk-chart empty-chart"},[el("p",{text:(S.isOwner?"Weekly history":"Your weekly history")+" starts "+fmt(TEAM_START)+"."})]);
+      else{chart=el("div",{class:"wk-chart",title:"Applications per week",style:"grid-template-columns:repeat("+weeks.length+",minmax(0,52px))"},weeks.map(function(x,i){var v=weekCounts(a,"app",x),parts=x.split("-"),d=new Date(+parts[0],+parts[1]-1,+parts[2]);
+        return el("div",{class:"wk-col"},[el("div",{class:"wk-bar"+(v>=g?" hit":"")+(i===weeks.length-1?" cur":""),style:"height:"+Math.max(3,Math.round(v/mx*100))+"%"},[el("span",{text:String(v)})]),el("small",{text:i===weeks.length-1?"Now":d.toLocaleDateString(undefined,{month:"numeric",day:"numeric"})})])}));
+        chart.appendChild(el("div",{class:"wk-goal",title:"Weekly goal: "+g,style:"bottom:calc(18px + (100% - 18px) * "+(g/mx).toFixed(3)+")"},[el("em",{text:"Goal "+g})]))}
       T.appendChild(el("div",{class:"wk-card"},[
         el("div",{class:"wk-person"},[el("div",{class:"ringbox"},[ring(n,g,72),el("span",{class:"rnum",text:String(n)})]),el("div",{},[el("h3",{text:nameOf(k).replace(" (you)","")}),el("span",{class:"muted-line",text:streak(a,k)>0?streak(a,k)+"-week streak":"Goal: "+g+" a week"})])]),
-        el("div",{class:"wk-stats"},stats.map(function(st){return el("div",{},[el("b",{text:String(st[1])}),el("span",{text:st[0]})])})),
+        el("div",{class:"wk-mid"},[
+          el("div",{class:"wk-applied"},[el("b",{text:String(n)}),el("span",{text:" of "+g+" applied"})]),
+          el("div",{class:"wk-track"},[el("i",{style:"width:"+Math.min(100,Math.round(n/g*100))+"%"})]),
+          el("div",{class:"wk-stats"},stats.map(function(st){return el("div",{},[el("b",{text:String(st[1])}),el("span",{text:st[0]})])}))]),
         chart
       ]));
     });
