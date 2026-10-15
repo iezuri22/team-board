@@ -416,6 +416,11 @@ body{background:var(--page)}
 .ct-links{display:flex;flex-direction:column;gap:2px;font-size:13.5px;min-width:0}.ct-links a{color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ct-meta span{font-size:12.5px;color:var(--faint)}.ct-meta .ct-last{color:var(--muted)}
 /* every application list for teammates */
+.scope{display:inline-flex;gap:4px;background:var(--soft2);border-radius:999px;padding:4px;margin:6px 0 10px}
+.scope button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.scope button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.scope-n{font-size:12px;color:var(--faint);font-weight:600;margin-left:2px}
+.blist{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}.blist .brow:first-child{border-top:0}.brow{padding-inline:14px}
 .board-note{font-size:13.5px;color:var(--muted);padding:10px 4px 12px}
 .brow{display:grid;grid-template-columns:36px minmax(0,1fr) 120px 110px 50px;gap:12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
 @media (max-width:700px){.brow{grid-template-columns:36px minmax(0,1fr) 96px}.brow-when,.brow-mine{display:none}}
@@ -448,10 +453,11 @@ body{background:var(--page)}
   <div id="view-apps">
     <div id="summary" class="today-wrap"></div>
     <div id="add-slot"></div>
+    <div class="scope" id="scope" role="tablist" aria-label="Whose applications" hidden></div>
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="board">All team applications</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -925,20 +931,28 @@ body{background:var(--page)}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
+  function teamItems(){return S.jobs.map(function(j){return {company:j.company,role:j.role,status:j.status,at:j.appliedAt||j.addedAt,mine:true}}).concat((S.taken||[]).map(function(t){return {company:t.company,role:t.role,status:t.status||(t.sent?"applied":"saved"),at:t.at}}))}
+  function renderScope(){var sc=$("scope");sc.hidden=S.isOwner;$("f-status").hidden=!S.isOwner&&S.scope==="team";if(S.isOwner)return;sc.textContent="";
+    [["mine","My applications",S.jobs.length],["team","All team applications",teamItems().length]].forEach(function(o){var on=(S.scope||"mine")===o[0];
+      sc.appendChild(el("button",{type:"button",role:"tab","aria-selected":on?"true":"false",class:on?"on":null,onclick:function(){S.scope=o[0];renderRows()}},[o[1]+" ",el("span",{class:"scope-n",text:String(o[2])})]))})}
+  function bRow(x){return el("div",{class:"brow"},[el("div",{class:"co-av",style:"--h:"+hue(x.company),text:initials(x.company)}),el("div",{class:"brow-main"},[el("b",{text:x.company}),el("span",{text:x.role})]),el("span",{class:"brow-when",text:x.at?new Date(x.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""}),el("span",{class:"status-pill s-"+x.status,text:L[x.status]||x.status}),x.mine?el("span",{class:"brow-mine",text:"Yours"}):el("span")])}
   function renderBoardList(R){
-    var q=norm(S.q),items=S.jobs.map(function(j){return {company:j.company,role:j.role,status:j.status,at:j.appliedAt||j.addedAt,mine:true}}).concat((S.taken||[]).map(function(t){return {company:t.company,role:t.role,status:t.status||(t.sent?"applied":"saved"),at:t.at}}));
+    var q=norm(S.q),items=teamItems();
     items=items.filter(function(x){return !q||norm(x.company+" "+x.role).indexOf(q)>=0}).sort(function(a,b){return a.company.localeCompare(b.company)||String(b.at||"").localeCompare(String(a.at||""))});
     R.appendChild(el("div",{class:"board-note",text:items.length+" applications from the whole team, Ifeanyi's included. Search before you apply. Anything here is taken."}));
     if(!items.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Not on the board yet, so it's free to apply."})]));return}
-    items.forEach(function(x){R.appendChild(el("div",{class:"brow"},[el("div",{class:"co-av",style:"--h:"+hue(x.company),text:initials(x.company)}),el("div",{class:"brow-main"},[el("b",{text:x.company}),el("span",{text:x.role})]),el("span",{class:"brow-when",text:x.at?new Date(x.at).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):""}),el("span",{class:"status-pill s-"+x.status,text:L[x.status]||x.status}),x.mine?el("span",{class:"brow-mine",text:"Yours"}):el("span")]))});
+    var box=el("div",{class:"blist"});items.forEach(function(x){box.appendChild(bRow(x))});R.appendChild(box);
   }
   function renderRows(){
     var R=$("rows");R.textContent="";
     if(!S.loaded){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Loading the list"})]));return}
     if(!S.db)return;
-    if(S.status==="board"){renderBoardList(R);return}
+    renderScope();
+    if(!S.isOwner&&S.scope==="team"){renderBoardList(R);return}
     if(!S.jobs.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing logged yet"}),el("p",{text:"Log the first application and it shows up here."})]));return}
     var rows=filtered();
+    if(!S.isOwner&&norm(S.q)){var tq=norm(S.q),hits=(S.taken||[]).filter(function(t){return norm(t.company+" "+t.role).indexOf(tq)>=0});
+      if(hits.length){setTimeout(function(){var R2=$("rows");R2.appendChild(el("div",{class:"board-note",text:"Already on the team's list:"}));var b=el("div",{class:"blist"});hits.slice(0,20).forEach(function(t){b.appendChild(bRow({company:t.company,role:t.role,status:t.status||(t.sent?"applied":"saved"),at:t.at}))});R2.appendChild(b)},0)}}
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
     rows.slice(0,S.limit).forEach(function(j){
       R.appendChild(el("div",{class:"row",tabindex:"0",role:"button","aria-expanded":S.open===j.id?"true":"false",onclick:function(){S.open=S.open===j.id?null:j.id;renderRows()},onkeydown:function(e){if(e.key==="Enter"){e.preventDefault();this.click()}}},[
