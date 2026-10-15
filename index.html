@@ -374,6 +374,18 @@ body{background:var(--page)}
 .detail .fit{margin:0 0 12px}
 .detail .textbox{margin:0}
 .steps{margin:0}
+/* type-led pass: sections are type and space, not boxes */
+.detail .block{background:none;border:0;border-radius:0;padding:0}
+.d-main{gap:30px}
+.bhead h3{font-size:17px;letter-spacing:-.015em}
+.d-side{gap:24px;border-left:1px solid var(--line);padding-left:22px}
+@media (max-width:900px){.d-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:20px}}
+.scard{background:none;border:0;border-radius:0;padding:0}
+.steps{background:none;border:0;border-radius:0;padding:0 0 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.steps-head h3{font-size:19px;letter-spacing:-.02em}
+.step{background:var(--card)}
+.step.done{background:transparent;border-style:dashed}
+.detail{padding:18px 18px 26px}
 </style>
 
 <div class="wrap">
