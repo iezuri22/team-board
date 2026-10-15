@@ -166,6 +166,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .muted-line{color:var(--muted);font-size:14px}
 .desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
 .desc-edit{min-height:180px}
+.steps{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:18px}
+.steps-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.steps-head h3{font-size:16px}.steps-head span{font-size:13px;color:var(--muted)}
+.step-list{list-style:none;margin:0;padding:0}
+.step{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.step:first-child{border-top:0}
+.step-n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--soft2);color:var(--muted)}
+.step.cur .step-n{background:var(--accent);color:#fff}
+.step.done .step-n{background:var(--green-wash);color:var(--green)}
+.step-body{display:grid;gap:2px}.step-body b{font-size:14.5px}.step-body span{font-size:13px;color:var(--muted)}
+.step.done .step-body b{color:var(--muted)}
+.step-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.step-acts a.btn{text-decoration:none}
+@media (max-width:640px){.step{grid-template-columns:30px minmax(0,1fr)}.step-acts{grid-column:2;justify-content:flex-start}}
 .fromif{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:99px;padding:2px 8px;vertical-align:middle}
 .send-row{display:inline-flex;gap:6px;align-items:center}.send-sel{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 10px;font-size:13px}
 .edit-pick{display:flex;justify-content:space-between;align-items:center;gap:12px 18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 16px}
@@ -764,7 +776,8 @@ body{background:var(--page)}
       if(S.isOwner&&j.needsIfeanyi)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
       if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
     }
-    var left=el("div",{},[f,ta,acts,textBlock(j),followBlock(j),resumeBlock(j),coverBlock(j),descBlock(j),contactsBlock(j)]);
+    var saved=j.status==="saved";
+    var left=el("div",{},[stepsCard(j),f,ta,acts,textBlock(j),followBlock(j),saved?null:resumeBlock(j),saved&&!j.cover?null:coverBlock(j),descBlock(j),contactsBlock(j)]);
     var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
     var h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
@@ -773,6 +786,25 @@ body{background:var(--page)}
     return el("div",{class:"detail"},[left,log]);
   }
 
+  function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
+  function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
+  function resumeFor(j){return Promise.all([api("GET","/api/resume/job/"+j.id),api("GET","/api/resume/base")]).then(function(r){return (r[0]&&r[0].md)||variantMd((r[1]&&r[1].md)||"",j.resume)})}
+  function stepsCard(j){
+    if(j.status!=="saved"||!S.uid)return null;
+    var mem=stepState(j),vname=(VARIANTS[j.resume]||VARIANTS.Default).label;
+    var done=[!!j.description,!!(j.tailoredAt||mem.resume),!!(j.cover||mem.cover),false];
+    var cur=done.indexOf(false);
+    function step(i,title,sub,acts){return el("li",{class:"step"+(done[i]?" done":"")+(i===cur?" cur":"")},[el("span",{class:"step-n","aria-hidden":"true",text:done[i]?"\u2713":String(i+1)}),el("div",{class:"step-body"},[el("b",{text:title}),el("span",{text:sub})]),el("div",{class:"step-acts"},acts)])}
+    var B=function(t,fn,cls){return el("button",{class:"btn small "+(cls||"ghost"),type:"button",text:t,onclick:fn})};
+    var list=el("ol",{class:"step-list"},[
+      step(0,"Job description",done[0]?"Saved. AI uses it for the resume and cover letter.":"Paste it so the AI tools can read it.",done[0]?[]:[B("Paste description",function(){S.editDesc=j.id;renderRows()},i0())]),
+      step(1,"Resume",j.tailoredAt?"Edited copy for this job is ready.":"Use the "+vname+" resume. Edit a copy if the posting asks for something it doesn't say.",[B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)}),B("Download PDF",function(){resumeFor(j).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===1?"accent":"ghost")]),
+      step(2,"Cover letter",j.cover?"Written. It's below if you want to read or change it.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",j.cover?[B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")})]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over below.");refresh()})}):null,B("Not needed",function(){markStep(j,"cover")})]),
+      step(3,"Apply",cur===3?"You're set. Apply on the company's site, then come back and mark it.":"Finish the steps above, then apply.",[j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;refresh()},fail)},cur===3?"accent":"ghost")])
+    ]);
+    function i0(){return cur===0?"accent":"ghost"}
+    return el("div",{class:"steps"},[el("div",{class:"steps-head"},[el("h3",{text:"Apply to this job"}),el("span",{text:done.filter(Boolean).length+" of 3 ready"})]),list]);
+  }
   function textBlock(j){
     if(S.texting!==j.id||S.isOwner)return null;
     var m=el("textarea",{id:"tx-"+j.id,rows:"3",placeholder:"What happened and what he needs to do. For example: Their recruiter emailed to set up a call. She offered Tue 2pm or Wed 11am."});
@@ -939,11 +971,11 @@ body{background:var(--page)}
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:j.taken?"Already on the team's list: "+j.company+", "+j.role+". Don't apply again.":"You already logged this: "+j.company+", "+j.role+" ("+L[j.status]+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
-    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),tl=!!(e.submitter&&e.submitter.dataset.tailor),send=to&&to.value,k=tl||send?"saved":st.value;if(!k){msg.textContent="Pick a status.";st.focus();return}var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value==="__add"?src._last:src.value,resume:res.value,status:k,assignTo:send||undefined,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(made){if(send){toast("Sent to "+S.people[send].name+". It's on their board now.");form.reset();st.disabled=false;st.value="";to.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";refresh();return}if(tl){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application";toast("Saved. Edit the resume, apply, then mark it Applied.");refresh().then(function(){openEditor(made)});return}refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
-      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Fastest way: before you apply, copy the whole posting page and paste it below. AI fills in the details, checks for repeats and picks the resume. Apply, then press Save."}),
+    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),tl=!!(e.submitter&&e.submitter.dataset.tailor),send=to&&to.value,k=tl||send?"saved":st.value;if(!k){msg.textContent="Pick a status, or press Save and start applying.";st.focus();return}var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value==="__add"?src._last:src.value,resume:res.value,status:k,assignTo:send||undefined,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(made){if(send){toast("Sent to "+S.people[send].name+". It's on their board now.");form.reset();st.disabled=false;st.value="";to.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";refresh();return}if(tl){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application";S.open=made.id;if(S.status!=="all"&&S.status!=="open"){S.status="open";$("f-status").value="open"}refresh().then(function(){var r=document.querySelector(".steps");if(r)r.scrollIntoView({behavior:"smooth",block:"center"})});return}refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
+      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Copy the whole posting page and paste it below. AI fills in the details and checks for repeats. Then press Save and start applying, and the board walks you through the resume, cover letter and applying."}),
       drop,el("div",{class:"shots-row"},[thumbs,readBtn]),
-      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",srcWrap),field("a-res","Resume sent","c2",res),field("a-st","Status","c2",st),to?field("a-to","Send to someone to apply","c2",to):null,field("a-notes","Notes",to?"c2":"c4",notes),field("a-desc","Job description","c6",desc)]),
-      warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn ghost",type:"submit","data-tailor":"1",text:"Save and edit resume",title:"Saves the job as Saved and opens a copy of the resume to edit for it"}),el("button",{class:"btn accent",type:"submit",text:"Save"})])]);
+      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",srcWrap),field("a-res","Resume sent","c2",res),field("a-st","Status (only for Just log it)","c2",st),to?field("a-to","Send to someone to apply","c2",to):null,field("a-notes","Notes",to?"c2":"c4",notes),field("a-desc","Job description","c6",desc)]),
+      warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn ghost",type:"submit",text:"Just log it"}),el("button",{class:"btn accent",type:"submit","data-tailor":"1",text:"Save and start applying"})])]);
     slot.appendChild(form);url.focus();
   }
 
