@@ -166,6 +166,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .muted-line{color:var(--muted);font-size:14px}
 .desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
 .desc-edit{min-height:180px}
+.drop{display:grid;gap:3px;place-items:center;text-align:center;border:1.5px dashed var(--line);border-radius:14px;padding:18px 16px;margin:4px 0 12px;cursor:pointer;background:var(--soft);transition:border-color .15s,background .15s}
+.drop:hover,.drop:focus-visible,.drop.over{border-color:var(--accent);outline:none}
+.drop.over{background:var(--card)}
+.drop b{font-size:15px}.drop span{font-size:13px;color:var(--muted)}
+.drop.has{padding:10px 16px}.drop.has span{display:none}
+.shots-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.shots-row:empty{display:none}
+.shots{display:flex;gap:8px;flex-wrap:wrap}
+.shot{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top}
+.shot-x{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:20px;padding:0;cursor:pointer}
 .cv-edit{width:100%;min-height:300px;font-size:14px;line-height:1.55;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 14px;resize:vertical}
 .cv-edit.tall{min-height:440px}
 .cv-show{max-height:none}
@@ -843,6 +853,8 @@ body{background:var(--page)}
 
   // add application
   function field(id,label,cls,input){return el("div",{class:"f "+cls},[el("label",{for:id,text:label}),input])}
+  var form_paste=null;
+  document.addEventListener("paste",function(e){if(S.adding&&form_paste&&$("add-slot").firstChild)form_paste(e)});
   function renderAdd(){
     var slot=$("add-slot");if(!S.adding){slot.textContent="";return}if(slot.firstChild)return;
     var url=el("input",{id:"a-url",type:"url",placeholder:"Paste the job posting link"}),co=el("input",{id:"a-co",required:true}),ro=el("input",{id:"a-ro",required:true}),pay=el("input",{id:"a-pay",placeholder:"$95k to $110k, or $70/hr"});
@@ -852,11 +864,32 @@ body{background:var(--page)}
     var notes=el("textarea",{id:"a-notes",rows:"1",placeholder:"Anything worth knowing"});
     var desc=el("textarea",{id:"a-desc",rows:"3",placeholder:"Paste the full job description. Postings come down, this keeps a copy."});
     var warn=el("div"),msg=el("span",{class:"msg"}),force=false;
+    // screenshots -> AI fills the form
+    var shots=[],thumbs=el("div",{class:"shots"}),picker=el("input",{type:"file",accept:"image/*",multiple:true,hidden:true,onchange:function(){addFiles(picker.files);picker.value=""}});
+    var readBtn=aiBtn("Fill in from screenshots",function(){if(!shots.length){toast("Add a screenshot first");return}
+      var parts=[];shots.forEach(function(x){parts=parts.concat(x.parts)});
+      return api("POST","/api/ai/extract",{images:parts.slice(0,8)}).then(function(r){
+        if(r.url&&!url.value.trim())url.value=r.url;if(r.company)co.value=r.company;if(r.role)ro.value=r.role;if(r.pay)pay.value=r.pay;
+        if(r.source)src.value=r.source;if(r.resume)res.value=r.resume;if(r.description)desc.value=r.description;
+        var d=check();toast(d.ex.length?"Heads up: this one is already logged":"Filled in. Check it, apply with the "+(r.resume==="Default"?"Base":r.resume==="Health"?"Healthcare":r.resume)+" resume, then Save.")})});
+    readBtn.hidden=true;
+    function drawShots(){thumbs.textContent="";shots.forEach(function(x,i){thumbs.appendChild(el("div",{class:"shot"},[el("img",{src:x.thumb,alt:"Screenshot "+(i+1)}),el("button",{type:"button",class:"shot-x","aria-label":"Remove screenshot "+(i+1),text:"\u00d7",onclick:function(){shots.splice(i,1);drawShots()}})]))});readBtn.hidden=!shots.length;drop.classList.toggle("has",!!shots.length)}
+    function slice(img){
+      // Claude scales big images down, so cut tall screenshots into readable pieces
+      var w=Math.min(1200,img.naturalWidth),sc=w/img.naturalWidth,h=Math.round(img.naturalHeight*sc),step=Math.round(w*1.4),out=[];
+      for(var y=0;y<h&&out.length<8;y+=step){var c=document.createElement("canvas"),ph=Math.min(step,h-y);c.width=w;c.height=ph;var g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,ph);g.drawImage(img,0,y/sc,img.naturalWidth,ph/sc,0,0,w,ph);out.push({type:"image/jpeg",data:c.toDataURL("image/jpeg",0.85).split(",")[1]})}
+      return out}
+    function addFiles(list){[].slice.call(list||[]).filter(function(f){return /^image\//.test(f.type)}).slice(0,8-shots.length).forEach(function(f){var u=URL.createObjectURL(f),img=new Image();img.onload=function(){shots.push({thumb:u,parts:slice(img)});drawShots()};img.onerror=function(){toast("Couldn't read that image")};img.src=u})}
+    var drop=el("div",{class:"drop",tabindex:"0",role:"button","aria-label":"Add screenshots of the job posting",onclick:function(e){if(e.target===drop||e.target.parentNode===drop)picker.click()},onkeydown:function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();picker.click()}},
+      ondragover:function(e){e.preventDefault();drop.classList.add("over")},ondragleave:function(){drop.classList.remove("over")},ondrop:function(e){e.preventDefault();drop.classList.remove("over");addFiles(e.dataTransfer.files)}},
+      [el("b",{text:"Drop screenshots of the posting here"}),el("span",{text:"or paste them (Cmd+V or Ctrl+V), or click to choose. Several is fine if the posting is long."}),picker]);
+    form_paste=function(e){var fs=[].slice.call((e.clipboardData&&e.clipboardData.files)||[]).filter(function(f){return /^image\//.test(f.type)});if(fs.length){e.preventDefault();addFiles(fs)}};
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:j.taken?"Already on the team's list: "+j.company+", "+j.role+". Don't apply again.":"You already logged this: "+j.company+", "+j.role+" ("+L[j.status]+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
-    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="applied";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
-      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Log it right after you submit. Paste the link first, it catches repeats."}),
+    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}var t=now(),k=st.value;var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value,resume:res.value,status:k,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(){refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="applied";shots=[];drawShots();warn.textContent="";msg.textContent="";url.focus()},fail)}},[
+      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Fastest way: screenshot the posting before you apply. AI fills in the details, checks for repeats and picks the resume. Apply, then press Save."}),
+      drop,el("div",{class:"shots-row"},[thumbs,readBtn]),
       el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",src),field("a-res","Resume sent","c2",res),field("a-st","Status","c2",st),field("a-notes","Notes","c4",notes),field("a-desc","Job description","c6",desc)]),
       warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn accent",type:"submit",text:"Save"})])]);
     slot.appendChild(form);url.focus();
