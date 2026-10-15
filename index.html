@@ -226,6 +226,20 @@ body{background:var(--page)}
 .team-row .n.pts{color:var(--accent)}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
 @media (prefers-reduced-motion:reduce){.ring .fill,.nudge{transition:none}}
+
+.nocontact.fu{color:var(--blue);background:var(--blue-wash)}
+.inline-form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.inline-form input{flex:1;min-width:220px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px}
+.ed-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-block:18px 16px}
+.ed-head h2{font-size:24px;letter-spacing:-.025em}
+.ed-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.ed-body.solo{grid-template-columns:minmax(0,820px);justify-content:center}
+@media (max-width:900px){.ed-body{grid-template-columns:1fr}}
+.ed-left{display:grid;gap:10px}
+.ed-text{width:100%;min-height:72vh;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:16px;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg);resize:vertical}
+.ed-tips summary{cursor:pointer;color:var(--muted);font-size:14px}.ed-tips p{color:var(--muted);font-size:14px;margin-top:6px}
+.paper-box{background:var(--soft2);border-radius:16px;padding:18px;position:sticky;top:12px}
+.paper-scale{margin:0 auto;overflow:hidden;border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 18px 40px -20px rgba(0,0,0,.35);background:#fff}
+.paper-frame{width:816px;height:1056px;border:0;background:#fff;transform-origin:0 0;display:block}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -237,6 +251,7 @@ body{background:var(--page)}
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
       <button role="tab" id="tab-replies" aria-selected="false">Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
+      <button role="tab" id="tab-resume" aria-selected="false">Resume</button>
       <button role="tab" id="tab-brief" aria-selected="false">How we work</button>
     </nav>
     <div class="spacer"></div>
@@ -253,7 +268,7 @@ body{background:var(--page)}
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="contacts">Needs contacts</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="contacts">Needs contacts</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -270,6 +285,8 @@ body{background:var(--page)}
 
   <div id="view-team" hidden><div id="team"></div></div>
 
+  <div id="view-resume" hidden><div id="resume-view"></div></div>
+
   <div id="view-brief" hidden>
     <div class="brief-bar" id="brief-bar"></div>
     <div id="brief"></div>
@@ -282,7 +299,8 @@ body{background:var(--page)}
   var ST=[{k:"saved",l:"Saved"},{k:"applied",l:"Applied"},{k:"heard",l:"Heard back"},{k:"interview",l:"Interview"},{k:"offer",l:"Offer"},{k:"rejected",l:"Rejected"},{k:"skipped",l:"Not a fit"}];
   var L={};ST.forEach(function(s){L[s.k]=s.l});
   var SENT={applied:1,heard:1,interview:1,offer:1,rejected:1}, REPLIED={heard:1,interview:1,offer:1};
-  var NEEDS_CONTACTS={applied:1,heard:1,interview:1};function noContacts(j){return NEEDS_CONTACTS[j.status]&&!(j.contacts&&j.contacts.length)}
+  var NEEDS_CONTACTS={applied:1,heard:1,interview:1};function needsFollowUp(j){if(j.status!=="applied"||j.lastReply)return false;var s=sentAt(j);if(!s)return false;var wk=Date.now()-7*864e5;if(new Date(s).getTime()>wk)return false;return !j.followedUpAt||new Date(j.followedUpAt).getTime()<wk}
+  function noContacts(j){return NEEDS_CONTACTS[j.status]&&!(j.contacts&&j.contacts.length)}
   var REPLY_TYPES=["Interview request","Recruiter wants to talk","Assessment or task","Rejection","Other"];
   var S={db:null,user:null,uid:null,isOwner:false,readOnly:false,jobs:[],loaded:false,brief:null,briefLoaded:false,people:{},peopleLoaded:false,
     tab:"apps",who:"all",status:"open",q:"",open:null,limit:150,adding:false,replying:false,editingBrief:false,renaming:false};
@@ -311,16 +329,83 @@ body{background:var(--page)}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code|tm-|desc-|ct-|ping-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
   function clearFlag(j){api("PATCH","/api/jobs/"+j.id,{needsIfeanyi:false,note:"Ifeanyi marked this handled"}).then(function(){toast("Marked handled");refresh()},fail)}
   function del(j){api("DELETE","/api/jobs/"+j.id).then(function(){S.open=null;toast("Deleted");refresh()},fail)}
 
+
+  // ---------- resume ----------
+  var RESUME_CSS="\n@page { size: Letter; margin: 0.5in 0.62in; }\n* { box-sizing: border-box; }\nbody {\n  margin: 0; color: #16181d; background: #fff;\n  font: 10pt/1.42 \"Helvetica Neue\", Helvetica, Arial, sans-serif;\n  -webkit-font-smoothing: antialiased;\n  /* ligatures break ATS keyword matching: \"certified\" extracts as \"certi<fi>ed\" */\n  font-variant-ligatures: none; -webkit-font-feature-settings: \"liga\" 0, \"clig\" 0;\n}\nh1 {\n  margin: 0; font-size: 21pt; font-weight: 700; letter-spacing: .035em; text-transform: uppercase;\n}\n.contact { margin: 3pt 0 0; font-size: 8.9pt; color: #4a4d55; }\n.tagline {\n  margin: 6pt 0 0; font-size: 9.6pt; font-weight: 600; color: #1f4e79; line-height: 1.35;\n}\nh2 {\n  margin: 13pt 0 5pt; font-size: 9pt; font-weight: 700; letter-spacing: .11em;\n  text-transform: uppercase; color: #1f4e79;\n  border-bottom: .8pt solid #c9ced6; padding-bottom: 2.5pt;\n}\nh3 { margin: 8pt 0 1pt; font-size: 10.4pt; font-weight: 700; }\nh3 .sub { font-weight: 400; color: #4a4d55; }\n.org { margin: 2pt 0 0; font-size: 10pt; font-weight: 700; }\n.org-note { font-size: 9pt; font-weight: 400; font-style: italic; color: #5a5d64; }\n.role {\n  display: flex; justify-content: space-between; align-items: baseline; gap: 10pt;\n  margin: 6pt 0 2pt;\n}\n.role .t { font-size: 10pt; font-weight: 700; }\n.role .sub { font-weight: 400; color: #4a4d55; margin-left: 5pt; }\n.role .d { font-size: 8.9pt; color: #4a4d55; white-space: nowrap; }\n.stack {\n  margin: 1pt 0 3pt; font-size: 8.7pt; font-style: italic; color: #1f4e79; line-height: 1.35;\n}\n.lede { margin: 2pt 0 3pt; font-size: 9.5pt; }\np { margin: 0 0 4pt; }\nul { margin: 2pt 0 0; padding-left: 13pt; }\nli { margin-bottom: 2.6pt; padding-left: 1pt; }\n.skills p { margin: 0 0 3.2pt; font-size: 9.4pt; line-height: 1.4; }\n.skills b { font-weight: 600; color: #1f4e79; }\n.eduline b { font-weight: 600; }\n.note { margin-top: 4pt; font-size: 9.4pt; }\n.sole { margin: 0 0 2pt; font-size: 9.2pt; font-style: italic; color: #5a5d64; }\n/* keep a heading with its first lines, but let long entries flow across pages */\n.role, .stack { break-after: avoid; page-break-after: avoid; }\nli { break-inside: avoid; page-break-inside: avoid; }\nh2 { break-after: avoid; page-break-after: avoid; }\na { color: inherit; text-decoration: none; }\n";
+  function rInline(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[^*\w])\*([^*]+?)\*(?!\w)/g,"$1<i>$2</i>")}
+  function resumeHTML(md){
+    var L=String(md||"").replace(/<!--[\s\S]*?-->/g,"").split(/\r?\n/),out=[],i=0,gotTag=false,inSkills=false,ul=[];
+    function flush(){if(ul.length){out.push("<ul>"+ul.map(function(x){return"<li>"+rInline(x)+"</li>"}).join("")+"</ul>");ul=[]}}
+    while(i<L.length){var raw=L[i],t=raw.trim();i++;
+      if(/^- /.test(t)){ul.push(t.slice(2));continue}flush();
+      if(!t||t==="---")continue;
+      if(/^# /.test(t)){out.push("<h1>"+rInline(t.slice(2))+"</h1>");while(i<L.length&&!L[i].trim())i++;if(i<L.length&&!/^#/.test(L[i].trim())){out.push('<p class="contact">'+rInline(L[i].trim())+"</p>");i++}continue}
+      if(/^## /.test(t)){var h=t.slice(3);inSkills=/SKILL/i.test(h);out.push("<h2>"+rInline(h)+"</h2>");continue}
+      if(/^### /.test(t)){out.push('<p class="org">'+rInline(t.slice(4))+"</p>");continue}
+      var m=t.match(/^\*\*(.+?)\*\*\s*\u2014\s*(.*?)\s*(?:\(([^)]*)\))?\s*$/);
+      if(m){out.push('<div class="role"><span class="t">'+rInline(m[1])+(m[2]?' <span class="sub">'+rInline(m[2])+"</span>":"")+'</span><span class="d">'+esc(m[3]||"")+"</span></div>");continue}
+      if(!gotTag&&/^\*\*.+\*\*$/.test(t)){gotTag=true;out.push('<p class="tagline">'+rInline(t.slice(2,-2))+"</p>");continue}
+      if(/^\*[^*].*\*$/.test(t)){out.push('<p class="'+(t.indexOf("\u00b7")>0?"stack":"org-note")+'">'+rInline(t.slice(1,-1))+"</p>");continue}
+      out.push(inSkills?'<p class="sk">'+rInline(t)+"</p>":"<p>"+rInline(t)+"</p>");
+    }
+    flush();return out.join("\n");
+  }
+  function resumeDoc(md,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+RESUME_CSS+".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}body{padding:0}</style></head><body>"+resumeHTML(md)+"</body></html>"}
+  function printResume(md,title){
+    var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
+    var d=f.contentDocument;d.open();d.write(resumeDoc(md,title));d.close();
+    setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
+  }
+  function previewInto(box,md){
+    var holder=box.querySelector(".paper-scale");var f=box.querySelector("iframe");
+    if(!f){holder=el("div",{class:"paper-scale"});f=el("iframe",{class:"paper-frame",title:"Resume preview"});holder.appendChild(f);box.appendChild(holder)}
+    var fit=function(){var sc=Math.min(1,(box.clientWidth-36)/816);f.style.transform="scale("+sc+")";holder.style.height=(1056*sc)+"px";holder.style.width=(816*sc)+"px"};
+    fit();if(!box._fit){box._fit=1;window.addEventListener("resize",fit)}
+    var d=f.contentDocument;d.open();d.write(resumeDoc(md,"Preview").replace("<body>","<body style='margin:0.5in 0.62in'>"));d.close()}
+  function fileTitle(j){return "Ifeanyi_Ezurike_Resume"+(j?"_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"):"")}
+  function openEditor(j){
+    S.editorJob=j?j.id:"base";S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0);
+  }
+  function renderResumeTab(){
+    var V=$("resume-view");V.textContent="";
+    var j=S.editorJob&&S.editorJob!=="base"?S.jobs.find(function(x){return x.id===S.editorJob}):null;
+    var editing=!!j||(S.editorJob==="base"&&S.isOwner);
+    var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:j?"Resume for "+j.company:"Base resume"}),el("p",{class:"muted-line",text:j?j.role+". Edit the copy on the left, it only changes this job's resume.":"This is the master version every tailored copy starts from."+(S.isOwner?"":" Only Ifeanyi can change it.")})])]);
+    var actions=el("div",{class:"acts"});head.appendChild(actions);
+    var body=el("div",{class:"ed-body"+(editing?"":" solo")});
+    var box=el("div",{class:"paper-box"});
+    V.appendChild(head);V.appendChild(body);
+    var url=j?"/api/resume/job/"+j.id:"/api/resume/base";
+    Promise.all([api("GET",url),j?api("GET","/api/resume/base"):Promise.resolve(null)]).then(function(r){
+      var md=(r[0]&&r[0].md)||(r[1]&&r[1].md)||"";
+      var fresh=j&&!(r[0]&&r[0].md);
+      if(editing){
+        var ta=el("textarea",{id:"rz-md",class:"ed-text",spellcheck:"true"});ta.value=md;
+        var t;ta.addEventListener("input",function(){clearTimeout(t);t=setTimeout(function(){previewInto(box,ta.value)},250);saveBtn.disabled=false;saveBtn.textContent="Save"});
+        var tips=el("details",{class:"ed-tips"},[el("summary",{text:"How to edit"}),el("p",{text:"Change words freely. Keep the markers: lines starting with \"- \" are bullets, \"## \" starts a section, and **double stars** make text bold. Match keywords from the job description, but never add a skill or result Ifeanyi doesn't have."})]);
+        body.appendChild(el("div",{class:"ed-left"},[tips,ta]));
+        var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;api("PUT",url,{md:ta.value}).then(function(){saveBtn.textContent="Saved";toast(j?"Resume saved for "+j.company:"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
+        actions.appendChild(saveBtn);
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(ta.value,fileTitle(j))}}));
+      }else{
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,fileTitle(null))}}));
+        if(S.isOwner)actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
+      }
+      if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
+      body.appendChild(box);previewInto(box,md);
+    },fail);
+  }
+
   // ---------- render ----------
   function render(){
-    ["apps","replies","team","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
+    ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
@@ -329,6 +414,7 @@ body{background:var(--page)}
     if(S.tab==="replies"){renderReplyAdd();renderReplies()}
     if(S.tab==="team")renderTeam();
     if(S.tab==="brief")renderBrief();
+    if(S.tab==="resume"&&!S.resumeShown){S.resumeShown=true;renderResumeTab()}
   }
   function renderPing(){
     var slot=$("ping-slot");$("ping-btn").hidden=!(S.db&&S.uid&&!S.isOwner);
@@ -364,7 +450,7 @@ body{background:var(--page)}
   }
   function target(){var n=S.brief&&Number(S.brief.dailyTarget);return n>0?n:10}
   // points: 1 per application, 1 per contact, 3 per reply logged, 10 per interview
-  var PTS={app:1,contact:1,reply:3,interview:10};
+  var PTS={app:1,contact:1,reply:3,interview:10,follow:1};
   function dayKey(d){var x=new Date(d);return x.getFullYear()+"-"+(x.getMonth()+1)+"-"+x.getDate()}
   function activity(){
     // returns {pid:{apps:{dayKey:n}, events:[{at,pts,kind}]}}
@@ -374,6 +460,7 @@ body{background:var(--page)}
       if(s){var p=P(who);var k=dayKey(s);p.apps[k]=(p.apps[k]||0)+1;p.events.push({at:s,pts:PTS.app,kind:"app"})}
       (j.contacts||[]).forEach(function(c){P(c.addedBy||"owner").events.push({at:c.addedAt,pts:PTS.contact,kind:"contact"})});
       (j.history||[]).forEach(function(h){if(REPLY_TYPES.some(function(r){return h.text.indexOf(r)===0})){P(h.by||"owner").events.push({at:h.at,pts:PTS.reply,kind:"reply"})}
+        if(h.text.indexOf("Followed up")===0){P(h.by||"owner").events.push({at:h.at,pts:PTS.follow,kind:"follow"})}
         if(h.text==="Changed status to Interview"||h.text.indexOf("Interview request")===0){P(who).events.push({at:h.at,pts:PTS.interview,kind:"interview"})}});
     });
     return A;
@@ -429,12 +516,12 @@ body{background:var(--page)}
     var mine=S.isOwner?S.jobs:S.jobs.filter(function(j){return j.addedBy===S.uid});
     var need=mine.filter(noContacts).length;
     var weekAgo=new Date(Date.now()-7*864e5);
-    var stale=mine.filter(function(j){return j.status==="applied"&&new Date(sentAt(j)||j.addedAt)<weekAgo&&!j.lastReply}).length;
+    var stale=mine.filter(needsFollowUp).length;
     var waiting=S.jobs.filter(function(j){return j.needsIfeanyi}).length;
     var list=el("div",{class:"nudges"},[el("h3",{text:"Up next"})]);
     function n(count,label,act){if(!count)return;list.appendChild(el("button",{type:"button",class:"nudge",onclick:act},[el("b",{text:String(count)})," "+label]))}
     n(need,need===1?"application needs contacts":"applications need contacts",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
-    n(stale,"applied over a week ago with no reply",function(){S.status="open";$("f-status").value="open";renderRows()});
+    n(stale,stale===1?"application needs a follow-up":"applications need a follow-up",function(){S.status="followup";$("f-status").value="followup";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"flagged for Ifeanyi",function(){S.tab="replies";render()});
     if(list.children.length===1)list.appendChild(el("p",{class:"muted-line",text:"You're all caught up."}));
     return list;
@@ -460,7 +547,7 @@ body{background:var(--page)}
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))})}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
@@ -473,7 +560,7 @@ body{background:var(--page)}
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
     rows.slice(0,S.limit).forEach(function(j){
       R.appendChild(el("div",{class:"row",tabindex:"0",role:"button","aria-expanded":S.open===j.id?"true":"false",onclick:function(){S.open=S.open===j.id?null:j.id;renderRows()},onkeydown:function(e){if(e.key==="Enter"){e.preventDefault();this.click()}}},[
-        el("div",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled",noContacts(j)?el("span",{class:"nocontact",text:"No contacts yet"}):null]),el("div",{class:"ro",text:j.role||""})]),
+        el("div",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled",noContacts(j)?el("span",{class:"nocontact",text:"No contacts yet"}):null,needsFollowUp(j)?el("span",{class:"nocontact fu",text:"Follow up"}):null]),el("div",{class:"ro",text:j.role||""})]),
         el("div",{class:"meta"},[el("b",{text:nameOf(j.addedBy).replace(" (you)","")}),(j.contacts&&j.contacts.length)?el("span",{class:"ccount",text:" · "+j.contacts.length+" contact"+(j.contacts.length>1?"s":"")}):null]),
         el("div",{class:"meta when",text:j.interviewAt&&j.status==="interview"?"Interview "+rel(j.interviewAt):"Sent "+(rel(sentAt(j))||rel(j.addedAt))}),
         el("div",{class:"st"},[statusSel(j)])
@@ -500,7 +587,7 @@ body{background:var(--page)}
       if(S.isOwner&&j.needsIfeanyi)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Mark handled",onclick:function(){clearFlag(j)}}));
       if(S.isOwner)acts.appendChild(el("button",{class:"btn ghost small",type:"button",text:S.confirmDel===j.id?"Tap again to delete":"Delete",onclick:function(){if(S.confirmDel===j.id)del(j);else{S.confirmDel=j.id;renderRows()}}}));
     }
-    var left=el("div",{},[f,ta,acts,descBlock(j),contactsBlock(j)]);
+    var left=el("div",{},[f,ta,acts,followBlock(j),resumeBlock(j),descBlock(j),contactsBlock(j)]);
     var log=el("div",{class:"log"},[el("h3",{text:"History"})]);var ol=el("ol");
     var h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{text:"Logged "+(j.addedAt?rel(j.addedAt):"")+" by "+nameOf(j.addedBy)}));
@@ -509,6 +596,24 @@ body{background:var(--page)}
     return el("div",{class:"detail"},[left,log]);
   }
 
+  function followBlock(j){
+    if(j.status!=="applied"&&!j.followedUpAt)return null;
+    var wrap=el("div",{class:"block"},[el("h3",{text:"Follow-up"})]);
+    wrap.appendChild(el("p",{class:"muted-line",text:j.followedUpAt?"Last follow-up "+rel(j.followedUpAt)+".":needsFollowUp(j)?"No reply after a week. Nudge one of the contacts below, then log it here.":"Due 7 days after applying if there's no reply."}));
+    if(S.uid&&j.status==="applied"){
+      if(S.followFor===j.id){var who=el("input",{id:"fu-"+j.id,placeholder:"Who did you reach out to, and how? For example: Dana Lee on LinkedIn"});
+        wrap.appendChild(el("form",{class:"inline-form",onsubmit:function(e){e.preventDefault();api("PATCH","/api/jobs/"+j.id,{followedUpAt:new Date().toISOString(),note:"Followed up"+(who.value.trim()?": "+who.value.trim():"")}).then(function(){S.followFor=null;toast("Follow-up logged");refresh()},fail)}},[who,el("button",{class:"btn small",type:"submit",text:"Log it"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.followFor=null;renderRows()}})]));}
+      else wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Log a follow-up",onclick:function(){S.followFor=j.id;renderRows()}})]));
+    }
+    return wrap;
+  }
+  function resumeBlock(j){
+    var wrap=el("div",{class:"block"},[el("h3",{text:"Resume for this job"})]);
+    if(j.tailoredAt)wrap.appendChild(el("p",{class:"muted-line",text:"Tailored by "+nameOf(j.tailoredBy).replace(" (you)","")+", "+rel(j.tailoredAt)+"."}));
+    else wrap.appendChild(el("p",{class:"muted-line",text:"Using the "+(j.resume||"Default")+" resume. Tailor a copy to match this posting's keywords."}));
+    if(S.uid)wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.tailoredAt?"Open tailored resume":"Tailor for this job",onclick:function(){openEditor(j)}})]));
+    return wrap;
+  }
   function descBlock(j){
     var wrap=el("div",{class:"block"},[el("h3",{text:"Job description"})]);
     if(S.editDesc===j.id){
@@ -662,14 +767,14 @@ body{background:var(--page)}
   }
 
   // events
-  ["apps","replies","team","brief"].forEach(function(t){$("tab-"+t).onclick=function(){S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  ["apps","replies","team","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   $("ping-btn").onclick=function(){S.pinging=!S.pinging;$("ping-slot").textContent="";renderPing()};
   $("add-btn").onclick=function(){S.adding=!S.adding;$("add-slot").textContent="";render()};
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","replies","team","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","replies","team","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
