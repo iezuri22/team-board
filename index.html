@@ -386,6 +386,18 @@ body{background:var(--page)}
 .step{background:var(--card)}
 .step.done{background:transparent;border-style:dashed}
 .detail{padding:18px 18px 26px}
+/* one column of full-width bands */
+.detail{grid-template-columns:minmax(0,1fr)!important;gap:26px}
+.detail>*{grid-column:1/-1}
+.d-info{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:20px 36px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+@media (max-width:900px){.d-info{grid-template-columns:1fr}}
+.d-col{display:grid;gap:16px;align-content:start}
+.detail .desc{columns:2 380px;column-gap:44px;column-fill:auto;max-height:260px}
+.detail .desc.open{column-fill:balance;max-height:none}
+.detail .desc p{margin:0 0 14px;white-space:pre-wrap;break-inside:avoid-column}
+.detail .desc .dh{font-weight:650;color:var(--fg)}
+.detail .fit{max-width:760px}
+.detail>.block+.block{border-top:1px solid var(--line);padding-top:22px}
 </style>
 
 <div class="wrap">
@@ -810,9 +822,8 @@ body{background:var(--page)}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
     var saved=j.status==="saved";
-    var main=el("div",{class:"d-main"},[textBlock(j),followBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j),contactsBlock(j)]);
-    var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
-    return el("div",{class:"detail"},[stepsCard(j),main,side]);
+    var info=el("div",{class:"d-info"},[el("div",{class:"d-col"},[detailsCard(j),actionsCard(j)]),notesCard(j),historyCard(j)]);
+    return el("div",{class:"detail"},[stepsCard(j),textBlock(j),info,followBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j),contactsBlock(j)]);
   }
   function detailsCard(j){
     function kv(k,v){return v?[el("dt",{text:k}),el("dd",{},[v])]:[]}
@@ -951,7 +962,9 @@ body{background:var(--page)}
     }
     if(j.fit)wrap.appendChild(fitCard(j.fit));
     if(j.description){S.descOpen=S.descOpen||{};var open=!!S.descOpen[j.id],long=j.description.length>600;
-      var d=el("div",{class:"desc"+(open||!long?" open":"")});d.textContent=j.description;wrap.appendChild(d);
+      var d=el("div",{class:"desc"+(open||!long?" open":"")});j.description.trim().split(/\n\s*\n/).forEach(function(para){para=para.trim();var nl=para.indexOf("\n"),first=nl<0?para:para.slice(0,nl);
+        var head=first.length<=48&&!/[.,;:!?]$/.test(first)&&!/^[-*\u2022]/.test(first)&&/^[A-Z]/.test(first)&&(nl>0||para.length<=48);
+        d.appendChild(head?el("p",{},[el("b",{class:"dh",text:first}),nl>0?document.createTextNode("\n"+para.slice(nl+1)):null]):el("p",{text:para}))});wrap.appendChild(d);
       if(long)wrap.appendChild(el("button",{class:"linkish more",type:"button",text:open?"Show less":"Show the full description",onclick:function(){S.descOpen[j.id]=!open;renderRows()}}))}
     else wrap.appendChild(el("p",{class:"muted-line",text:"Not saved yet. Paste it so it's here after the posting comes down."}));
     return wrap;
