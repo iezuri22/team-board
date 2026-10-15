@@ -328,7 +328,7 @@ body{background:var(--page)}
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="contacts">Needs contacts</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -665,7 +665,7 @@ body{background:var(--page)}
     var waiting=S.jobs.filter(function(j){return j.needsIfeanyi}).length;
     var list=el("div",{class:"nudges"},[el("h3",{text:"Up next"})]);
     function n(count,label,act){if(!count)return;list.appendChild(el("button",{type:"button",class:"nudge",onclick:act},[el("b",{text:String(count)})," "+label]))}
-    n(need,need===1?"application needs contacts":"applications need contacts",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
+    n(need,need===1?"application could use a contact":"applications could use a contact",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(stale,stale===1?"application needs a follow-up":"applications need a follow-up",function(){S.status="followup";$("f-status").value="followup";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"flagged for Ifeanyi",function(){S.tab="replies";render()});
     if(list.children.length===1)list.appendChild(el("p",{class:"muted-line",text:"You're all caught up."}));
