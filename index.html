@@ -188,6 +188,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .res-preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .fromif{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border-radius:99px;padding:2px 8px;vertical-align:middle}
 .send-row{display:inline-flex;gap:6px;align-items:center}.send-sel{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 10px;font-size:13px}
+.doc-pick button.mine{border-style:dashed}.doc-pick button.mine.on{border-style:solid}
+.doc-pick button.add{border:1px dashed var(--line);color:var(--accent);background:transparent}
+.sug-btns{margin-left:auto;display:flex;gap:6px}.sug-acts{display:flex;gap:6px;align-items:flex-start}
+.tb-color{position:relative;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px 8px}
+.tb-color input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
+.tb-cbar{display:block;width:16px;height:3px;border-radius:2px;background:#1f4e79}
+.tb-btn svg{display:block}
+.tb-font{max-width:118px}.tb-size{max-width:66px}.tb-space{max-width:86px}.tb-style{max-width:120px}
 .edit-pick{display:flex;justify-content:space-between;align-items:center;gap:12px 18px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:0 0 16px}
 .edit-pick span{color:var(--muted);font-size:14px}.edit-pick b{font-size:14.5px}
 .edit-pick-row{display:flex;gap:8px;align-items:center;flex:1;justify-content:flex-end;min-width:260px}
@@ -487,7 +495,7 @@ body{background:var(--page)}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -518,9 +526,12 @@ body{background:var(--page)}
   var HTML_MARK="<!--html-->";
   function bodyOf(src){src=String(src||"");return src.indexOf(HTML_MARK)===0?src.slice(HTML_MARK.length):resumeHTML(src)}
   function cleanHTML(root){
-    var ok={H1:1,H2:1,H3:1,P:1,DIV:1,SPAN:1,B:1,STRONG:1,I:1,EM:1,U:1,A:1,UL:1,OL:1,LI:1,BR:1};
+    var ok={H1:1,H2:1,H3:1,H4:1,P:1,DIV:1,SPAN:1,B:1,STRONG:1,I:1,EM:1,U:1,S:1,STRIKE:1,SUB:1,SUP:1,A:1,UL:1,OL:1,LI:1,BR:1,BLOCKQUOTE:1};
+    var PROPS=["color","background-color","font-family","font-size","font-weight","font-style","text-decoration","text-decoration-line","text-align","line-height","margin-left","padding-left"];
     (function walk(n){[].slice.call(n.childNodes).forEach(function(c){if(c.nodeType===1){if(!ok[c.tagName]){while(c.firstChild)n.insertBefore(c.firstChild,c);n.removeChild(c);return}
-      [].slice.call(c.attributes).forEach(function(a){if(a.name==="class")return;if(a.name==="href"&&c.tagName==="A"&&/^(https?:|mailto:)/i.test(a.value))return;c.removeAttribute(a.name)});walk(c)}else if(c.nodeType!==3)n.removeChild(c)})})(root);
+      var keep=[];PROPS.forEach(function(k){var v=c.style&&c.style.getPropertyValue(k);if(v&&!/url\(|expression|javascript/i.test(v))keep.push(k+":"+v)});
+      [].slice.call(c.attributes).forEach(function(a){if(a.name==="class")return;if(a.name==="href"&&c.tagName==="A"&&/^(https?:|mailto:)/i.test(a.value))return;c.removeAttribute(a.name)});
+      if(keep.length)c.setAttribute("style",keep.join(";"));walk(c)}else if(c.nodeType!==3)n.removeChild(c)})})(root);
     return root.innerHTML;
   }
   function resumeDoc(md,title){return "<!doctype html><html><head><meta charset='utf-8'><title>"+esc(title)+"</title><style>"+RESUME_CSS+".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}body{padding:0}[contenteditable]:focus{outline:none}[contenteditable] p:hover,[contenteditable] li:hover,[contenteditable] .role:hover{background:#fff6ef}</style></head><body>"+bodyOf(md)+"</body></html>"}
@@ -539,31 +550,60 @@ body{background:var(--page)}
       var grow=function(){var h=Math.max(1056,d.body.scrollHeight+96);f.style.height=h+"px";var sc=Math.min(1,(box.clientWidth-36)/816);holder.style.height=(h*sc)+"px"};setTimeout(grow,50);d.body.addEventListener("input",grow)}
     box._doc=function(){return f.contentDocument}}
   function toolbar(box,onEdit,resetTo){
+    var saved=null;
     function doc(){return box._doc()}
-    function cmd(c,v){var d=doc();d.body.focus();try{d.execCommand(c,false,v)}catch(e){}onEdit()}
-    function btn(label,title,fn,cls){var b=el("button",{type:"button",class:"tb-btn"+(cls?" "+cls:""),title:title,"aria-label":title});b.innerHTML=label;b.addEventListener("mousedown",function(e){e.preventDefault()});b.addEventListener("click",fn);return b}
-    var style=el("select",{class:"tb-sel","aria-label":"Text style"},[el("option",{value:"p",text:"Normal text"}),el("option",{value:"h2",text:"Section heading"}),el("option",{value:"h1",text:"Name"})]);
-    style.addEventListener("change",function(){cmd("formatBlock","<"+style.value+">");style.value="p"});
+    function keepSel(){var d=doc();if(!d||d._tbHooked)return;d._tbHooked=1;d.addEventListener("selectionchange",function(){var sel=d.getSelection();if(sel&&sel.rangeCount&&d.body.contains(sel.anchorNode))saved=sel.getRangeAt(0).cloneRange()})}
+    function restore(){var d=doc();d.body.focus();if(saved){var sel=d.getSelection();sel.removeAllRanges();sel.addRange(saved)}}
+    function cmd(c,v){var d=doc();restore();try{d.execCommand("styleWithCSS",false,true);d.execCommand(c,false,v)}catch(e){}onEdit()}
+    function wrapStyle(prop,val){var d=doc();restore();try{d.execCommand("styleWithCSS",false,true);d.execCommand("fontSize",false,"7")}catch(e){}
+      [].slice.call(d.querySelectorAll('span[style*="xxx-large"],font[size="7"]')).forEach(function(n){if(n.tagName==="FONT"){var sp=d.createElement("span");sp.style.setProperty(prop,val);while(n.firstChild)sp.appendChild(n.firstChild);n.parentNode.replaceChild(sp,n)}else{n.style.removeProperty("font-size");n.style.setProperty(prop,val)}});onEdit()}
+    function blocks(fn){var d=doc();restore();var sel=d.getSelection();if(!sel.rangeCount)return;var r=sel.getRangeAt(0),out=[];
+      [].slice.call(d.body.querySelectorAll("p,li,h1,h2,h3,h4,div,blockquote")).forEach(function(n){if(r.intersectsNode(n)&&!n.querySelector("p,li,h1,h2,h3,h4,div"))out.push(n)});
+      if(!out.length){var n=sel.anchorNode;while(n&&n!==d.body&&!(n.nodeType===1&&/^(P|LI|H1|H2|H3|H4|DIV|BLOCKQUOTE)$/.test(n.tagName)))n=n.parentNode;if(n&&n!==d.body)out.push(n)}
+      out.forEach(fn);onEdit()}
+    function btn(label,title,fn,cls){var b=el("button",{type:"button",class:"tb-btn"+(cls?" "+cls:""),title:title,"aria-label":title});b.innerHTML=label;b.addEventListener("mousedown",function(e){e.preventDefault()});b.addEventListener("click",function(){keepSel();fn()});return b}
+    function sel(label,opts,fn,cls){var s2=el("select",{class:"tb-sel"+(cls?" "+cls:""),"aria-label":label,title:label},[el("option",{value:"",text:label})].concat(opts.map(function(o){return el("option",{value:o[0],text:o[1]})})));
+      s2.addEventListener("mousedown",keepSel);s2.addEventListener("focus",keepSel);s2.addEventListener("change",function(){if(s2.value)fn(s2.value);s2.value=""});return s2}
+    function color(label,glyph,apply){var inp=el("input",{type:"color",value:"#1f4e79","aria-label":label});var bar=el("i",{class:"tb-cbar"});
+      var g=el("span");g.innerHTML=glyph;var w=el("label",{class:"tb-btn tb-color",title:label},[g,bar,inp]);
+      inp.addEventListener("mousedown",keepSel);inp.addEventListener("focus",keepSel);inp.addEventListener("input",function(){bar.style.background=inp.value});inp.addEventListener("change",function(){bar.style.background=inp.value;apply(inp.value)});return w}
+    function ic(d){return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">'+d+'</svg>'}
+    var L=function(y,x1,x2){return '<path d="M'+x1+' '+y+'H'+x2+'"/>'};
     var sep=function(){return el("span",{class:"tb-sep"})};
-    return el("div",{class:"toolbar",role:"toolbar","aria-label":"Formatting"},[
+    var fonts=[["\"Helvetica Neue\",Helvetica,Arial,sans-serif","Helvetica"],["Arial,sans-serif","Arial"],["Calibri,Carlito,sans-serif","Calibri"],["Georgia,serif","Georgia"],["Garamond,\"EB Garamond\",serif","Garamond"],["\"Times New Roman\",Times,serif","Times New Roman"],["Verdana,sans-serif","Verdana"]];
+    var bar=el("div",{class:"toolbar",role:"toolbar","aria-label":"Formatting"},[
       btn("&#8630;","Undo",function(){cmd("undo")}),btn("&#8631;","Redo",function(){cmd("redo")}),sep(),
-      style,sep(),
-      btn("<b>B</b>","Bold",function(){cmd("bold")}),btn("<i>I</i>","Italic",function(){cmd("italic")}),btn("<u>U</u>","Underline",function(){cmd("underline")}),sep(),
-      btn("&bull;&nbsp;List","Bulleted list",function(){cmd("insertUnorderedList")}),btn("1.&nbsp;List","Numbered list",function(){cmd("insertOrderedList")}),sep(),
+      sel("Style",[["p","Normal text"],["h1","Name"],["h2","Section heading"],["h3","Subheading"]],function(v){cmd("formatBlock","<"+v+">")},"tb-style"),
+      sel("Font",fonts,function(v){cmd("fontName",v)},"tb-font"),
+      sel("Size",[["8pt","8"],["9pt","9"],["9.5pt","9.5"],["10pt","10"],["10.5pt","10.5"],["11pt","11"],["12pt","12"],["14pt","14"],["16pt","16"],["18pt","18"],["22pt","22"],["26pt","26"]],function(v){wrapStyle("font-size",v)},"tb-size"),sep(),
+      btn("<b>B</b>","Bold",function(){cmd("bold")}),btn("<i>I</i>","Italic",function(){cmd("italic")}),btn("<u>U</u>","Underline",function(){cmd("underline")}),btn("<s>S</s>","Strikethrough",function(){cmd("strikeThrough")}),
+      color("Text color","<b>A</b>",function(v){cmd("foreColor",v)}),color("Highlight","&#9998;",function(v){cmd("hiliteColor",v)}),sep(),
+      btn(ic(L(4,2,14)+L(8,2,10)+L(12,2,12)),"Align left",function(){cmd("justifyLeft")}),
+      btn(ic(L(4,2,14)+L(8,4,12)+L(12,3,13)),"Center",function(){cmd("justifyCenter")}),
+      btn(ic(L(4,2,14)+L(8,6,14)+L(12,4,14)),"Align right",function(){cmd("justifyRight")}),
+      btn(ic(L(4,2,14)+L(8,2,14)+L(12,2,14)),"Justify",function(){cmd("justifyFull")}),sep(),
+      btn(ic('<circle cx="3" cy="4" r=".9" fill="currentColor"/><circle cx="3" cy="8" r=".9" fill="currentColor"/><circle cx="3" cy="12" r=".9" fill="currentColor"/>'+L(4,6,14)+L(8,6,14)+L(12,6,14)),"Bulleted list",function(){cmd("insertUnorderedList")}),
+      btn(ic('<text x="1" y="6" font-size="5" fill="currentColor" stroke="none">1</text><text x="1" y="13" font-size="5" fill="currentColor" stroke="none">2</text>'+L(4,6,14)+L(11,6,14)),"Numbered list",function(){cmd("insertOrderedList")}),
+      btn(ic(L(3,2,14)+L(13,2,14)+L(8,7,14)+'<path d="M2 6l2.5 2L2 10"/>'),"Indent",function(){cmd("indent")}),
+      btn(ic(L(3,2,14)+L(13,2,14)+L(8,7,14)+'<path d="M5 6L2.5 8 5 10"/>'),"Outdent",function(){cmd("outdent")}),
+      sel("Spacing",[["1","Single"],["1.15","1.15"],["1.3","1.3"],["1.5","1.5"],["2","Double"]],function(v){blocks(function(n){n.style.lineHeight=v})},"tb-space"),sep(),
       btn("Link","Add a link",function(){var u=window.prompt("Link address");if(u&&/^(https?:\/\/|mailto:)/i.test(u))cmd("createLink",u)}),
-      btn("Clear","Clear formatting",function(){cmd("removeFormat")}),
+      btn("Clear","Clear formatting on the selected text",function(){cmd("removeFormat");blocks(function(n){n.style.removeProperty("line-height");n.style.removeProperty("text-align");n.style.removeProperty("margin-left")})}),
       el("span",{class:"tb-grow"}),
-      btn("Start over","Replace this copy with a fresh copy of the resume",function(){if(window.confirm("Start over from a fresh copy of the resume? Your edits here will be lost."))resetTo()},"tb-warn")
+      resetTo?btn("Start over","Throw away every change and start from a fresh copy",function(){if(window.confirm("Start over from a fresh copy? Every change here will be lost."))resetTo()},"tb-warn"):null
     ]);
+    setTimeout(keepSel,300);
+    return bar;
   }
   function showSuggestions(sbox,r,box,edited){
-    sbox.textContent="";var d=box._doc();
+    sbox.textContent="";var d=box._doc(),snap=d.body.innerHTML,applied=0;
     function norm2(t){return String(t).replace(/\s+/g," ").trim()}
     function findNode(text){var want=norm2(text);return [].slice.call(d.querySelectorAll("li,p")).find(function(n){return norm2(n.textContent)===want})||[].slice.call(d.querySelectorAll("li,p")).find(function(n){return norm2(n.textContent).indexOf(want.slice(0,60))===0})}
-    var head=el("div",{class:"sug-head"},[el("h3",{text:"AI suggestions"}),el("span",{class:"muted-line",text:"Review each one. Apply only what's true and helpful."}),el("button",{class:"btn ghost small",type:"button",text:"Hide",onclick:function(){sbox.textContent=""}})]);
+    var head=el("div",{class:"sug-head"},[el("h3",{text:"AI suggestions"}),el("span",{class:"muted-line",text:"Review each one. Apply only what's true and helpful."}),el("div",{class:"sug-btns"},[el("button",{class:"btn ghost small",type:"button",text:"Decline all",title:"Close these and undo any you applied",onclick:function(){if(applied){box._doc().body.innerHTML=snap;edited();toast("Declined. Your copy is back to how it was.")}else toast("Suggestions declined.");sbox.textContent=""}})])]);
     sbox.appendChild(head);
-    function item(title,why,apply){var done=false;var b=el("button",{class:"btn small",type:"button",text:"Apply"});b.onclick=function(){if(done)return;if(apply()){done=true;b.textContent="Applied";b.disabled=true;edited()}else toast("Couldn't find that line. Edit it by hand.")};
-      sbox.appendChild(el("div",{class:"sug-item"},[el("div",{},[el("div",{class:"sug-text",text:title}),why?el("div",{class:"cmeta",text:why}):null]),b]))}
+    function item(title,why,apply){var done=false,row;var b=el("button",{class:"btn small",type:"button",text:"Apply"});b.onclick=function(){if(done)return;if(apply()){done=true;applied++;b.textContent="Applied";b.disabled=true;skip.remove();edited()}else toast("Couldn't find that line. Edit it by hand.")};
+      var skip=el("button",{class:"btn ghost small",type:"button",text:"Skip",onclick:function(){row.remove();if(!sbox.querySelector(".sug-item"))sbox.textContent=""}});
+      row=el("div",{class:"sug-item"},[el("div",{},[el("div",{class:"sug-text",text:title}),why?el("div",{class:"cmeta",text:why}):null]),el("div",{class:"sug-acts"},[skip,b])]);sbox.appendChild(row)}
     if(r.summary)item("New summary: "+r.summary,"Replaces the Summary paragraph",function(){var h=[].slice.call(d.querySelectorAll("h2")).find(function(x){return /summary/i.test(x.textContent)});var p=h&&h.nextElementSibling;while(p&&p.tagName!=="P")p=p.nextElementSibling;if(!p)return false;p.textContent=r.summary;return true});
     (r.edits||[]).forEach(function(e){item(e.replace,e.why+" (was: "+e.find.slice(0,90)+(e.find.length>90?"...":"")+")",function(){var n=findNode(e.find);if(!n)return false;n.textContent=e.replace;return true})});
     if(r.keywords&&r.keywords.length)sbox.appendChild(el("p",{class:"sug-kw"},[el("b",{text:"Keywords to work in: "}),r.keywords.join(", ")]));
@@ -586,57 +626,70 @@ body{background:var(--page)}
     if(kh){var row=[].slice.call(b.querySelectorAll("p")).find(function(x){var f=x.querySelector("b");return f&&x.firstElementChild===f&&f.textContent.trim()===v.promote});if(row&&row!==kh.nextElementSibling)kh.parentNode.insertBefore(row,kh.nextElementSibling)}
     return HTML_MARK+b.innerHTML;
   }
+  function tplById(id){return (S.templates||[]).find(function(t){return t.id===id})}
+  function keyMd(key,base){if(key&&key.indexOf("t:")===0){var t=tplById(key.slice(2));return t?t.md:base}return variantMd(base,key)}
+  function newTemplate(md,suggest){var name=window.prompt("Name this template",suggest||"My version");if(!name||name.trim().length<2)return;
+    api("POST","/api/templates",{name:name.trim(),md:md}).then(function(t){S.templates=[t].concat(S.templates||[]);toast("Saved "+t.name);S.tab="resume";S.editorJob="tpl:"+t.id;S.resumeShown=false;render();window.scrollTo(0,0)},fail)}
   function fileTitle(j){return "Ifeanyi_Ezurike_Resume"+(j?"_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"):"")}
   function openEditor(j){
     S.editorJob=j?j.id:"base";S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0);
   }
   function renderResumeTab(){
     var V=$("resume-view");V.textContent="";
-    var j=S.editorJob&&S.editorJob!=="base"?S.jobs.find(function(x){return x.id===S.editorJob}):null;
-    if(!S.editorJob){var pk=el("div",{class:"doc-pick",role:"tablist","aria-label":"Which document"});
-      Object.keys(VARIANTS).concat(["Cover"]).forEach(function(k){var on=(S.resumeView||"Default")===k;pk.appendChild(el("button",{type:"button",role:"tab","aria-selected":on?"true":"false",class:on?"on":null,text:k==="Cover"?"Cover letter":VARIANTS[k].label,onclick:function(){S.resumeView=k;S.editingCover=false;renderResumeTab()}}))});
+    var mode=S.editorJob||null,tplEdit=mode&&mode.indexOf("tpl:")===0?tplById(mode.slice(4)):null;
+    var j=mode&&mode!=="base"&&!tplEdit?S.jobs.find(function(x){return x.id===mode}):null;
+    if(mode&&mode.indexOf("tpl:")===0&&!tplEdit){S.editorJob=null;mode=null}
+    var mine=(S.templates||[]).filter(function(t){return S.isOwner||t.personId===S.uid});
+    if(!mode){var pk=el("div",{class:"doc-pick",role:"tablist","aria-label":"Which document"});
+      Object.keys(VARIANTS).concat(mine.map(function(t){return "t:"+t.id}),["Cover"]).forEach(function(k){var on=(S.resumeView||"Default")===k;
+        pk.appendChild(el("button",{type:"button",role:"tab","aria-selected":on?"true":"false",class:(on?"on ":"")+(k.indexOf("t:")===0?"mine":""),text:k==="Cover"?"Cover letter":resLabel(k),onclick:function(){S.resumeView=k;S.editingCover=false;renderResumeTab()}}))});
+      pk.appendChild(el("button",{type:"button",class:"add",text:"+ New template",onclick:function(){baseMd().then(function(b){newTemplate(keyMd(S.resumeView&&S.resumeView!=="Cover"?S.resumeView:"Default",b),"My "+resLabel(S.resumeView&&S.resumeView!=="Cover"?S.resumeView:"Default")+" version")},fail)}}));
       V.appendChild(pk);
-      if(S.resumeView==="Cover"){renderCoverView(V);return}}
-    var editing=!!j||(S.editorJob==="base"&&S.isOwner);
-    var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:j?"Resume for "+j.company:"Base resume"}),el("p",{class:"muted-line",text:j?j.role+". Edit the copy on the left, it only changes this job's resume.":"This is the master version every tailored copy starts from."+(S.isOwner?"":" Only Ifeanyi can change it.")})])]);
+      if(S.resumeView==="Cover"){renderCoverView(V);return}
+      if(S.resumeView&&S.resumeView.indexOf("t:")===0&&!tplById(S.resumeView.slice(2)))S.resumeView="Default"}
+    var editing=!!j||!!tplEdit||(mode==="base"&&S.isOwner);
+    var title=j?"Resume for "+j.company:tplEdit?tplEdit.name:"Base resume";
+    var head=el("div",{class:"ed-head"},[el("div",{},[el("h2",{text:title}),el("p",{class:"muted-line",text:"This is the master version every copy starts from."+(S.isOwner?"":" Only Ifeanyi can change it.")})])]);
     var actions=el("div",{class:"acts"});head.appendChild(actions);
-    var body=el("div",{class:"ed-body solo"});
-    var box=el("div",{class:"paper-box"});
+    var body=el("div",{class:"ed-body solo"}),box=el("div",{class:"paper-box"});
     V.appendChild(head);V.appendChild(body);
-    var url=j?"/api/resume/job/"+j.id:"/api/resume/base";
-    Promise.all([api("GET",url),j?api("GET","/api/resume/base"):Promise.resolve(null)]).then(function(r){
-      var start=j&&r[1]&&r[1].md?variantMd(r[1].md,j.resume):"";
-      var md=(r[0]&&r[0].md)||start||"";
-      var fresh=j&&!(r[0]&&r[0].md);
+    var url=j?"/api/resume/job/"+j.id:tplEdit?"/api/templates/"+tplEdit.id:"/api/resume/base";
+    Promise.all([j?api("GET",url):Promise.resolve(null),baseMd()]).then(function(r){
+      var base=r[1]||"",md,fresh=false;
+      if(j){md=(r[0]&&r[0].md)||keyMd(j.resume,base);fresh=!(r[0]&&r[0].md)}else if(tplEdit)md=tplEdit.md;else md=base;
+      var back=function(){var bj=j,bt=tplEdit;S.editorJob=null;S.resumeShown=false;if(bj){S.tab="apps";S.open=bj.id}else if(bt){S.resumeView="t:"+bt.id}render()};
       if(editing){
         var current=function(){return HTML_MARK+cleanHTML(box._doc().body.cloneNode(true))};
-        var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;api("PUT",url,{md:current()}).then(function(){saveBtn.textContent="Saved";toast(j?"Resume saved for "+j.company:"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
-        actions.appendChild(saveBtn);
-        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(current(),fileTitle(j))}}));
-        var sugBox=el("div",{class:"sug"});
-        if(j&&j.status==="saved")actions.appendChild(el("button",{class:"btn small",type:"button",text:"I applied, mark it Applied",onclick:function(){var b=this;api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){b.remove();j.status="applied";toast("Marked Applied. Nice.");refresh()},fail)}}));
-        if(j){actions.insertBefore(aiBtn("Tailor with AI",function(){if(!j.description){toast("Paste the job description on the job first");return}return api("POST","/api/ai/tailor",{jobId:j.id}).then(function(r){showSuggestions(sugBox,r,box,edited)})}),actions.firstChild)}
-        head.querySelector(".muted-line").textContent=(j?j.role+". ":"")+"Click anywhere on the page to edit, and use the toolbar to format. Only add skills and results Ifeanyi really has.";
-        body.className="ed-body solo";
+        var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;var v=current();
+          api("PUT",url,{md:v}).then(function(){saveBtn.textContent="Saved";if(tplEdit){tplEdit.md=v}else if(!j){S.baseMd=v}toast(j?"Resume saved for "+j.company:tplEdit?"Template saved":"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
         var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save"};
+        var sugBox=el("div",{class:"sug"});
+        if(j)actions.appendChild(aiBtn("Tailor with AI",function(){if(!j.description){toast("Paste the job description on the job first");return}return api("POST","/api/ai/tailor",{jobId:j.id}).then(function(r){showSuggestions(sugBox,r,box,edited)})}));
+        actions.appendChild(saveBtn);
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(current(),j?fileTitle(j):"Ifeanyi_Ezurike_Resume"+(tplEdit?"_"+tplEdit.name.replace(/[^A-Za-z0-9]+/g,"_"):""))}}));
+        if(j)actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Save as template",title:"Keep this version to reuse on other jobs",onclick:function(){newTemplate(current(),j.company+" version")}}));
+        if(j&&j.status==="saved")actions.appendChild(el("button",{class:"btn small",type:"button",text:"I applied, mark it Applied",onclick:function(){var b=this;api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){b.remove();j.status="applied";toast("Marked Applied. Nice.");refresh()},fail)}}));
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:back}));
+        head.querySelector(".muted-line").textContent=(j?j.role+". ":tplEdit?"Your template. Changes here apply to new copies, not ones already saved for a job. ":"")+"Click anywhere on the page to edit. Only add skills and results Ifeanyi really has.";
         var col=el("div",{class:"ed-col"});body.appendChild(col);
-        col.appendChild(toolbar(box,edited,function(){api("GET","/api/resume/base").then(function(b){previewInto(box,j?variantMd((b&&b.md)||"",j.resume):(b&&b.md)||"",true,edited);edited()},fail)}));
-        col.appendChild(sugBox);
-        col.appendChild(box);
+        col.appendChild(toolbar(box,edited,function(){previewInto(box,j?keyMd(j.resume,base):tplEdit?keyMd("Default",base):base,true,edited);edited()}));
+        col.appendChild(sugBox);col.appendChild(box);
         previewInto(box,md,true,edited);
-        if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
         return;
-      }else{
-        var vk=S.resumeView||"Default",vv=VARIANTS[vk];
-        if(vk!=="Default"){md=variantMd(md,vk);head.querySelector("h2").textContent=vv.label+" resume";head.querySelector(".muted-line").textContent=vv.about+" Built from the base resume, so it updates when Ifeanyi changes the base."}
-        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,"Ifeanyi_Ezurike_Resume"+(vk==="Default"?"":"_"+vv.label))}}));
-        if(S.isOwner&&vk==="Default")actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
-        var mine=S.jobs.filter(function(x){return S.isOwner||x.addedBy===S.uid}).sort(function(a,b){return String(b.updatedAt||b.addedAt).localeCompare(String(a.updatedAt||a.addedAt))});
-        var pickJob=el("select",{id:"rz-job","aria-label":"Job to edit a resume for"});mine.slice(0,150).forEach(function(x){pickJob.appendChild(el("option",{value:x.id,text:x.company+", "+x.role+(x.tailoredAt?" (edited)":"")}))});
-        V.insertBefore(el("div",{class:"edit-pick"},[el("div",{},[el("b",{text:"Want to change something?"}),el("span",{text:mine.length?" Edit a copy for one job. Only that job's copy changes, this page stays the same.":" Log the job first (Save and edit resume does both), then edit a copy for it."})]),
-          mine.length?el("div",{class:"edit-pick-row"},[pickJob,el("button",{class:"btn accent small",type:"button",text:"Edit a copy",onclick:function(){var x=S.jobs.find(function(q){return q.id===pickJob.value});if(x){if(!x.resume||x.resume==="Default")x.resume=vk;openEditor(x)}}})]):null]),body);
       }
-      if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
+      var vk=S.resumeView||"Default",vt=vk.indexOf("t:")===0?tplById(vk.slice(2)):null,vv=VARIANTS[vk];
+      md=keyMd(vk,base);
+      if(vt){head.querySelector("h2").textContent=vt.name;head.querySelector(".muted-line").textContent=(vt.personId===S.uid?"Your template":"Template by "+nameOf(vt.personId).replace(" (you)",""))+", saved "+rel(vt.updatedAt)+". Pick it on any job to start from it.";
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,"Ifeanyi_Ezurike_Resume_"+vt.name.replace(/[^A-Za-z0-9]+/g,"_"))}}));
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Rename",onclick:function(){var n=window.prompt("Rename template",vt.name);if(n&&n.trim().length>1)api("PUT","/api/templates/"+vt.id,{name:n.trim()}).then(function(){vt.name=n.trim();renderResumeTab();refresh()},fail)}}));
+        actions.appendChild(el("button",{class:"btn ghost small danger",type:"button",text:"Delete",onclick:function(){if(window.confirm("Delete the template \""+vt.name+"\"? Copies already saved for jobs stay as they are."))api("DELETE","/api/templates/"+vt.id).then(function(){S.templates=S.templates.filter(function(t){return t.id!==vt.id});S.resumeView="Default";renderResumeTab();toast("Deleted")},fail)}}));
+        actions.appendChild(el("button",{class:"btn accent small",type:"button",text:"Edit template",onclick:function(){S.editorJob="tpl:"+vt.id;renderResumeTab()}}));
+      }else{
+        if(vk!=="Default"){head.querySelector("h2").textContent=vv.label+" resume";head.querySelector(".muted-line").textContent=vv.about+" Built from the base resume."}
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(md,"Ifeanyi_Ezurike_Resume"+(vk==="Default"?"":"_"+vv.label))}}));
+        actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Make my own version",title:"Save a copy as your template and edit it",onclick:function(){newTemplate(md,"My "+vv.label+" version")}}));
+        if(S.isOwner&&vk==="Default")actions.appendChild(el("button",{class:"btn small",type:"button",text:"Edit base resume",onclick:function(){S.editorJob="base";renderResumeTab()}}));
+      }
       body.appendChild(box);previewInto(box,md);
     },fail);
   }
@@ -833,7 +886,7 @@ body{background:var(--page)}
     var logged=nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+new Date(j.addedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"}):"");
     var rows=[].concat(
       kv("Posting",j.url?el("a",{href:j.url,target:"_blank",rel:"noopener",text:(host||"Open posting")+" \u2197"}):null),
-      kv("Pay",j.pay||null),kv("Resume",j.resume?(VARIANTS[j.resume]?VARIANTS[j.resume].label:j.resume):null),kv("Found on",j.source||null),
+      kv("Pay",j.pay||null),kv("Resume",j.resume?resLabel(j.resume):null),kv("Found on",j.source||null),
       kv("Logged by",logged),kv("Interview",j.interviewAt?when(j.interviewAt):null),kv("Last reply",j.lastReply||null),kv("Contact",j.contact||null));
     return scard(null,[el("dl",{class:"kv"},rows)]);
   }
@@ -862,9 +915,9 @@ body{background:var(--page)}
   function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
   function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
   function baseMd(){return S.baseMd?Promise.resolve(S.baseMd):api("GET","/api/resume/base").then(function(b){S.baseMd=(b&&b.md)||"";return S.baseMd})}
-  function mdFor(j,k){if(k==="Tailored")return api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return variantMd(b,j.resume)})});return baseMd().then(function(b){return variantMd(b,k)})}
-  function pickedRes(j){S.pickRes=S.pickRes||{};return S.pickRes[j.id]||(j.tailoredAt?"Tailored":(VARIANTS[j.resume]?j.resume:"Default"))}
-  function resLabel(k){return k==="Tailored"?"Edited copy":VARIANTS[k].label}
+  function mdFor(j,k){if(k==="Tailored")return api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return keyMd(j.resume,b)})});return baseMd().then(function(b){return keyMd(k,b)})}
+  function pickedRes(j){S.pickRes=S.pickRes||{};return S.pickRes[j.id]||(j.tailoredAt?"Tailored":(VARIANTS[j.resume]||(j.resume&&j.resume.indexOf("t:")===0&&tplById(j.resume.slice(2)))?j.resume:"Default"))}
+  function resLabel(k){if(k==="Tailored")return "Edited copy";if(k&&k.indexOf("t:")===0){var t=tplById(k.slice(2));return t?t.name:"Saved template"}return VARIANTS[k]?VARIANTS[k].label:(k||"Base")}
   function stepsCard(j){
     if(j.status!=="saved"||!S.uid)return null;
     var mem=stepState(j),pick=pickedRes(j);
@@ -875,7 +928,7 @@ body{background:var(--page)}
       el("div",{class:"step-top"},[el("span",{class:"step-n","aria-hidden":"true",text:done[i]?"\u2713":String(i+1)}),el("b",{text:title})]),
       el("p",{class:"step-sub",text:sub}),body||null,el("div",{class:"step-acts"},acts)])}
     // resume versions
-    var keys=Object.keys(VARIANTS).concat(j.tailoredAt?["Tailored"]:[]);
+    var keys=Object.keys(VARIANTS).concat((S.templates||[]).filter(function(t){return S.isOwner||t.personId===S.uid}).map(function(t){return "t:"+t.id}),j.tailoredAt?["Tailored"]:[]);
     var chips=el("div",{class:"res-chips",role:"radiogroup","aria-label":"Resume version"},keys.map(function(k){return el("button",{type:"button",role:"radio","aria-checked":k===pick?"true":"false",class:"res-chip"+(k===pick?" on":""),text:resLabel(k),onclick:function(){S.pickRes[j.id]=k;if(k!=="Tailored"&&k!==j.resume){j.resume=k;api("PATCH","/api/jobs/"+j.id,{resume:k}).catch(function(){})}renderRows()}})}));
     var suggested=VARIANTS[j.resume]&&!j.tailoredAt&&!(S.pickRes&&S.pickRes[j.id])?" Suggested: "+resLabel(j.resume)+".":"";
     var list=el("ol",{class:"step-list"},[
