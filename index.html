@@ -249,6 +249,22 @@ body{background:var(--page)}
 .tb-sep{width:1px;height:20px;background:var(--line);margin:0 4px}
 .tb-grow{flex:1}
 .ed-col .paper-box{position:static}
+.btn.ai{background:linear-gradient(135deg,var(--accent),#c2410c);color:#fff;display:inline-flex;gap:6px;align-items:center}
+.btn.ai:disabled{opacity:.7}
+.spark{font-size:12px}
+.fit{margin-top:12px;border-radius:14px;padding:14px 16px;background:var(--card);border:1px solid var(--line)}
+.fit-top{display:flex;gap:14px;align-items:center}
+.fit-score{font-size:30px;font-weight:700;letter-spacing:-.03em;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;flex:none}
+.fit.good .fit-score{background:var(--green-wash);color:var(--green)}.fit.meh .fit-score{background:var(--amber-wash);color:var(--amber)}.fit.bad .fit-score{background:var(--red-wash);color:var(--red)}
+.fit-verdict{font-weight:650}.fit-sum{color:var(--muted);font-size:14px}
+.fit ul{margin:10px 0 6px;padding:0;list-style:none;display:grid;gap:4px;font-size:14px}
+.fit li{padding-left:18px;position:relative}.fit li.plus::before{content:"+";position:absolute;left:2px;color:var(--green);font-weight:700}.fit li.minus::before{content:"\2212";position:absolute;left:2px;color:var(--red);font-weight:700}
+.sug:empty{display:none}
+.sug{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px}
+.sug-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}.sug-head h3{font-size:16px}.sug-head .btn{margin-left:auto}
+.sug-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;padding-top:10px;border-top:1px solid var(--line)}
+.sug-text{font-size:14.5px;line-height:1.5}
+.sug-kw,.sug-note{font-size:14px;color:var(--muted)}.sug-kw b{color:var(--fg)}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 </style>
@@ -407,6 +423,19 @@ body{background:var(--page)}
       btn("Start over","Replace this copy with the base resume",function(){if(window.confirm("Replace this copy with the base resume? Your edits here will be lost."))resetTo()},"tb-warn")
     ]);
   }
+  function showSuggestions(sbox,r,box,edited){
+    sbox.textContent="";var d=box._doc();
+    function norm2(t){return String(t).replace(/\s+/g," ").trim()}
+    function findNode(text){var want=norm2(text);return [].slice.call(d.querySelectorAll("li,p")).find(function(n){return norm2(n.textContent)===want})||[].slice.call(d.querySelectorAll("li,p")).find(function(n){return norm2(n.textContent).indexOf(want.slice(0,60))===0})}
+    var head=el("div",{class:"sug-head"},[el("h3",{text:"AI suggestions"}),el("span",{class:"muted-line",text:"Review each one. Apply only what's true and helpful."}),el("button",{class:"btn ghost small",type:"button",text:"Hide",onclick:function(){sbox.textContent=""}})]);
+    sbox.appendChild(head);
+    function item(title,why,apply){var done=false;var b=el("button",{class:"btn small",type:"button",text:"Apply"});b.onclick=function(){if(done)return;if(apply()){done=true;b.textContent="Applied";b.disabled=true;edited()}else toast("Couldn't find that line. Edit it by hand.")};
+      sbox.appendChild(el("div",{class:"sug-item"},[el("div",{},[el("div",{class:"sug-text",text:title}),why?el("div",{class:"cmeta",text:why}):null]),b]))}
+    if(r.summary)item("New summary: "+r.summary,"Replaces the Summary paragraph",function(){var h=[].slice.call(d.querySelectorAll("h2")).find(function(x){return /summary/i.test(x.textContent)});var p=h&&h.nextElementSibling;while(p&&p.tagName!=="P")p=p.nextElementSibling;if(!p)return false;p.textContent=r.summary;return true});
+    (r.edits||[]).forEach(function(e){item(e.replace,e.why+" (was: "+e.find.slice(0,90)+(e.find.length>90?"...":"")+")",function(){var n=findNode(e.find);if(!n)return false;n.textContent=e.replace;return true})});
+    if(r.keywords&&r.keywords.length)sbox.appendChild(el("p",{class:"sug-kw"},[el("b",{text:"Keywords to work in: "}),r.keywords.join(", ")]));
+    if(r.note)sbox.appendChild(el("p",{class:"sug-note",text:r.note}));
+  }
   function fileTitle(j){return "Ifeanyi_Ezurike_Resume"+(j?"_"+String(j.company).replace(/[^A-Za-z0-9]+/g,"_"):"")}
   function openEditor(j){
     S.editorJob=j?j.id:"base";S.tab="resume";S.resumeShown=false;render();window.scrollTo(0,0);
@@ -429,11 +458,14 @@ body{background:var(--page)}
         var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;api("PUT",url,{md:current()}).then(function(){saveBtn.textContent="Saved";toast(j?"Resume saved for "+j.company:"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
         actions.appendChild(saveBtn);
         actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(current(),fileTitle(j))}}));
+        var sugBox=el("div",{class:"sug"});
+        if(j){actions.insertBefore(aiBtn("Tailor with AI",function(){if(!j.description){toast("Paste the job description on the job first");return}return api("POST","/api/ai/tailor",{jobId:j.id}).then(function(r){showSuggestions(sugBox,r,box,edited)})}),actions.firstChild)}
         head.querySelector(".muted-line").textContent=(j?j.role+". ":"")+"Click anywhere on the page to edit, and use the toolbar to format. Only add skills and results Ifeanyi really has.";
         body.className="ed-body solo";
         var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save"};
         var col=el("div",{class:"ed-col"});body.appendChild(col);
         col.appendChild(toolbar(box,edited,function(){api("GET","/api/resume/base").then(function(b){previewInto(box,(b&&b.md)||"",true,edited);edited()},fail)}));
+        col.appendChild(sugBox);
         col.appendChild(box);
         previewInto(box,md,true,edited);
         if(j||S.editorJob==="base")actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:j?"Back to the job":"Done",onclick:function(){var back=j;S.editorJob=null;S.resumeShown=false;if(back){S.tab="apps";S.open=back.id}render()}}));
@@ -668,9 +700,18 @@ body{background:var(--page)}
     }
     if(j.description){var d=el("div",{class:"desc"});d.textContent=j.description;wrap.appendChild(d)}
     else wrap.appendChild(el("p",{class:"muted-line",text:"Not saved yet. Paste it in so it's here even after the posting comes down."}));
-    if(S.uid)wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit description":"Paste description",onclick:function(){S.editDesc=j.id;renderRows()}})]));
+    if(j.fit)wrap.appendChild(fitCard(j.fit));
+    if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.description?"Edit description":"Paste description",onclick:function(){S.editDesc=j.id;renderRows()}})]);
+      if(j.description)a.appendChild(aiBtn(j.fit?"Re-check fit":"Check fit with AI",function(b){return api("POST","/api/ai/fit",{jobId:j.id}).then(function(f){toast("Fit: "+f.score+"/100");refresh()})}));
+      wrap.appendChild(a)}
     return wrap;
   }
+  function aiBtn(label,run){var b=el("button",{class:"btn ai small",type:"button"},[el("span",{class:"spark","aria-hidden":"true",text:"\u2726"}),label]);
+    b.onclick=function(){if(b.disabled)return;b.disabled=true;var t=b.lastChild.nodeValue;b.lastChild.nodeValue=" Thinking...";Promise.resolve(run(b)).catch(fail).then(function(){b.disabled=false;b.lastChild.nodeValue=t})};return b}
+  function fitCard(f){var cls=f.verdict==="apply"?"good":f.verdict==="skip"?"bad":"meh";
+    var box=el("div",{class:"fit "+cls},[el("div",{class:"fit-top"},[el("b",{class:"fit-score",text:String(f.score)}),el("div",{},[el("div",{class:"fit-verdict",text:f.verdict==="apply"?"Good fit, apply":f.verdict==="skip"?"Skip this one":"Worth a closer look"}),el("div",{class:"fit-sum",text:f.summary||""})])])]);
+    var ul=el("ul");(f.reasons||[]).forEach(function(r){ul.appendChild(el("li",{class:"plus",text:r}))});(f.concerns||[]).forEach(function(r){ul.appendChild(el("li",{class:"minus",text:r}))});box.appendChild(ul);
+    box.appendChild(el("div",{class:"cmeta",text:"AI fit check, "+rel(f.at)+". A starting point, not a decision."}));return box}
   function contactForm(j,c){
     var id=c?c.id:"new",v=c||{};
     function inp(k,ph,type){var i=el("input",{id:"ct-"+id+"-"+k,placeholder:ph,type:type||"text"});i.value=v[k]||"";return i}
@@ -696,7 +737,7 @@ body{background:var(--page)}
         el("div",{class:"cmeta",text:(c.source?c.source+". ":"")+"Found by "+nameOf(c.addedBy).replace(" (you)","")+", "+rel(c.addedAt)}),
       ]);
       if(c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
-      if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}})]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
+      if(S.uid){var a=el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}}),aiBtn(c.draft?"Redraft message":"Draft message with AI",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id}).then(function(){toast("Draft ready for "+c.name);refresh()})})]);if(S.isOwner)a.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}));row.appendChild(a)}
       wrap.appendChild(row);
     });
     if(S.uid){if(S.editContact===j.id+":new")wrap.appendChild(contactForm(j,null));else wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn accent small",type:"button",text:"Add a person",onclick:function(){S.editContact=j.id+":new";renderRows()}})]))}
