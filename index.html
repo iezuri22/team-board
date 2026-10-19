@@ -150,7 +150,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brief-edit textarea{width:100%;min-height:60vh;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
 .table-x{overflow-x:auto}
 .roster{display:grid;gap:0;border-top:1px solid var(--line)}
-.roster-row{display:grid;grid-template-columns:96px minmax(0,1fr) auto auto auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.roster-row{display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1.2fr) auto auto auto auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .roster-row.off{opacity:.5}
 .roster-row input,.roster-add input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
 .tcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;font-weight:600;letter-spacing:.08em}
@@ -470,6 +470,46 @@ body{background:var(--page)}
 .ej-edit{margin-top:10px;font-size:13px;font-weight:600;text-decoration:none}
 .c-out{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--green);font-weight:500;margin-top:2px}.c-out-dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
 .ct-todo{font-size:12.5px;color:var(--amber)}.ct-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.ct-acts .btn{padding:4px 10px;font-size:12px}
+/* messages */
+.mg-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;padding-top:18px}.mg-wrap.solo{grid-template-columns:minmax(0,820px);justify-content:center}
+@media (max-width:860px){.mg-wrap{grid-template-columns:1fr}}
+.mg-rail{display:grid;gap:4px;align-content:start;position:sticky;top:16px}
+.mg-rail-t{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:0 0 6px 4px}
+.mg-person{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;border:0;background:transparent;border-radius:12px;padding:9px 10px;cursor:pointer;color:var(--fg)}
+.mg-person:hover{background:var(--soft)}.mg-person.on{background:var(--card);box-shadow:0 0 0 1px var(--line)}
+.mg-av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:hsl(var(--h) 70% 92%);color:hsl(var(--h) 45% 32%)}
+:root[data-theme="dark"] .mg-av{background:hsl(var(--h) 30% 26%);color:hsl(var(--h) 70% 84%)}
+.mg-pt{display:grid;min-width:0}.mg-pt b{font-size:14.5px}.mg-pt span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mg-count{min-width:22px;height:22px;border-radius:99px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+.mg-dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+.mg-main{display:grid;gap:14px;min-width:0}
+.mg-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}.mg-head h2{font-size:24px;letter-spacing:-.025em}.mg-head p{margin:2px 0 0}
+.mg-filter,.mg-seg{display:inline-flex;gap:3px;background:var(--soft2);border-radius:999px;padding:3px}
+.mg-filter button,.mg-seg button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.mg-filter button.on,.mg-seg button.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.mg-tl{display:grid;gap:10px;max-height:58vh;overflow:auto;padding:4px 2px 8px}.mg-tl.compact{max-height:none}
+.mg-day{justify-self:center;font-size:12px;font-weight:600;color:var(--faint);padding:8px 0 2px}
+.mg-item{max-width:78%;justify-self:start;background:var(--card);border:1px solid var(--line);border-radius:16px 16px 16px 6px;padding:11px 14px;display:grid;gap:6px}
+.mg-item.mine{justify-self:end;background:var(--soft);border-radius:16px 16px 6px 16px}
+.mg-item.open{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash)}
+.mg-tl.compact .mg-item{max-width:100%}
+.mg-meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--faint)}.mg-who{font-weight:600;color:var(--muted)}
+.mg-kind{font-size:11px;font-weight:700;letter-spacing:.02em;border-radius:99px;padding:2px 8px;background:var(--soft2);color:var(--muted)}
+.mg-kind.k-question{background:var(--blue-wash);color:var(--blue)}.mg-kind.k-interview{background:var(--green-wash);color:var(--green)}.mg-kind.k-feedback{background:var(--amber-wash);color:var(--amber)}.mg-kind.k-reply{background:var(--accent-wash);color:var(--accent)}
+.mg-body{margin:0;font-size:14.5px;line-height:1.55;white-space:pre-wrap}
+.mg-job{display:flex;gap:9px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px 10px;cursor:pointer;color:var(--fg)}
+.mg-job .co-av{width:26px;height:26px;font-size:10.5px;border-radius:7px}.mg-job span span{display:block}.mg-job b{font-size:13px}.mg-job span span{font-size:12px;color:var(--muted)}
+.mg-acts{display:flex;gap:6px;align-items:center}.mg-done{font-size:12.5px;color:var(--green);font-weight:600}
+.mg-empty{display:grid;gap:4px;justify-items:center;text-align:center;padding:36px 12px;color:var(--muted);font-size:14px}.mg-empty b{color:var(--fg);font-size:15px}
+.mg-compose{display:grid;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+.mg-crow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.mg-crow select{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 12px;font-size:13.5px;max-width:340px;min-width:0;flex:1}
+.mg-compose textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14.5px;line-height:1.5;resize:vertical;min-height:76px}
+.mg-quick{display:flex;gap:6px;flex-wrap:wrap}.mg-quick button{border:1px dashed var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--muted);cursor:pointer}.mg-quick button:hover{color:var(--fg);border-color:var(--accent)}
+.mg-replying{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);background:var(--soft);border-left:3px solid var(--accent);border-radius:8px;padding:7px 10px}
+.mg-send{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.roster-toggle{display:flex;justify-content:flex-end;padding-top:14px}
+.msgchip{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-wash);border-radius:99px;padding:2px 8px;vertical-align:middle}
 </style>
 
 <div class="wrap">
@@ -477,6 +517,7 @@ body{background:var(--page)}
     <div class="brand">Apply Yourself</div>
     <nav class="views" role="tablist" aria-label="Views">
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
+      <button role="tab" id="tab-messages" aria-selected="false">Messages <span class="badge" id="msg-badge" hidden></span></button>
       <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
       <button role="tab" id="tab-contacts" aria-selected="false" hidden>Contacts</button>
@@ -515,6 +556,8 @@ body{background:var(--page)}
   </div>
 
   <div id="view-team" hidden><div id="team"></div></div>
+
+  <div id="view-messages" hidden><div id="messages-view"></div></div>
 
   <div id="view-contacts" hidden><div id="contacts-view"></div></div>
 
@@ -568,7 +611,7 @@ body{background:var(--page)}
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -817,9 +860,76 @@ body{background:var(--page)}
     V.appendChild(list);draw();
   }
 
+  // ---------- messages: asks tied to jobs, answered on the board and by email ----------
+  var KIND_L={question:"Question",interview:"Interview",update:"Update",reply:"Reply",feedback:"Feedback",note:"Note"};
+  function allMsgs(){return S.messages||[]}
+  function openAsks(thread){return allMsgs().filter(function(m){return m.from!=="owner"&&m.status==="open"&&(!thread||m.thread===thread)})}
+  function unseenMsgs(thread){return allMsgs().filter(function(m){return !m.seen&&(S.isOwner?m.from!=="owner":m.from==="owner")&&(!thread||m.thread===thread)}).length}
+  function mates(){return Object.keys(S.people).filter(function(k){var p=S.people[k];return k!=="owner"&&!p.owner&&p.name&&!/^Teammate \d/.test(p.name)})}
+  function openJob(id){if(!S.jobs.find(function(j){return j.id===id})){toast("That job isn't on your list");return}S.tab="apps";S.scope="mine";S.status="all";$("f-status").value="all";S.open=id;render();setTimeout(function(){var r=document.querySelector('.row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})},60)}
+  function whoName(id){return id==="owner"?"Ifeanyi":nameOf(id).replace(" (you)","")}
+  function msgCard(m,compact){
+    var mine=S.isOwner?m.from==="owner":m.from===S.uid,j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId}),ask=m.from!=="owner";
+    var acts=[];
+    if(ask&&!compact){if(m.status==="open"){if(S.isOwner)acts.push(el("button",{class:"btn small",type:"button",text:"Reply",onclick:function(){S.replyTo=m.id;S.mKind="reply";S.mJob=m.jobId||"";renderMessages();var t=$("mg-text");if(t)t.focus()}}));
+        acts.push(el("button",{class:"btn ghost small",type:"button",text:"Mark done",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){m.status="done";render()},fail)}}))}
+      else acts.push(el("span",{class:"mg-done",text:"\u2713 Done"+(m.doneBy?" by "+whoName(m.doneBy):"")}))}
+    return el("div",{class:"mg-item "+(mine?"mine":"theirs")+(ask&&m.status==="open"?" open":"")},[
+      el("div",{class:"mg-meta"},[el("span",{class:"mg-kind k-"+m.kind,text:KIND_L[m.kind]||m.kind}),el("span",{class:"mg-who",text:whoName(m.from)}),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]),
+      el("p",{class:"mg-body",text:m.body}),
+      j?el("button",{class:"mg-job",type:"button",onclick:function(){openJob(j.id)}},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{},[el("b",{text:j.company}),el("span",{text:j.role})])]):null,
+      acts.length?el("div",{class:"mg-acts"},acts):null]);
+  }
+  function timeline(list){var box=el("div",{class:"mg-tl"}),day="";
+    if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"Nothing here yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
+    list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});if(d!==day){day=d;box.appendChild(el("div",{class:"mg-day",text:d}))}box.appendChild(msgCard(m))});return box}
+  function renderMessages(){
+    var V=$("messages-view"),a=document.activeElement;if(a&&/^mg-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
+    var thread=S.isOwner?(S.mThread&&S.people[S.mThread]?S.mThread:(mates().find(function(k){return openAsks(k).length})||mates()[0])):S.uid;S.mThread=thread;
+    if(thread&&unseenMsgs(thread)){api("POST","/api/messages/seen",{thread:thread}).catch(function(){});allMsgs().forEach(function(m){if(m.thread===thread&&(S.isOwner?m.from!=="owner":m.from==="owner"))m.seen=true})}
+    var list=allMsgs().filter(function(m){return m.thread===thread});
+    if(S.mFilter==="open")list=list.filter(function(m){return m.from!=="owner"&&m.status==="open"});
+    var oa=openAsks(thread).length,first=thread?whoName(thread).split(" ")[0]:"";
+    // composer
+    var kinds=S.isOwner?[["reply","Reply"],["feedback","Feedback on a job"],["note","Note"]]:[["question","Question"],["interview","Interview"],["update","Update"]];
+    var kind=S.mKind&&kinds.some(function(k){return k[0]===S.mKind})?S.mKind:kinds[0][0];S.mKind=kind;
+    var seg=el("div",{class:"mg-seg",role:"tablist"},kinds.map(function(k){return el("button",{type:"button",class:k[0]===kind?"on":null,text:k[1],onclick:function(){S.mKind=k[0];renderMessages()}})}));
+    var theirJobs=S.jobs.filter(function(j){return S.isOwner?j.addedBy===thread:true}).sort(function(x,y){return String(y.updatedAt||y.addedAt).localeCompare(String(x.updatedAt||x.addedAt))});
+    var jobSel=el("select",{id:"mg-job","aria-label":"About which job"},[el("option",{value:"",text:kind==="feedback"?"Pick the job":"Not about a specific job"})].concat(theirJobs.slice(0,200).map(function(j){return el("option",{value:j.id,text:j.company+", "+j.role,selected:j.id===S.mJob?true:null})})));
+    jobSel.addEventListener("change",function(){S.mJob=jobSel.value});
+    var ta=el("textarea",{id:"mg-text",rows:"3",placeholder:S.isOwner?(kind==="feedback"?"What should "+first+" do more or less of?":"Write to "+first+"."):(kind==="interview"?"Who reached out, and the times they offered.":kind==="update"?"A quick update for Ifeanyi.":"What do you need to know?")});ta.value=S.mDraft||"";ta.addEventListener("input",function(){S.mDraft=ta.value});
+    var quick=S.isOwner?(kind==="feedback"?["Good fit, more like this.","Not a fit: it's a project manager role.","Not a fit: it manages or mentors people.","Not a fit: location or travel."]:kind==="reply"?["Yes, go ahead and apply.","Skip this one.","I reached out to them.","Got it, thanks."]:[]):[];
+    var chips=quick.length?el("div",{class:"mg-quick"},quick.map(function(q){return el("button",{type:"button",text:q,onclick:function(){ta.value=(ta.value?ta.value.trim()+" ":"")+q;S.mDraft=ta.value;ta.focus()}})})):null;
+    var rt=S.replyTo&&allMsgs().find(function(m){return m.id===S.replyTo&&m.thread===thread});
+    var send=el("button",{class:"btn accent",type:"submit",text:S.isOwner?"Send and email "+first:"Send to Ifeanyi"});
+    var form=el("form",{class:"mg-compose",onsubmit:function(e){e.preventDefault();var body=ta.value.trim();if(!body){ta.focus();return}if(kind==="feedback"&&!jobSel.value){toast("Pick the job this feedback is about");jobSel.focus();return}
+      send.disabled=true;var done=function(r){S.mDraft="";S.replyTo=null;S.mJob="";send.disabled=false;if(r&&r.message)S.messages.push(r.message);toast(S.isOwner?(r&&r.emailed?"Sent. Emailed "+first+".":"Sent on the board. No email on file for "+first+"."):"Sent. Ifeanyi got a text and an email.");if(document.activeElement)document.activeElement.blur();renderMessages();refresh()};
+      if(S.isOwner)api("POST","/api/messages",{to:thread,body:body,kind:kind,jobId:jobSel.value||null,closes:S.replyTo||null}).then(done,function(err){send.disabled=false;fail(err)});
+      else api("POST","/api/ping",{message:body,jobId:jobSel.value||null,kind:kind}).then(done,function(err){send.disabled=false;fail(err)})}},[
+      el("div",{class:"mg-crow"},[seg,jobSel]),
+      rt?el("div",{class:"mg-replying"},[el("span",{text:"Replying to: "+rt.body.slice(0,90)+(rt.body.length>90?"...":"")}),el("button",{type:"button",class:"linkish",text:"Cancel",onclick:function(){S.replyTo=null;renderMessages()}})]):null,
+      chips,ta,el("div",{class:"mg-send"},[el("span",{class:"muted-line",text:S.isOwner?(S.people[thread]?"Shows on the board and goes to their email.":""):"Ifeanyi gets a text and an email."}),send])]);
+    var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:S.isOwner?(thread?whoName(thread):"Messages"):"Messages with Ifeanyi"}),el("p",{class:"muted-line",text:oa?oa+" open "+(oa===1?"ask":"asks")+" waiting on "+(S.isOwner?"you":"Ifeanyi")+".":"Nothing waiting."})]),
+      el("div",{class:"mg-filter"},[["all","Everything"],["open","Open asks"]].map(function(f){return el("button",{type:"button",class:(S.mFilter||"all")===f[0]?"on":null,text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}))]);
+    var main=el("div",{class:"mg-main"},[head,timeline(list),form]);
+    if(S.isOwner){var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("span",{class:"mg-rail-t",text:"Team"})].concat(mates().map(function(k){var last=allMsgs().filter(function(m){return m.thread===k}).pop(),n=openAsks(k).length,u=unseenMsgs(k);
+        return el("button",{type:"button",class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:last?last.body.slice(0,42):"No messages yet"})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])})));
+      V.appendChild(el("div",{class:"mg-wrap"},[rail,main]))}
+    else V.appendChild(el("div",{class:"mg-wrap solo"},[main]));
+    var tl=V.querySelector(".mg-tl");if(tl)tl.scrollTop=tl.scrollHeight;
+    if(S.mFocus){S.mFocus=false;setTimeout(function(){ta.focus()},0)}
+  }
+  function jobMessages(j){var list=allMsgs().filter(function(m){return m.jobId===j.id});
+    var acts=[];if(S.isOwner&&j.addedBy&&j.addedBy!=="owner")acts.push(el("button",{class:"btn ghost small",type:"button",text:"Give feedback",onclick:function(){S.tab="messages";S.mThread=j.addedBy;S.mKind="feedback";S.mJob=j.id;S.mFocus=true;render();window.scrollTo(0,0)}}));
+    if(!list.length&&!acts.length)return null;
+    var wrap=el("div",{class:"block"},[bhead("Messages about this job",acts)]);
+    if(list.length){var b=el("div",{class:"mg-tl compact"});list.slice(-4).forEach(function(m){b.appendChild(msgCard(m,true))});wrap.appendChild(b)}
+    else wrap.appendChild(el("p",{class:"muted-line",text:"Tell "+whoName(j.addedBy).split(" ")[0]+" what you think of this one. It lands here and in their email."}));
+    return wrap}
+
   // ---------- render ----------
   function render(){
-    ["apps","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
+    ["apps","messages","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
     $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=!S.isOwner;if(S.tab==="contacts"&&!S.isOwner)S.tab="apps";
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
@@ -830,6 +940,8 @@ body{background:var(--page)}
     if(S.tab==="team")renderTeam();
     if(S.tab==="brief")renderBrief();
     if(S.tab==="contacts")renderContacts();
+    if(S.tab==="messages")renderMessages();
+    var mb=$("msg-badge"),mc=S.isOwner?openAsks().length:unseenMsgs();mb.hidden=!mc;mb.textContent=String(mc);
     if(S.tab==="resume"&&!S.resumeShown){S.resumeShown=true;renderResumeTab()}
   }
   function renderPing(){
@@ -1004,7 +1116,7 @@ body{background:var(--page)}
     if(!rows.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Switch to Everyone and Everything, or clear the search."})]));return}
     rows.slice(0,S.limit).forEach(function(j){
       R.appendChild(el("div",{class:"row",tabindex:"0",role:"button","aria-expanded":S.open===j.id?"true":"false",onclick:function(){S.open=S.open===j.id?null:j.id;renderRows()},onkeydown:function(e){if(e.key==="Enter"){e.preventDefault();this.click()}}},[
-        el("div",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled",j.noCredit?el("span",{class:"nocredit",title:"Ifeanyi applied to this company before, so it doesn't count toward the weekly goal",text:"Doesn't count"}):null,j.fromIfeanyi&&j.status==="saved"?el("span",{class:"fromif",text:S.isOwner?"Sent to "+nameOf(j.addedBy):"From Ifeanyi"}):null,noContacts(j)?el("span",{class:"nocontact",text:"No contacts yet"}):null,needsFollowUp(j)?el("span",{class:"nocontact fu",text:"Follow up"}):null]),el("div",{class:"ro",text:j.role||""})]),
+        el("div",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("div",{style:"min-width:0"},[el("div",{class:"co"},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled",(S.isOwner?openAsks().some(function(m){return m.jobId===j.id}):allMsgs().some(function(m){return m.jobId===j.id&&m.from==="owner"&&!m.seen}))?el("span",{class:"msgchip",text:S.isOwner?"Open ask":"New message"}):null,j.noCredit?el("span",{class:"nocredit",title:"Ifeanyi applied to this company before, so it doesn't count toward the weekly goal",text:"Doesn't count"}):null,j.fromIfeanyi&&j.status==="saved"?el("span",{class:"fromif",text:S.isOwner?"Sent to "+nameOf(j.addedBy):"From Ifeanyi"}):null,noContacts(j)?el("span",{class:"nocontact",text:"No contacts yet"}):null,needsFollowUp(j)?el("span",{class:"nocontact fu",text:"Follow up"}):null]),el("div",{class:"ro",text:j.role||""})]),
         el("div",{class:"meta"},[el("b",{text:nameOf(j.addedBy).replace(" (you)","")}),(j.contacts&&j.contacts.length)?el("span",{class:"ccount",text:" · "+j.contacts.length+" contact"+(j.contacts.length>1?"s":"")}):null]),
         el("div",{class:"meta when",text:j.interviewAt&&j.status==="interview"?"Interview "+rel(j.interviewAt):"Sent "+(rel(sentAt(j))||rel(j.addedAt))}),
         el("div",{class:"st"},[statusSel(j)])
@@ -1017,7 +1129,7 @@ body{background:var(--page)}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
     var saved=j.status==="saved";
-    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j)]);
+    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),jobMessages(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j)]);
     var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
     return el("div",{class:"detail"},[main,side]);
   }
@@ -1106,7 +1218,7 @@ body{background:var(--page)}
     var m=el("textarea",{id:"tx-"+j.id,rows:"3",placeholder:"What happened and what he needs to do. For example: Their recruiter emailed to set up a call. She offered Tue 2pm or Wed 11am."});
     var out=el("span",{class:"msg"});
     var box=el("form",{class:"block textbox",onsubmit:function(e){e.preventDefault();var b=this.querySelector("button[type=submit]");if(m.value.trim().length<2){m.focus();return}b.disabled=true;out.textContent="Sending...";
-      api("POST","/api/ping",{message:m.value,jobId:j.id}).then(function(){S.texting=null;if(document.activeElement)document.activeElement.blur();renderRows();toast("Sent. Ifeanyi got a text and an email.");refresh()},function(err){b.disabled=false;out.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't send. Call or text him directly."})}},[
+      api("POST","/api/ping",{message:m.value,jobId:j.id,kind:j.status==="interview"?"interview":"question"}).then(function(){S.texting=null;if(document.activeElement)document.activeElement.blur();renderRows();toast("Sent. Ifeanyi got a text and an email.");refresh()},function(err){b.disabled=false;out.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't send. Call or text him directly."})}},[
       el("h3",{text:"Text Ifeanyi about this job"}),el("p",{class:"muted-line",text:"He gets a text and an email with your name and this job on it. Don't reply to the company yourself."}),m,
       el("div",{class:"acts"},[el("button",{class:"btn accent small",type:"submit",text:"Send"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.texting=null;renderRows()}}),out])]);
     setTimeout(function(){m.focus()},0);return box;
@@ -1341,11 +1453,12 @@ body{background:var(--page)}
       rows.forEach(function(r){
         var nm=el("input",{id:"tm-"+r.id,value:r.name,"aria-label":"Name for code "+r.code});
         var gl=el("input",{id:"tm-g-"+r.id,type:"number",min:"1",value:String(r.weeklyGoal||30),class:"goal-in","aria-label":"Weekly goal for "+r.name,title:"Weekly goal"});
+        var em=el("input",{id:"tm-e-"+r.id,type:"email",value:r.email||"",placeholder:"Email for replies","aria-label":"Email for "+r.name});
         list.appendChild(el("div",{class:"roster-row"+(r.active?"":" off")},[
           el("code",{class:"tcode",text:r.code}),
-          nm,
+          nm,em,
           el("label",{class:"goal-lab"},[gl," a week"]),
-          el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PATCH","/api/team/"+r.id,{name:nm.value,weeklyGoal:gl.value}).then(function(){toast("Saved");load();refresh()},fail)}}),
+          el("button",{class:"btn small",type:"button",text:"Save",onclick:function(){api("PATCH","/api/team/"+r.id,{name:nm.value,weeklyGoal:gl.value,email:em.value}).then(function(){toast("Saved");load();refresh()},fail)}}),
           el("button",{class:"btn ghost small",type:"button",text:"Copy code",onclick:function(){var b=this;try{navigator.clipboard.writeText(r.code).then(function(){b.textContent="Copied"},function(){})}catch(e){}}}),
           el("button",{class:"btn ghost small",type:"button",text:r.active?"Turn off":"Turn on",onclick:function(){api("PATCH","/api/team/"+r.id,{active:!r.active}).then(function(){toast(r.active?"Turned off":"Turned on");load()},fail)}}),
           el("button",{class:"btn ghost small",type:"button",text:"New code",onclick:function(){api("PATCH","/api/team/"+r.id,{newCode:true}).then(function(){toast("New code issued");load()},fail)}})
@@ -1358,7 +1471,7 @@ body{background:var(--page)}
     T.appendChild(box);load();
   }
   function renderTeam(){
-    var T=$("team");T.textContent="";if(S.isOwner)renderRoster(T);
+    var T=$("team");T.textContent="";if(S.isOwner){T.appendChild(el("div",{class:"roster-toggle"},[el("button",{class:"btn ghost small",type:"button",text:S.showRoster?"Hide team settings":"Manage team",onclick:function(){S.showRoster=!S.showRoster;renderTeam()}})]));if(S.showRoster)renderRoster(T)}
     var A=activity(),now=new Date(),wk=weekKey(now),lastWk=(function(){var d=monday(now);d.setDate(d.getDate()-7);return dayKey(d)})();
     var ids=S.isOwner?activePeople(A):[S.uid];
     var started=monday(now)>=TEAM_START,lastOk=monday(now)>TEAM_START;
@@ -1444,19 +1557,19 @@ body{background:var(--page)}
   }
 
   // events
-  ["apps","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  ["apps","messages","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
   function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="dark"?"Dark":"Light";$("theme-btn").title=(t==="dark"?"Dark mode":"Light mode")+". Click to switch."}
   $("theme-btn").onclick=function(){var n=themeNow()==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("tb-theme",n)}catch(e){}paintTheme()};
   paintTheme();
-  $("ping-btn").onclick=function(){S.pinging=!S.pinging;$("ping-slot").textContent="";renderPing()};
+  $("ping-btn").onclick=function(){S.tab="messages";S.mFocus=true;render();window.scrollTo(0,0)};
   $("add-btn").onclick=function(){S.adding=!S.adding;$("add-slot").textContent="";render()};
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","team","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
