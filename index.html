@@ -517,6 +517,44 @@ body{background:var(--page)}
 .mg-av.all{background:var(--soft2);color:var(--fg)}
 .ct-panel .ct-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.ct-panel .ct-tools input{flex:1;min-width:220px}
 .ct-panel .btn.on{border-color:var(--accent);color:var(--accent)}
+/* chat v2 */
+.mg-wrap.solo{grid-template-columns:minmax(0,1040px)}
+.mg-main{gap:12px}
+.mg-chat{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:20px;height:calc(100vh - 220px);min-height:520px;overflow:hidden}
+.mg-chat .mg-subfilter{margin:0;padding:10px 18px;border-bottom:1px solid var(--line);gap:16px}
+.mg-chat .mg-tl{flex:1;max-height:none;overflow-y:auto;padding:18px 20px 10px;gap:2px;align-content:start;display:flex;flex-direction:column}
+.mg-chat .mg-tl>:first-child{margin-top:auto}
+.mg-day{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:12px;font-weight:600;margin:16px 0 10px;justify-self:stretch}
+.mg-day::before,.mg-day::after{content:"";flex:1;height:1px;background:var(--line)}
+.mg-row{display:flex;gap:10px;align-items:flex-start;margin-top:12px;max-width:100%}
+.mg-row.cont{margin-top:3px}
+.mg-row.mine{flex-direction:row-reverse}
+.mg-av.sm{width:32px;height:32px;font-size:12px;flex:none}
+.mg-row.cont .mg-av.sm{visibility:hidden;height:0}
+.mg-col{display:flex;flex-direction:column;gap:4px;max-width:min(72%,640px);min-width:0}
+.mg-row.mine .mg-col{align-items:flex-end}
+.mg-meta{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--faint);padding:0 4px}.mg-meta b{color:var(--fg);font-size:13.5px;font-weight:650}
+.mg-bubble{display:grid;gap:8px;background:var(--soft);border-radius:18px 18px 18px 6px;padding:10px 14px;min-width:0}
+.mg-row.cont .mg-bubble{border-top-left-radius:6px}
+.mg-row.mine .mg-bubble{background:var(--accent);color:#fff;border-radius:18px 18px 6px 18px}
+.mg-row.mine.cont .mg-bubble{border-top-right-radius:6px}
+.mg-bubble.open{box-shadow:inset 0 0 0 1.5px var(--amber)}
+.mg-row.mine .mg-bubble.open{box-shadow:0 0 0 2px var(--amber-wash)}
+.mg-bubble .mg-kind{justify-self:start}
+.mg-row.mine .mg-kind{background:rgba(255,255,255,.22);color:#fff}
+.mg-body{font-size:14.5px;line-height:1.5;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.mg-row.mine .mg-job{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff}.mg-row.mine .mg-job span span{color:rgba(255,255,255,.85)}
+.mg-foot{display:flex;gap:12px;align-items:center;padding:0 4px;font-size:12.5px}
+.mg-state{font-weight:600}.mg-state.pending{color:var(--amber)}.mg-state.pending::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);margin-right:6px;vertical-align:1px}.mg-state.done{color:var(--green)}
+.mg-link{border:0;background:none;padding:0;color:var(--accent);font-weight:600;font-size:12.5px;cursor:pointer}.mg-link:hover{text-decoration:underline}
+.mg-ev{margin:14px 0 4px;align-self:center}
+.mg-chat .mg-compose{border:0;border-top:1px solid var(--line);border-radius:0;padding:12px 16px 10px;gap:8px;background:var(--card)}
+.mg-inputrow{display:flex;gap:10px;align-items:flex-end}
+.mg-inputrow textarea{flex:1;min-height:44px;max-height:180px;border-radius:14px;padding:11px 14px}
+.mg-sendbtn{height:44px;padding:0 20px}
+.mg-hint{font-size:11.5px;color:var(--faint)}
+.mg-crow select{max-width:300px}
+.mg-empty{margin:auto}
 </style>
 
 <div class="wrap">
@@ -881,23 +919,32 @@ body{background:var(--page)}
   function mates(){return Object.keys(S.people).filter(function(k){var p=S.people[k];return k!=="owner"&&!p.owner&&p.name&&!/^Teammate \d/.test(p.name)})}
   function openJob(id){if(!S.jobs.find(function(j){return j.id===id})){toast("That job isn't on your list");return}S.tab="apps";S.scope="mine";S.status="all";$("f-status").value="all";S.open=id;render();setTimeout(function(){var r=document.querySelector('.row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})},60)}
   function whoName(id){return id==="owner"?"Ifeanyi":nameOf(id).replace(" (you)","")}
-  function msgCard(m,compact){
-    var mine=S.isOwner?m.from==="owner":m.from===S.uid,j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId}),ask=m.from!=="owner";
-    var acts=[];
-    if(ask&&!compact){if(m.status==="open"){if(S.isOwner)acts.push(el("button",{class:"btn small",type:"button",text:"Reply",onclick:function(){S.replyTo=m.id;S.mKind="reply";S.mJob=m.jobId||"";renderMessages();var t=$("mg-text");if(t)t.focus()}}));
-        acts.push(el("button",{class:"btn ghost small",type:"button",text:"Mark done",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){m.status="done";render()},fail)}}))}
-      else acts.push(el("span",{class:"mg-done",text:"\u2713 Done"+(m.doneBy?" by "+whoName(m.doneBy):"")}))}
-    return el("div",{class:"mg-item "+(mine?"mine":"theirs")+(ask&&m.status==="open"?" open":"")},[
-      el("div",{class:"mg-meta"},[el("span",{class:"mg-kind k-"+m.kind,text:KIND_L[m.kind]||m.kind}),el("span",{class:"mg-who",text:whoName(m.from)}),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]),
+  function msgCard(m,compact,cont){
+    var mine=S.isOwner?m.from==="owner":m.from===S.uid,j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId}),ask=m.from!=="owner",open=ask&&m.status==="open";
+    var tm=new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+    var showKind=m.kind!=="reply"&&m.kind!=="note";
+    var bubble=el("div",{class:"mg-bubble"+(open?" open":"")},[
+      showKind?el("span",{class:"mg-kind k-"+m.kind,text:KIND_L[m.kind]||m.kind}):null,
       el("p",{class:"mg-body",text:m.body}),
-      j?el("button",{class:"mg-job",type:"button",onclick:function(){openJob(j.id)}},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{},[el("b",{text:j.company}),el("span",{text:j.role})])]):null,
-      acts.length?el("div",{class:"mg-acts"},acts):null]);
+      j?el("button",{class:"mg-job",type:"button",onclick:function(){openJob(j.id)}},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{},[el("b",{text:j.company}),el("span",{text:j.role})])]):null]);
+    var foot=[];
+    if(ask&&!compact){
+      if(open){foot.push(el("span",{class:"mg-state pending",text:S.isOwner?"Waiting on you":"Pending response"}));
+        if(S.isOwner){foot.push(el("button",{class:"mg-link",type:"button",text:"Reply",onclick:function(){S.replyTo=m.id;S.mKind="reply";S.mJob=m.jobId||"";renderMessages();var t=$("mg-text");if(t)t.focus()}}));
+          foot.push(el("button",{class:"mg-link",type:"button",text:"Mark done",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){m.status="done";render()},fail)}}))}}
+      else foot.push(el("span",{class:"mg-state done",text:"\u2713 Answered"}))}
+    return el("div",{class:"mg-row "+(mine?"mine":"theirs")+(cont?" cont":"")},[
+      mine?null:el("span",{class:"mg-av sm",style:"--h:"+hue(whoName(m.from)),text:cont?"":initials(whoName(m.from))}),
+      el("div",{class:"mg-col"},[cont?null:el("div",{class:"mg-meta"},[el("b",{text:mine?"You":whoName(m.from)}),el("span",{text:tm})]),bubble,foot.length?el("div",{class:"mg-foot"},foot):null])]);
   }
-  function timeline(list){var box=el("div",{class:"mg-tl"}),day="";
-    if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"Nothing here yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
-    list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});if(d!==day){day=d;box.appendChild(el("div",{class:"mg-day",text:d}))}
-      if(m.ev)box.appendChild(el("button",{type:"button",class:"mg-ev",onclick:function(){openJob(m.j.id)}},[el("span",{class:"c-out-dot"}),el("span",{},[el("b",{text:whoName(m.by)})," reached out to ",el("b",{text:m.c.name}),(m.c.title?", "+m.c.title:"")+" "+viaText(m.via)+" \u00b7 "+m.j.company]),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]));
-      else box.appendChild(msgCard(m))});return box}
+  function timeline(list){var box=el("div",{class:"mg-tl"}),day="",prev=null;
+    if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"No messages yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
+    list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+      if(d!==day){day=d;prev=null;box.appendChild(el("div",{class:"mg-day"},[el("span",{text:d})]))}
+      if(m.ev){prev=null;box.appendChild(el("button",{type:"button",class:"mg-ev",onclick:function(){openJob(m.j.id)}},[el("span",{class:"c-out-dot"}),el("span",{},[el("b",{text:whoName(m.by)})," reached out to ",el("b",{text:m.c.name}),(m.c.title?", "+m.c.title:"")+" "+viaText(m.via)+" \u00b7 "+m.j.company]),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]));return}
+      var cont=prev&&prev.from===m.from&&(new Date(m.at)-new Date(prev.at))<10*60000;
+      box.appendChild(msgCard(m,false,cont));prev=m});
+    return box}
   function renderMessages(){
     var V=$("messages-view"),a=document.activeElement;if(a&&/^mg-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
     var thread=S.isOwner?(S.mThread==="__all"||(S.mThread&&S.people[S.mThread])?S.mThread:(mates().find(function(k){return openAsks(k).length})||mates()[0])):S.uid;S.mThread=thread;
@@ -915,24 +962,25 @@ body{background:var(--page)}
     var theirJobs=S.jobs.filter(function(j){return S.isOwner?j.addedBy===thread:true}).sort(function(x,y){return String(y.updatedAt||y.addedAt).localeCompare(String(x.updatedAt||x.addedAt))});
     var jobSel=el("select",{id:"mg-job","aria-label":"About which job"},[el("option",{value:"",text:kind==="feedback"?"Pick the job":"Not about a specific job"})].concat(theirJobs.slice(0,200).map(function(j){return el("option",{value:j.id,text:j.company+", "+j.role,selected:j.id===S.mJob?true:null})})));
     jobSel.addEventListener("change",function(){S.mJob=jobSel.value});
-    var ta=el("textarea",{id:"mg-text",rows:"3",placeholder:S.isOwner?(kind==="feedback"?"What should "+first+" do more or less of?":"Write to "+first+"."):(kind==="interview"?"Who reached out, and the times they offered.":kind==="update"?"A quick update for Ifeanyi.":"What do you need to know?")});ta.value=S.mDraft||"";ta.addEventListener("input",function(){S.mDraft=ta.value});
+    var ta=el("textarea",{id:"mg-text",rows:"2",placeholder:S.isOwner?(kind==="feedback"?"What should "+first+" do more or less of?":"Write to "+first+"."):(kind==="interview"?"Who reached out, and the times they offered.":kind==="update"?"A quick update for Ifeanyi.":"What do you need to know?")});ta.value=S.mDraft||"";ta.addEventListener("input",function(){S.mDraft=ta.value});ta.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});
     var quick=S.isOwner?(kind==="feedback"?["Good fit, more like this.","Not a fit: it's a project manager role.","Not a fit: it manages or mentors people.","Not a fit: location or travel."]:kind==="reply"?["Yes, go ahead and apply.","Skip this one.","I reached out to them.","Got it, thanks."]:[]):[];
     var chips=quick.length?el("div",{class:"mg-quick"},quick.map(function(q){return el("button",{type:"button",text:q,onclick:function(){ta.value=(ta.value?ta.value.trim()+" ":"")+q;S.mDraft=ta.value;ta.focus()}})})):null;
     var rt=S.replyTo&&allMsgs().find(function(m){return m.id===S.replyTo&&m.thread===thread});
-    var send=el("button",{class:"btn accent",type:"submit",text:S.isOwner?"Send and email "+first:"Send to Ifeanyi"});
+    var send=el("button",{class:"btn accent mg-sendbtn",type:"submit",text:"Send"});
     var form=el("form",{class:"mg-compose",onsubmit:function(e){e.preventDefault();var body=ta.value.trim();if(!body){ta.focus();return}if(kind==="feedback"&&!jobSel.value){toast("Pick the job this feedback is about");jobSel.focus();return}
       send.disabled=true;var done=function(r){S.mDraft="";S.replyTo=null;S.mJob="";send.disabled=false;if(r&&r.message)S.messages.push(r.message);toast(S.isOwner?(r&&r.emailed?"Sent. Emailed "+first+".":"Sent on the board. No email on file for "+first+"."):"Sent. Ifeanyi got a text and an email.");if(document.activeElement)document.activeElement.blur();renderMessages();refresh()};
       if(S.isOwner)api("POST","/api/messages",{to:thread,body:body,kind:kind,jobId:jobSel.value||null,closes:S.replyTo||null}).then(done,function(err){send.disabled=false;fail(err)});
       else api("POST","/api/ping",{message:body,jobId:jobSel.value||null,kind:kind}).then(done,function(err){send.disabled=false;fail(err)})}},[
       el("div",{class:"mg-crow"},[seg,jobSel]),
       rt?el("div",{class:"mg-replying"},[el("span",{text:"Replying to: "+rt.body.slice(0,90)+(rt.body.length>90?"...":"")}),el("button",{type:"button",class:"linkish",text:"Cancel",onclick:function(){S.replyTo=null;renderMessages()}})]):null,
-      chips,ta,el("div",{class:"mg-send"},[el("span",{class:"muted-line",text:S.isOwner?(S.people[thread]?"Shows on the board and goes to their email.":""):"Ifeanyi gets a text and an email."}),send])]);
+      chips,el("div",{class:"mg-inputrow"},[ta,send]),el("span",{class:"mg-hint",text:(S.isOwner?"Shows here and goes to "+first+"'s email.":"Ifeanyi gets a text and an email.")+" Enter to send, Shift+Enter for a new line."})]);
     var tc=toContact(people);
     var sub=thread==="__all"?people.length+" people found across the team, "+tc+" not contacted yet.":(oa?oa+" open "+(oa===1?"ask":"asks")+" waiting on "+(S.isOwner?"you":"Ifeanyi")+". ":"")+people.length+" "+(people.length===1?"contact":"contacts")+", "+tc+" not contacted yet.";
     var views=thread==="__all"?null:el("div",{class:"mg-filter"},[["talk","Conversation"],["people","People ("+people.length+")"]].map(function(f){return el("button",{type:"button",class:view===f[0]?"on":null,text:f[1],onclick:function(){S.mView=f[0];renderMessages()}})}));
     var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:thread==="__all"?"All contacts":S.isOwner?whoName(thread):"Inbox"}),el("p",{class:"muted-line",text:sub})]),views]);
     var filt=el("div",{class:"mg-subfilter"},[["all","Everything"],["open","Open asks only"]].map(function(f){return el("button",{type:"button",class:"linkish"+((S.mFilter||"all")===f[0]?" on":""),text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}));
-    var main=el("div",{class:"mg-main"},view==="people"?[head,contactsPanel(people,{exportable:S.isOwner})]:[head,filt,timeline(list),form]);
+    var tlBox=timeline(list);
+    var main=el("div",{class:"mg-main"},view==="people"?[head,contactsPanel(people,{exportable:S.isOwner})]:[head,el("div",{class:"mg-chat"},[filt,tlBox,form])]);
     if(S.isOwner){var allP=contactsFor("__all"),allT=toContact(allP);
       var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("span",{class:"mg-rail-t",text:"Team"})].concat(mates().map(function(k){var n=openAsks(k).length,u=unseenMsgs(k),t=toContact(contactsFor(k));
         var line=[n?n+" open "+(n===1?"ask":"asks"):"",t?t+" to contact":""].filter(Boolean).join(" \u00b7 ")||"All caught up";
@@ -940,7 +988,7 @@ body{background:var(--page)}
         [el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
       V.appendChild(el("div",{class:"mg-wrap"},[rail,main]))}
     else V.appendChild(el("div",{class:"mg-wrap solo"},[main]));
-    var tl=V.querySelector(".mg-tl");if(tl)tl.scrollTop=tl.scrollHeight;
+    var tl=V.querySelector(".mg-tl");if(tl){var down=function(){tl.scrollTop=tl.scrollHeight};down();requestAnimationFrame(down);setTimeout(down,80)}
     if(S.mFocus){S.mFocus=false;setTimeout(function(){ta.focus()},0)}
   }
   function jobMessages(j){var list=allMsgs().filter(function(m){return m.jobId===j.id});
