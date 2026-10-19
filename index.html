@@ -9,6 +9,9 @@
 </head>
 <body>
 <title>Team Board</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
@@ -246,7 +249,7 @@ body{background:var(--page)}
 .wrap{max-width:1120px}
 .top{padding-block:20px 10px}
 .brand{display:flex;align-items:center;gap:10px}
-.brand::before{content:"";width:26px;height:26px;border-radius:8px;background:var(--accent);box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.brand::before{content:"";width:26px;height:26px;border-radius:7px;background:#d9541a url("favicon.svg") center/cover no-repeat}
 .views{background:var(--card);border:1px solid var(--line);padding:4px;border-radius:999px}
 .views button{padding:7px 14px}
 .today-wrap{display:block;padding-block:14px 18px}
@@ -555,6 +558,13 @@ body{background:var(--page)}
 .mg-hint{font-size:11.5px;color:var(--faint)}
 .mg-crow select{max-width:300px}
 .mg-empty{margin:auto}
+.ct-acts-row{grid-column:1/-1;margin-top:2px}.ct-acts-row .ct-sep{width:1px;height:18px;background:var(--line);margin:0 4px}
+.dr-inline{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dr-state{font-size:12.5px;color:var(--muted);font-weight:600}.dr-state.due{color:var(--amber)}.dr-state.ok{color:var(--green)}
+.dr-panel{display:grid;gap:8px;background:var(--soft);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:12px 14px;margin:8px 0 12px}
+.dr-top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.dr-top b{font-size:14.5px}.dr-top span{font-size:12.5px;color:var(--muted)}
+.dr-panel textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:14px;line-height:1.5;resize:vertical;margin:0}
+.dr-acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.dr-acts a.btn{text-decoration:none}.dr-close{margin-left:auto;font-size:13px;text-decoration:none;color:var(--muted)}
 </style>
 
 <div class="wrap">
@@ -897,8 +907,9 @@ body{background:var(--page)}
           el("div",{class:"ct-who"},[el("b",{text:c.name}),c.title?el("span",{text:c.title}):null]),
           el("div",{class:"ct-job"},[el("button",{type:"button",class:"linkish",text:j.company,onclick:function(){openJob(j.id)}}),el("span",{text:j.role})]),
           el("div",{class:"ct-links"},[c.linkedin?el("a",{href:lnk(c.linkedin),target:"_blank",rel:"noopener",text:"LinkedIn"}):null,c.email?el("a",{href:"mailto:"+c.email,text:c.email}):null]),
-          el("div",{class:"ct-meta"},[el("span",{text:"Found by "+nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")}),outreachLine(c)||el("span",{class:"ct-todo",text:"Not contacted yet"}),el("div",{class:"ct-acts"},outreachBtns(j,c,function(){refresh()}))])
-        ]))})}
+          el("div",{class:"ct-meta"},[el("span",{text:"Found by "+nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")}),outreachLine(c)||el("span",{class:"ct-todo",text:"Not contacted yet"})]),
+          el("div",{class:"ct-acts ct-acts-row"},draftTools(j,c,function(){renderMessages()}).concat([el("span",{class:"ct-sep"})],outreachBtns(j,c,function(){refresh()})))
+        ]));var dp=draftPanel(j,c,function(){renderMessages()});if(dp)list.appendChild(dp)})}
     q.addEventListener("input",draw);
     var tools=[q,only];
     if(opts.exportable){tools.push(el("button",{class:"btn ghost small",type:"button",text:"Export CSV",disabled:all.length?null:true,onclick:function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Reached out"]].concat(all.map(function(x){var o=(x.c.outreach||[]).slice(-1)[0];return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",o?o.via+" "+o.at.slice(0,10):""]}));
@@ -1387,6 +1398,35 @@ body{background:var(--page)}
     return el("div",{class:"c-out"},[el("span",{class:"c-out-dot"}),(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via)+", "+rel(l.at)+(o.length>1?" ("+o.length+" times)":"")])}
   function outreachBtns(j,c,after){var mk=function(via,label){return el("button",{class:"btn ghost small",type:"button",text:label,onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){toast("Logged");(after||refresh)()},fail)}})};
     return S.isOwner?[c.linkedin?mk("LinkedIn","Reached out on LinkedIn"):null,mk("email","Emailed them")]:[c.email?mk("email","I emailed them"):null]}
+  // AI drafts per person: a first message, or a follow-up after 10 days with no reply
+  function draftTools(j,c,rerender){
+    var o=c.outreach||[],last=o[o.length-1],days=last?Math.floor((Date.now()-new Date(last.at))/864e5):null,open=S.drafting&&S.drafting.cid===c.id;
+    var go=function(mode){S.drafting=open&&S.drafting.mode===mode?null:{cid:c.id,mode:mode};rerender()};
+    var out=[];
+    if(c.repliedAt)out.push(el("span",{class:"dr-state ok",text:"\u2713 Replied "+rel(c.repliedAt)}));
+    else if(!last)out.push(el("button",{class:"btn ai small subtle",type:"button",onclick:function(){go("first")}},[el("span",{class:"spark",text:"\u2726"})," First message"]));
+    else{if(days>=10){out.push(el("span",{class:"dr-state due",text:"No reply in "+days+" days"}));out.push(el("button",{class:"btn ai small",type:"button",onclick:function(){go("followup")}},[el("span",{class:"spark",text:"\u2726"})," Follow-up"]))}
+      else{var due=new Date(new Date(last.at).getTime()+10*864e5);out.push(el("span",{class:"dr-state",text:"Follow up "+due.toLocaleDateString(undefined,{month:"short",day:"numeric"})}))}
+      out.push(el("button",{class:"btn ghost small",type:"button",text:"They replied",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{replied:true}).then(function(){c.repliedAt=new Date().toISOString();toast("Marked replied");rerender();refresh()},fail)}}))}
+    return out;
+  }
+  function draftPanel(j,c,rerender){
+    if(!S.drafting||S.drafting.cid!==c.id)return null;
+    var mode=S.drafting.mode,first=c.name.split(" ")[0];S.draftOut=S.draftOut||{};
+    var ctx=el("textarea",{id:"mg-dctx-"+c.id,rows:"2",placeholder:mode==="followup"?"Anything new to mention? A recent post of theirs, a project you just finished...":"Anything to mention? How you found them, a mutual connection, something they posted..."});ctx.value=(S.draftCtx||{})[c.id]||"";
+    ctx.addEventListener("input",function(){S.draftCtx=S.draftCtx||{};S.draftCtx[c.id]=ctx.value});
+    var text=S.draftOut[c.id]!=null?S.draftOut[c.id]:(c.draft&&c.draftMode===mode?c.draft:"");
+    var outBox=el("textarea",{id:"mg-dout-"+c.id,rows:"6",placeholder:"Your draft shows up here. You can edit it before you copy it."});outBox.value=text;outBox.addEventListener("input",function(){S.draftOut[c.id]=outBox.value});
+    var gen=aiBtn(text?"Rewrite":"Write it",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id,mode:mode,context:ctx.value}).then(function(r){S.draftOut[c.id]=r.draft;c.draft=r.draft;c.draftMode=r.mode;rerender()})});
+    var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
+    var acts=[gen];
+    if(text){acts.push(el("button",{class:"btn ghost small",type:"button",text:"Copy",onclick:function(){var b=this;try{navigator.clipboard.writeText(outBox.value).then(function(){b.textContent="Copied"})}catch(e){}}}));
+      if(lnk)acts.push(el("a",{class:"btn ghost small",href:lnk,target:"_blank",rel:"noopener",text:"Open LinkedIn"}));
+      if(S.isOwner&&lnk)acts.push(el("button",{class:"btn small",type:"button",text:"Sent on LinkedIn",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"LinkedIn"}).then(function(){S.drafting=null;toast("Logged. Follow-up reminder in 10 days.");refresh()},fail)}}));
+      if(c.email)acts.push(el("button",{class:"btn small"+(S.isOwner&&lnk?" ghost":""),type:"button",text:"Sent by email",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"email"}).then(function(){S.drafting=null;toast("Logged. Follow-up reminder in 10 days.");refresh()},fail)}}))}
+    acts.push(el("button",{class:"linkish dr-close",type:"button",text:"Close",onclick:function(){S.drafting=null;rerender()}}));
+    return el("div",{class:"dr-panel"},[el("div",{class:"dr-top"},[el("b",{text:(mode==="followup"?"Follow-up to ":"First message to ")+first}),el("span",{text:"Short, specific, with your portfolio link."})]),ctx,outBox,el("div",{class:"dr-acts"},acts)]);
+  }
   function contactsBlock(j){
     var cs=j.contacts||[];
     var adding=S.editContact===j.id+":new";
@@ -1404,13 +1444,13 @@ body{background:var(--page)}
       ]);
       var first=c.name.split(" ")[0],seen=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0)}).filter(function(h){return h.text.indexOf("Found a contact")!==0}).slice(-3).reverse();
       if(seen.length)row.appendChild(el("ul",{class:"c-hist"},seen.map(function(h){return el("li",{},[h.text,el("span",{text:" \u00b7 "+nameOf(h.by).replace(" (you)","")+", "+rel(h.at)})])})));
-      if(c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
+      if(false&&c.draft){var dd=el("details",{class:"cdraft"},[el("summary",{text:"Draft message"}),el("p",{text:c.draft}),el("button",{class:"btn ghost small",type:"button",text:"Copy draft",onclick:function(){var b=this;try{navigator.clipboard.writeText(c.draft).then(function(){b.textContent="Copied"})}catch(e){}}})]);row.appendChild(dd)}
       var ol=outreachLine(c);if(ol)row.appendChild(ol);
       if(S.uid){var a=el("div",{class:"acts"},outreachBtns(j,c).concat([
         el("button",{class:"btn ghost small",type:"button",text:"Edit",onclick:function(){S.editContact=j.id+":"+c.id;renderRows()}}),
-        aiBtn(c.draft?"Redraft message":"Draft message with AI",function(){return api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id}).then(function(){toast("Draft ready for "+c.name);refresh()})},true),
+        el("span",{class:"dr-inline"},draftTools(j,c,function(){renderRows()})),
         S.isOwner?el("button",{class:"btn ghost small",type:"button",text:"Remove",onclick:function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}}):null]));
-        row.appendChild(a)}
+        row.appendChild(a);var dp=draftPanel(j,c,function(){renderRows()});if(dp)row.appendChild(dp)}
       wrap.appendChild(row);
     });
     if(adding)wrap.appendChild(contactForm(j,null));
