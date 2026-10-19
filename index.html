@@ -510,6 +510,13 @@ body{background:var(--page)}
 .mg-send{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .roster-toggle{display:flex;justify-content:flex-end;padding-top:14px}
 .msgchip{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-wash);border-radius:99px;padding:2px 8px;vertical-align:middle}
+.mg-ev{display:flex;align-items:center;gap:8px;justify-self:center;max-width:92%;border:0;background:var(--green-wash);color:var(--fg);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;text-align:left}
+.mg-ev .mg-time{color:var(--faint);font-size:12px;margin-left:4px}
+.mg-subfilter{display:flex;gap:14px;margin-top:-6px}.mg-subfilter .linkish{text-decoration:none;color:var(--muted);font-size:13px;font-weight:600}.mg-subfilter .linkish.on{color:var(--accent)}
+.mg-rail-t2{margin-top:16px}
+.mg-av.all{background:var(--soft2);color:var(--fg)}
+.ct-panel .ct-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.ct-panel .ct-tools input{flex:1;min-width:220px}
+.ct-panel .btn.on{border-color:var(--accent);color:var(--accent)}
 </style>
 
 <div class="wrap">
@@ -517,7 +524,7 @@ body{background:var(--page)}
     <div class="brand">Apply Yourself</div>
     <nav class="views" role="tablist" aria-label="Views">
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
-      <button role="tab" id="tab-messages" aria-selected="false">Messages <span class="badge" id="msg-badge" hidden></span></button>
+      <button role="tab" id="tab-messages" aria-selected="false">Inbox <span class="badge" id="msg-badge" hidden></span></button>
       <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
       <button role="tab" id="tab-contacts" aria-selected="false" hidden>Contacts</button>
@@ -837,29 +844,35 @@ body{background:var(--page)}
   function allContacts(){var out=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){var first=c.name.split(" ")[0];
       var last=(j.history||[]).filter(function(h){return h.text.indexOf("Found a contact")!==0&&(h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0))}).pop();
       out.push({c:c,j:j,last:last})})});return out.sort(function(a,b){return String(b.c.addedAt||"").localeCompare(String(a.c.addedAt||""))})}
-  function renderContacts(){
-    var V=$("contacts-view");if(V.querySelector("#ct-q")&&document.activeElement&&document.activeElement.id==="ct-q")return;V.textContent="";
-    var all=allContacts(),q=el("input",{id:"ct-q",type:"search",placeholder:"Search name, company or title","aria-label":"Search contacts"});q.value=S.ctq||"";
+  function renderContacts(){S.tab="messages";S.mThread="__all";render()}
+  function contactsPanel(all,opts){
+    opts=opts||{};var box=el("div",{class:"ct-panel"});
+    var q=el("input",{id:"mg-ctq",type:"search",placeholder:"Search name, company or title","aria-label":"Search contacts"});q.value=S.ctq||"";
+    var only=el("button",{type:"button",class:"btn ghost small"+(S.ctTodo?" on":""),text:S.ctTodo?"Showing not contacted":"Not contacted only",onclick:function(){S.ctTodo=!S.ctTodo;renderMessages()}});
     var list=el("div",{class:"ct-list"});
     function lnk(u){return /^https?:/.test(u)?u:"https://"+u}
     function draw(){list.textContent="";var t=norm(q.value);S.ctq=q.value;
-      var rows=all.filter(function(x){return !t||norm(x.c.name+" "+(x.c.title||"")+" "+x.j.company+" "+x.j.role).indexOf(t)>=0});
-      if(!rows.length){list.appendChild(el("div",{class:"empty"},[el("h3",{text:all.length?"No one matches":"No contacts yet"}),el("p",{text:all.length?"Try a different search.":"When anyone adds a person to a job, they show up here."})]));return}
+      var rows=all.filter(function(x){return (!t||norm(x.c.name+" "+(x.c.title||"")+" "+x.j.company+" "+x.j.role).indexOf(t)>=0)&&(!S.ctTodo||!(x.c.outreach&&x.c.outreach.length))});
+      if(!rows.length){list.appendChild(el("div",{class:"empty"},[el("h3",{text:all.length?"No one matches":"No contacts yet"}),el("p",{text:all.length?"Try a different search.":"Add a recruiter or hiring manager under People to contact on any job."})]));return}
       rows.forEach(function(x){var c=x.c,j=x.j;
         list.appendChild(el("div",{class:"ct-row"},[
           el("div",{class:"ct-who"},[el("b",{text:c.name}),c.title?el("span",{text:c.title}):null]),
-          el("div",{class:"ct-job"},[el("button",{type:"button",class:"linkish",text:j.company,onclick:function(){S.tab="apps";S.status="all";$("f-status").value="all";S.open=j.id;render();setTimeout(function(){var r=document.querySelector('.row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"center"})},50)}}),el("span",{text:j.role})]),
+          el("div",{class:"ct-job"},[el("button",{type:"button",class:"linkish",text:j.company,onclick:function(){openJob(j.id)}}),el("span",{text:j.role})]),
           el("div",{class:"ct-links"},[c.linkedin?el("a",{href:lnk(c.linkedin),target:"_blank",rel:"noopener",text:"LinkedIn"}):null,c.email?el("a",{href:"mailto:"+c.email,text:c.email}):null]),
-          el("div",{class:"ct-meta"},[el("span",{text:"Found by "+nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")}),outreachLine(c)||(x.last?el("span",{class:"ct-last",text:x.last.text+" \u00b7 "+rel(x.last.at)}):el("span",{class:"ct-todo",text:"Not contacted yet"})),el("div",{class:"ct-acts"},outreachBtns(j,c,function(){refresh().then(function(){S.ctq=$("ct-q")?$("ct-q").value:S.ctq;$("contacts-view").textContent="";renderContacts()})}))])
+          el("div",{class:"ct-meta"},[el("span",{text:"Found by "+nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")}),outreachLine(c)||el("span",{class:"ct-todo",text:"Not contacted yet"}),el("div",{class:"ct-acts"},outreachBtns(j,c,function(){refresh()}))])
         ]))})}
     q.addEventListener("input",draw);
-    var csv=function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Source"]].concat(all.map(function(x){return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",x.c.source||""]}));
+    var tools=[q,only];
+    if(opts.exportable){tools.push(el("button",{class:"btn ghost small",type:"button",text:"Export CSV",disabled:all.length?null:true,onclick:function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Reached out"]].concat(all.map(function(x){var o=(x.c.outreach||[]).slice(-1)[0];return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",o?o.via+" "+o.at.slice(0,10):""]}));
       var txt=rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\n");
-      var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));a.download="team-board-contacts.csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},100)};
-    V.appendChild(el("div",{class:"ct-head"},[el("div",{},[el("h2",{text:"Contacts"}),el("p",{class:"muted-line",text:all.length+" "+(all.length===1?"person":"people")+" the team found, across every job."})]),el("div",{class:"ct-tools"},[q,el("button",{class:"btn ghost small",type:"button",text:"Export CSV",onclick:csv,disabled:all.length?null:true})])]));
-    V.appendChild(list);draw();
+      var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));a.download="team-board-contacts.csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},100)}}))}
+    box.appendChild(el("div",{class:"ct-tools"},tools));box.appendChild(list);draw();return box;
   }
-
+  function contactsFor(thread){return allContacts().filter(function(x){return thread==="__all"||(S.isOwner?x.j.addedBy===thread:true)})}
+  function toContact(rows){return rows.filter(function(x){return !(x.c.outreach&&x.c.outreach.length)}).length}
+  function outreachEvents(thread){var out=[];contactsFor(thread).forEach(function(x){(x.c.outreach||[]).forEach(function(o){out.push({ev:true,at:o.at,by:o.by,via:o.via,c:x.c,j:x.j})})});return out}
+  function inboxMark(){try{return localStorage.getItem("ay-inbox-"+S.uid)||""}catch(e){return ""}}
+  function unseenEvents(){if(S.isOwner)return 0;var m=inboxMark();return outreachEvents(S.uid).filter(function(e){return e.by==="owner"&&e.at>m}).length}
   // ---------- messages: asks tied to jobs, answered on the board and by email ----------
   var KIND_L={question:"Question",interview:"Interview",update:"Update",reply:"Reply",feedback:"Feedback",note:"Note"};
   function allMsgs(){return S.messages||[]}
@@ -882,13 +895,18 @@ body{background:var(--page)}
   }
   function timeline(list){var box=el("div",{class:"mg-tl"}),day="";
     if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"Nothing here yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
-    list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});if(d!==day){day=d;box.appendChild(el("div",{class:"mg-day",text:d}))}box.appendChild(msgCard(m))});return box}
+    list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});if(d!==day){day=d;box.appendChild(el("div",{class:"mg-day",text:d}))}
+      if(m.ev)box.appendChild(el("button",{type:"button",class:"mg-ev",onclick:function(){openJob(m.j.id)}},[el("span",{class:"c-out-dot"}),el("span",{},[el("b",{text:whoName(m.by)})," reached out to ",el("b",{text:m.c.name}),(m.c.title?", "+m.c.title:"")+" "+viaText(m.via)+" \u00b7 "+m.j.company]),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]));
+      else box.appendChild(msgCard(m))});return box}
   function renderMessages(){
     var V=$("messages-view"),a=document.activeElement;if(a&&/^mg-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
-    var thread=S.isOwner?(S.mThread&&S.people[S.mThread]?S.mThread:(mates().find(function(k){return openAsks(k).length})||mates()[0])):S.uid;S.mThread=thread;
+    var thread=S.isOwner?(S.mThread==="__all"||(S.mThread&&S.people[S.mThread])?S.mThread:(mates().find(function(k){return openAsks(k).length})||mates()[0])):S.uid;S.mThread=thread;
+    var people=contactsFor(thread),view=thread==="__all"?"people":(S.mView||"talk");
+    if(!S.isOwner&&view==="talk"){try{localStorage.setItem("ay-inbox-"+S.uid,new Date().toISOString())}catch(e){}}
     if(thread&&unseenMsgs(thread)){api("POST","/api/messages/seen",{thread:thread}).catch(function(){});allMsgs().forEach(function(m){if(m.thread===thread&&(S.isOwner?m.from!=="owner":m.from==="owner"))m.seen=true})}
     var list=allMsgs().filter(function(m){return m.thread===thread});
     if(S.mFilter==="open")list=list.filter(function(m){return m.from!=="owner"&&m.status==="open"});
+    else list=list.concat(outreachEvents(thread)).sort(function(x,y){return String(x.at).localeCompare(String(y.at))});
     var oa=openAsks(thread).length,first=thread?whoName(thread).split(" ")[0]:"";
     // composer
     var kinds=S.isOwner?[["reply","Reply"],["feedback","Feedback on a job"],["note","Note"]]:[["question","Question"],["interview","Interview"],["update","Update"]];
@@ -909,11 +927,17 @@ body{background:var(--page)}
       el("div",{class:"mg-crow"},[seg,jobSel]),
       rt?el("div",{class:"mg-replying"},[el("span",{text:"Replying to: "+rt.body.slice(0,90)+(rt.body.length>90?"...":"")}),el("button",{type:"button",class:"linkish",text:"Cancel",onclick:function(){S.replyTo=null;renderMessages()}})]):null,
       chips,ta,el("div",{class:"mg-send"},[el("span",{class:"muted-line",text:S.isOwner?(S.people[thread]?"Shows on the board and goes to their email.":""):"Ifeanyi gets a text and an email."}),send])]);
-    var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:S.isOwner?(thread?whoName(thread):"Messages"):"Messages with Ifeanyi"}),el("p",{class:"muted-line",text:oa?oa+" open "+(oa===1?"ask":"asks")+" waiting on "+(S.isOwner?"you":"Ifeanyi")+".":"Nothing waiting."})]),
-      el("div",{class:"mg-filter"},[["all","Everything"],["open","Open asks"]].map(function(f){return el("button",{type:"button",class:(S.mFilter||"all")===f[0]?"on":null,text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}))]);
-    var main=el("div",{class:"mg-main"},[head,timeline(list),form]);
-    if(S.isOwner){var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("span",{class:"mg-rail-t",text:"Team"})].concat(mates().map(function(k){var last=allMsgs().filter(function(m){return m.thread===k}).pop(),n=openAsks(k).length,u=unseenMsgs(k);
-        return el("button",{type:"button",class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:last?last.body.slice(0,42):"No messages yet"})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])})));
+    var tc=toContact(people);
+    var sub=thread==="__all"?people.length+" people found across the team, "+tc+" not contacted yet.":(oa?oa+" open "+(oa===1?"ask":"asks")+" waiting on "+(S.isOwner?"you":"Ifeanyi")+". ":"")+people.length+" "+(people.length===1?"contact":"contacts")+", "+tc+" not contacted yet.";
+    var views=thread==="__all"?null:el("div",{class:"mg-filter"},[["talk","Conversation"],["people","People ("+people.length+")"]].map(function(f){return el("button",{type:"button",class:view===f[0]?"on":null,text:f[1],onclick:function(){S.mView=f[0];renderMessages()}})}));
+    var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:thread==="__all"?"All contacts":S.isOwner?whoName(thread):"Inbox"}),el("p",{class:"muted-line",text:sub})]),views]);
+    var filt=el("div",{class:"mg-subfilter"},[["all","Everything"],["open","Open asks only"]].map(function(f){return el("button",{type:"button",class:"linkish"+((S.mFilter||"all")===f[0]?" on":""),text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}));
+    var main=el("div",{class:"mg-main"},view==="people"?[head,contactsPanel(people,{exportable:S.isOwner})]:[head,filt,timeline(list),form]);
+    if(S.isOwner){var allP=contactsFor("__all"),allT=toContact(allP);
+      var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("span",{class:"mg-rail-t",text:"Team"})].concat(mates().map(function(k){var n=openAsks(k).length,u=unseenMsgs(k),t=toContact(contactsFor(k));
+        var line=[n?n+" open "+(n===1?"ask":"asks"):"",t?t+" to contact":""].filter(Boolean).join(" \u00b7 ")||"All caught up";
+        return el("button",{type:"button",class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:line})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])}),
+        [el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
       V.appendChild(el("div",{class:"mg-wrap"},[rail,main]))}
     else V.appendChild(el("div",{class:"mg-wrap solo"},[main]));
     var tl=V.querySelector(".mg-tl");if(tl)tl.scrollTop=tl.scrollHeight;
@@ -931,7 +955,7 @@ body{background:var(--page)}
   function render(){
     ["apps","messages","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
-    $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=!S.isOwner;if(S.tab==="contacts"&&!S.isOwner)S.tab="apps";
+    $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=true;if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
     $("add-btn").hidden=!canAdd;$("reply-btn").hidden=!canAdd;
@@ -941,7 +965,7 @@ body{background:var(--page)}
     if(S.tab==="brief")renderBrief();
     if(S.tab==="contacts")renderContacts();
     if(S.tab==="messages")renderMessages();
-    var mb=$("msg-badge"),mc=S.isOwner?openAsks().length:unseenMsgs();mb.hidden=!mc;mb.textContent=String(mc);
+    var mb=$("msg-badge"),mc=S.isOwner?openAsks().length:unseenMsgs()+unseenEvents();mb.hidden=!mc;mb.textContent=String(mc);
     if(S.tab==="resume"&&!S.resumeShown){S.resumeShown=true;renderResumeTab()}
   }
   function renderPing(){
@@ -1310,8 +1334,9 @@ body{background:var(--page)}
       el("div",{class:"cgrid"},[name,title,li,em,src]),draft,
       el("div",{class:"acts"},[el("button",{class:"btn small",type:"submit",text:c?"Save contact":"Add contact"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editContact=null;renderRows()}})])]);
   }
+  function viaText(v){return v==="LinkedIn"?"on LinkedIn":v==="email"?"by email":"by "+v}
   function outreachLine(c){var o=(c.outreach||[]);if(!o.length)return null;var l=o[o.length-1];
-    return el("div",{class:"c-out"},[el("span",{class:"c-out-dot"}),(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out by "+l.via+", "+rel(l.at)+(o.length>1?" ("+o.length+" times)":"")])}
+    return el("div",{class:"c-out"},[el("span",{class:"c-out-dot"}),(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via)+", "+rel(l.at)+(o.length>1?" ("+o.length+" times)":"")])}
   function outreachBtns(j,c,after){var mk=function(via,label){return el("button",{class:"btn ghost small",type:"button",text:label,onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){toast("Logged");(after||refresh)()},fail)}})};
     return S.isOwner?[c.linkedin?mk("LinkedIn","Reached out on LinkedIn"):null,mk("email","Emailed them")]:[c.email?mk("email","I emailed them"):null]}
   function contactsBlock(j){
