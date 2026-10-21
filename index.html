@@ -761,6 +761,9 @@ body{background:var(--page)}
 .wk-add{display:flex;gap:8px;margin-top:10px}.wk-add input{flex:1}
 @media (max-width:760px){.wk-stats{grid-template-columns:repeat(2,1fr)}}
 
+.wk-iv{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 7px;border-radius:12px;background:#1e3a8a;color:#fff;font-size:13px}
+.wk-ivdate{flex:none;min-width:96px;padding:4px 10px;border-radius:9px;background:#e7efff;color:#1d4ed8;font-weight:700;font-size:12.5px;text-align:center}
+
 </style>
 
 <div class="wrap">
@@ -1406,14 +1409,23 @@ body{background:var(--page)}
     people.forEach(function(pid){var mine=sent.filter(function(j){return j.addedBy===pid}),g=pid==="owner"?null:goalOf(pid);
       var fits=mine.map(fitOf).filter(Boolean),avg=fits.length?Math.round(fits.reduce(function(n,f){return n+f.score},0)/fits.length):null,low=fits.filter(function(f){return f.score<LOW}).length;
       var skipped=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="skipped"&&inWk(j.updatedAt)}).length;
-      var wins=S.jobs.filter(function(j){return j.addedBy===pid&&REPLIED[j.status]&&inWk(j.updatedAt)}).length;
+      var heard=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="heard"&&inWk(j.updatedAt)}).length;
+      var ivs=S.jobs.filter(function(j){return j.addedBy===pid&&(j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).length;
       var asks=allMsgs().filter(function(m){return m.thread===pid&&m.from!=="owner"&&inWk(m.at)}).length;
       tb.appendChild(el("tr",{},[el("td",{class:"wk-who"},[el("span",{class:"mg-av sm",style:"--h:"+hue(whoName(pid)),text:initials(whoName(pid))}),el("b",{text:whoName(pid)})]),
         el("td",{},[el("b",{class:"wk-num"+(g&&mine.length>=g?" ok":g&&mine.length<g*0.7?" low":""),text:String(mine.length)}),g?el("span",{class:"pg-dim",text:" / "+g}):null]),
         el("td",{},[avg==null?el("span",{class:"pg-dim",text:"No fit checks"}):el("span",{class:"wk-score"+(avg<LOW?" low":avg>=70?" ok":""),text:String(avg)})]),
         el("td",{},[low?el("b",{class:"wk-num low",text:String(low)}):el("span",{class:"pg-dim",text:"0"})]),
-        el("td",{class:"pg-dim",text:String(skipped)}),el("td",{},[wins?el("b",{class:"wk-num ok",text:String(wins)}):el("span",{class:"pg-dim",text:"0"})]),el("td",{class:"pg-dim",text:String(asks)})]))});
-    V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Who","Sent","Avg fit","Low fits","Not a fit","Replies and interviews","Asks"].map(function(h){return el("th",{text:h})}))]),tb])])));
+        el("td",{class:"pg-dim",text:String(skipped)}),el("td",{},[heard?el("b",{class:"wk-num ok",text:String(heard)}):el("span",{class:"pg-dim",text:"0"})]),
+        el("td",{},[ivs?el("b",{class:"wk-iv",text:String(ivs)}):el("span",{class:"pg-dim",text:"0"})]),el("td",{class:"pg-dim",text:String(asks)})]))});
+    V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Who","Sent","Avg fit","Low fits","Not a fit","Replies","Interviews","Asks"].map(function(h){return el("th",{text:h})}))]),tb])])));
+    // interviews: the most important line of the week, on its own
+    var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
+    var ivBox=el("div",{class:"wk-list"});
+    if(!ivJobs.length)ivBox.appendChild(el("p",{class:"muted-line",text:"No interviews this week."}));
+    ivJobs.forEach(function(j){ivBox.appendChild(el("div",{class:"wk-item wk-ivrow"},[el("span",{class:"wk-ivdate",text:j.interviewAt?new Date(j.interviewAt).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):j.status==="offer"?"Offer":"Date not set"}),
+      el("div",{class:"wk-it"},[el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:"Found by "+whoName(j.addedBy)+(j.interviewAt?" \u00b7 "+new Date(j.interviewAt).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"")})])]))});
+    V.appendChild(wkSection("Interviews",ivJobs.length?String(ivJobs.length):null,ivBox));
     // low fits to call out
     var lows=sent.map(function(j){return {j:j,f:fitOf(j)}}).filter(function(x){return x.f&&x.f.score<LOW}).sort(function(a,b){return a.f.score-b.f.score});
     var unscored=sent.filter(function(j){return !fitOf(j)}).length;
@@ -1423,12 +1435,12 @@ body{background:var(--page)}
       el("div",{class:"wk-it"},[el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:"Sent by "+whoName(j.addedBy)+(j.source?" · found on "+j.source:"")}),
         (f.concerns&&f.concerns.length)?el("ul",{class:"wk-why"},f.concerns.slice(0,3).map(function(c){return el("li",{text:c})})):(f.summary?el("p",{class:"wk-sum",text:f.summary}):null)])]))});
     V.appendChild(wkSection("Low fits to talk through",lows.length?lows.length+" under "+LOW+(unscored?" · "+unscored+" without a fit check":""):(unscored?unscored+" without a fit check":null),lowBox));
-    // wins
-    var wins=S.jobs.filter(function(j){return REPLIED[j.status]&&inWk(j.updatedAt)});
+    // replies (heard back), interviews have their own section above
+    var heardJobs=S.jobs.filter(function(j){return j.status==="heard"&&inWk(j.updatedAt)});
     var winBox=el("div",{class:"wk-list"});
-    if(!wins.length)winBox.appendChild(el("p",{class:"muted-line",text:"No replies or interviews logged this week."}));
-    wins.forEach(function(j){winBox.appendChild(el("div",{class:"wk-item"},[el("span",{class:"pg-pill ok",text:(ST.find(function(o){return o.k===j.status})||{l:j.status}).l}),el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:whoName(j.addedBy)})]))});
-    V.appendChild(wkSection("Replies and interviews",null,winBox));
+    if(!heardJobs.length)winBox.appendChild(el("p",{class:"muted-line",text:"No replies logged this week."}));
+    heardJobs.forEach(function(j){winBox.appendChild(el("div",{class:"wk-item"},[el("span",{class:"pg-pill ok",text:"Heard back"}),el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:whoName(j.addedBy)})]))});
+    V.appendChild(wkSection("Replies",null,winBox));
     // where jobs came from
     var src={};sent.forEach(function(j){var k=j.source||"Not set";src[k]=(src[k]||0)+1});
     var srcBox=el("div",{class:"wk-src"},Object.keys(src).sort(function(a,b){return src[b]-src[a]}).map(function(k){return el("span",{class:"wk-chip"},[k,el("b",{text:String(src[k])})])}));
