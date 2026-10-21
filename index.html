@@ -638,7 +638,7 @@ body{background:var(--page)}
 .pg-found{color:var(--faint);white-space:nowrap;font-size:12px}.pg-found .spark{color:#d9541a}
 .pg-pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11.5px;font-weight:600;background:var(--soft2);color:var(--muted);white-space:nowrap}
 .pg-pill.sent{background:#e7efff;color:#1d4ed8}.pg-pill.ok{background:#e8f5ec;color:#1e7a3c}
-.pg-dim{color:var(--faint);font-size:12px;white-space:nowrap}.pg-due{color:#c2410c;font-weight:600;font-size:12px;white-space:nowrap}
+.pg-dim{color:var(--faint);font-size:12px;white-space:nowrap}.pg-ready{color:#b4471a;font-weight:600;font-size:12px;white-space:nowrap}.pg-due{color:#c2410c;font-weight:600;font-size:12px;white-space:nowrap}
 .pg-acts{white-space:nowrap;text-align:right}
 .pg-act{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;margin-left:4px}
 .pg-act:hover{background:var(--soft)}.pg-act.ai .spark{color:#d9541a}.pg-act.on{background:#fff1e8;border-color:#f3c3a6}
@@ -1016,7 +1016,7 @@ body{background:var(--page)}
       if(c.repliedAt)return el("span",{class:"pg-pill ok",text:"Replied "+md(c.repliedAt)});
       if(!l)return el("span",{class:"pg-pill",text:"Not contacted"});
       return el("span",{class:"pg-pill sent",title:(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via),text:(l.via==="LinkedIn"?"LinkedIn":"Email")+" "+md(l.at)+(o.length>1?" ×"+o.length:"")})}
-    function nextCell(j,c){var o=c.outreach||[],l=o[o.length-1];if(c.repliedAt||!l)return el("span",{class:"pg-dim",text:c.repliedAt?"":"First message"});
+    function nextCell(j,c){var o=c.outreach||[],l=o[o.length-1];if(!l&&!c.repliedAt&&c.draft&&c.draftMode!=="followup")return el("span",{class:"pg-ready",text:"✦ Draft ready"});if(c.repliedAt||!l)return el("span",{class:"pg-dim",text:c.repliedAt?"":"First message"});
       var days=Math.floor((Date.now()-new Date(l.at))/864e5);if(days>=10)return el("span",{class:"pg-due",text:"Follow up now ("+days+"d)"});
       return el("span",{class:"pg-dim",text:"Follow up "+md(new Date(new Date(l.at).getTime()+10*864e5))})}
     function personRow(tb,x,n,rolesN){var c=x.c,j=x.j,o=c.outreach||[],l=o[o.length-1],open=S.drafting&&S.drafting.cid===c.id;
@@ -1024,7 +1024,7 @@ body{background:var(--page)}
       var go=function(mode){S.drafting=open&&S.drafting.mode===mode?null:{cid:c.id,mode:mode};renderMessages()};
       var acts=[];
       if(!c.repliedAt){var due=l&&(Date.now()-new Date(l.at))/864e5>=10;
-        acts.push(el("button",{class:"pg-act ai"+(open?" on":""),type:"button",title:l?"Draft a follow-up":"Draft a first message",onclick:function(){go(l?"followup":"first")}},[el("span",{class:"spark",text:"✦"}),l?(due?" Follow-up":" Draft"):" Draft"]))}
+        acts.push(el("button",{class:"pg-act ai"+(open?" on":""),type:"button",title:l?"Draft a follow-up":"Draft a first message",onclick:function(){go(l?"followup":"first")}},[el("span",{class:"spark",text:"✦"}),l?(due?" Follow-up":" Draft"):(c.draft&&c.draftMode!=="followup"?" Open draft":" Draft")]))}
       if(S.isOwner&&c.linkedin)acts.push(logBtn(j,c,"LinkedIn","in ✓","Log: reached out on LinkedIn"));
       acts.push(logBtn(j,c,"email","✉ ✓","Log: emailed them"));
       if(l&&!c.repliedAt)acts.push(el("button",{class:"pg-act",type:"button",title:"They replied",text:"Replied",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{replied:true}).then(function(){c.repliedAt=new Date().toISOString();toast("Marked replied");renderMessages();refresh()},fail)}}));
