@@ -720,6 +720,22 @@ body{background:var(--page)}
 .pg-compact th:nth-child(6),.pg-compact td.pg-found{display:none}
 .pg-compact .pg-title{max-width:180px}.pg-compact td.pg-acts{width:auto}
 
+/* job page: one calm column, not a stack of separate panels */
+.detail .d-main{gap:0}
+.d-main>.block+.block{padding-top:18px;margin-top:18px}
+.detail .bhead{margin-bottom:10px;min-height:28px}
+.detail .fit{max-width:none}
+.fb-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px}
+.fb-line>span{color:var(--muted);flex:1;min-width:200px}
+.fb-line .acts{margin:0}.fb-line.due>span{color:#c2410c;font-weight:600}
+.fb-line .inline-form{flex-basis:100%}
+.pg-compact{border-radius:10px}
+.pg-compact .pg-table thead th{background:var(--soft);color:var(--muted);border-bottom:1px solid var(--line);font-size:10.5px}
+.pg-compact .pg-table thead th.pg-n{border-right-color:var(--line)}
+.pg-compact .pg-caret{color:var(--faint)}
+.d-side .tl li{font-size:13px;line-height:1.4}
+.hist-more{margin-top:6px;font-size:12.5px}
+
 </style>
 
 <div class="wrap">
@@ -1607,8 +1623,10 @@ body{background:var(--page)}
   function historyCard(j){
     var ol=el("ol",{class:"tl"}),h=(j.history||[]).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{},["Logged",el("span",{text:nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+rel(j.addedAt):"")})]));
-    h.forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
-    return scard("History",[ol]);
+    S.histAll=S.histAll||{};var all=!!S.histAll[j.id];
+    (all?h:h.slice(0,6)).forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
+    var more=h.length>6?el("button",{class:"linkish hist-more",type:"button",text:all?"Show less":"Show all "+h.length,onclick:function(e){e.stopPropagation();S.histAll[j.id]=!all;renderRows()}}):null;
+    return scard("History",[ol,more]);
   }
   function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
   function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
@@ -1657,8 +1675,8 @@ body{background:var(--page)}
   }
   function followBlock(j){
     if(j.status!=="applied"&&!j.followedUpAt)return null;
-    var wrap=el("div",{class:"block"},[el("h3",{text:"Follow-up"})]);
-    wrap.appendChild(el("p",{class:"muted-line",text:j.followedUpAt?"Last follow-up "+rel(j.followedUpAt)+".":needsFollowUp(j)?"No reply after a week. Nudge one of the contacts below, then log it here.":"Due 7 days after applying if there's no reply."}));
+    var dueOn=new Date(new Date(j.appliedAt||j.addedAt).getTime()+7*864e5).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+    var wrap=el("div",{class:"block fb-line"+(needsFollowUp(j)&&!j.followedUpAt?" due":"")},[el("b",{text:"Follow-up"}),el("span",{text:j.followedUpAt?"Last follow-up "+rel(j.followedUpAt):needsFollowUp(j)?"No reply after a week. Nudge one of the people below, then log it.":"Due "+dueOn+" if there's no reply"})]);
     if(S.uid&&j.status==="applied"){
       if(S.followFor===j.id){var who=el("input",{id:"fu-"+j.id,placeholder:"Who did you reach out to, and how? For example: Dana Lee on LinkedIn"});
         wrap.appendChild(el("form",{class:"inline-form",onsubmit:function(e){e.preventDefault();api("PATCH","/api/jobs/"+j.id,{followedUpAt:new Date().toISOString(),note:"Followed up"+(who.value.trim()?": "+who.value.trim():"")}).then(function(){S.followFor=null;toast("Follow-up logged");refresh()},fail)}},[who,el("button",{class:"btn small",type:"submit",text:"Log it"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.followFor=null;renderRows()}})]));}
