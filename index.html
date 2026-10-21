@@ -8,7 +8,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Team Board</title>
+<title>Apply Yourself</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -249,7 +249,7 @@ body{background:var(--page)}
 .wrap{max-width:1120px}
 .top{padding-block:20px 10px}
 .brand{display:flex;align-items:center;gap:10px}
-.brand::before{content:"";width:26px;height:26px;border-radius:7px;background:#d9541a url("favicon.svg") center/cover no-repeat}
+.brand{gap:0;font-weight:800;font-size:21px;letter-spacing:-.03em}.brand .o{width:.8em;height:.8em;margin:0 .03em;transform:translateY(.05em);flex:none}
 .views{background:var(--card);border:1px solid var(--line);padding:4px;border-radius:999px}
 .views button{padding:7px 14px}
 .today-wrap{display:block;padding-block:14px 18px}
@@ -569,7 +569,7 @@ body{background:var(--page)}
 
 <div class="wrap">
   <header class="top">
-    <div class="brand">Apply Yourself</div>
+    <div class="brand" aria-label="Apply Yourself">Apply&nbsp;Y<img class="o" src="mark.svg" alt="o">urself</div>
     <nav class="views" role="tablist" aria-label="Views">
       <button role="tab" id="tab-apps" aria-selected="true">Applications</button>
       <button role="tab" id="tab-messages" aria-selected="false">Inbox <span class="badge" id="msg-badge" hidden></span></button>
@@ -1051,7 +1051,7 @@ body{background:var(--page)}
     var code=el("input",{id:"my-code",placeholder:"Your code",autocomplete:"off",autocapitalize:"characters",spellcheck:"false","aria-label":"Your code",style:"text-transform:uppercase;letter-spacing:.12em;font-weight:600"});
     var msg=el("p",{style:"color:var(--red);font-size:14px;min-height:20px"});
     slot.appendChild(el("div",{class:"welcome"},[
-      el("h2",{text:"Team board"}),
+      el("h2",{class:"brand","aria-label":"Apply Yourself",style:"font-size:30px;margin-bottom:6px"},["Apply\u00a0Y",el("img",{class:"o",src:"mark.svg",alt:"o"}),"urself"]),
       el("p",{text:"Sign in with the code Ifeanyi gave you. Your code is how the board knows who you are."}),
       el("form",{onsubmit:function(e){e.preventDefault();msg.textContent="";var c=code.value.trim();if(c.length<4){msg.textContent="Enter your code.";return}
         api("POST","/api/join",{code:c}).then(function(d){setTok(d.token);S.tab=d.me.owner?"apps":"brief";toast("Welcome, "+String(d.me.name).split(" ")[0]);refresh()},function(err){msg.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't sign in. Check your connection."})}},
