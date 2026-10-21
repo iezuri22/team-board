@@ -618,7 +618,7 @@ body{background:var(--page)}
 .ct-find{padding:8px 4px 14px;border-bottom:1px solid var(--line);display:grid;gap:8px}
 .ct-find-note{margin:0;font-size:13.5px;color:var(--muted)}
 .ct-sug{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr) auto auto;gap:6px 18px;align-items:center;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--soft)}
-.ct-why{font-size:13.5px;color:var(--muted)}
+.ct-why{font-size:13.5px;color:var(--muted)}.ct-loc{font-size:12.5px;color:var(--faint)}
 .ct-sug-acts{display:flex;gap:6px}
 @media (max-width:900px){.ct-sug{grid-template-columns:1fr 1fr}}
 
@@ -973,18 +973,18 @@ body{background:var(--page)}
       (f&&f.people||[]).forEach(function(p,i){
         box.appendChild(el("div",{class:"ct-sug"},[
           el("div",{class:"ct-who"},[el("b",{text:p.name}),el("span",{text:p.title})]),
-          el("span",{class:"ct-why",text:p.why}),
+          el("div",{class:"ct-who"},[el("span",{class:"ct-why",text:p.why}),p.location?el("span",{class:"ct-loc",text:"\u{1F4CD} "+p.location}):null]),
           el("div",{class:"ct-links"},[p.linkedin?el("a",{href:p.linkedin,target:"_blank",rel:"noopener",text:"LinkedIn"}):null,p.source&&p.source!==p.linkedin?el("a",{href:p.source,target:"_blank",rel:"noopener",text:"Source"}):null]),
           el("div",{class:"ct-sug-acts"},[
             el("button",{class:"btn small",type:"button",text:"Add",onclick:function(e){e.target.disabled=true;api("POST","/api/jobs/"+j.id+"/contacts",{name:p.name,title:p.title,linkedin:p.linkedin||"",source:"AI web search"}).then(function(){f.people.splice(i,1);toast("Added "+p.name);refresh()},function(err){e.target.disabled=false;fail(err)})}}),
-            el("button",{class:"btn ghost small",type:"button",text:"Not them",onclick:function(){f.people.splice(i,1);draw()}})])]))});
+            el("button",{class:"btn ghost small",type:"button",text:"Not them",onclick:function(){f.skip=(f.skip||[]).concat([p.name]);f.people.splice(i,1);draw()}})])]))});
       if(f&&f.done&&!(f.people||[]).length&&!f.err)box.appendChild(el("p",{class:"ct-find-note",text:"No one solid turned up. Try the LinkedIn searches."}));
       return box}
     function groupHead(g){var n=g.people.length,full=n>=GOAL,need=Math.max(0,GOAL-n),f=S.found[g.key];
       var roles=g.roles.join(" \u00b7 ");
       var acts=[];
-      if(!full)acts.push(el("button",{class:"btn small",type:"button",disabled:f&&f.loading?true:null,text:f&&f.loading?"Searching...":"Find "+need+" "+(need===1?"person":"people"),onclick:function(){S.found[g.key]={loading:true};draw();
-        api("POST","/api/find-people",{jobId:g.job.id,want:need}).then(function(r){S.found[g.key]={people:r.people||[],done:true};draw()},function(e){S.found[g.key]={err:e.msg&&e.msg!=="failed"?e.msg:"The search didn't go through. Try again.",done:true};draw()})}}));
+      if(!full)acts.push(el("button",{class:"btn small",type:"button",disabled:f&&f.loading?true:null,text:f&&f.loading?"Searching...":"Find "+need+" "+(need===1?"person":"people"),onclick:function(){var skip=(f&&f.skip||[]).concat((f&&f.people||[]).map(function(p){return p.name}));S.found[g.key]={loading:true,skip:skip};draw();
+        api("POST","/api/find-people",{jobId:g.job.id,want:need,skip:skip}).then(function(r){S.found[g.key]={people:r.people||[],done:true,skip:skip};draw()},function(e){S.found[g.key]={err:e.msg&&e.msg!=="failed"?e.msg:"The search didn't go through. Try again.",done:true,skip:skip};draw()})}}));
       var li=el("span",{class:"ct-li"},["LinkedIn: ",el("a",{href:liSearch(g.company+" recruiter"),target:"_blank",rel:"noopener",text:"recruiters"}),el("a",{href:liSearch(g.company+" "+g.roles[0].replace(/\b(senior|sr\.?|junior|jr\.?|lead|principal|staff)\b/ig,"").trim()+" manager"),target:"_blank",rel:"noopener",text:"hiring manager"}),el("a",{href:liSearch(g.company+" "+g.roles[0]),target:"_blank",rel:"noopener",text:"the team"})]);
       return el("div",{class:"ct-group"},[
         el("div",{class:"ct-gtitle"},[el("button",{type:"button",class:"ct-co",text:g.company,onclick:function(){openJob(g.job.id)}}),el("span",{class:"ct-roles",text:roles})]),
