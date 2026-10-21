@@ -736,6 +736,31 @@ body{background:var(--page)}
 .d-side .tl li{font-size:13px;line-height:1.4}
 .hist-more{margin-top:6px;font-size:12.5px}
 
+/* Weekly meeting page */
+.wk-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:18px 0 6px;flex-wrap:wrap}
+.wk-head h2{margin:0}.wk-nav{display:flex;gap:6px}
+.wk-sec{padding:18px 0;border-top:1px solid var(--line)}.wk-sec:first-of-type{border-top:0}
+.wk-sec .bhead{justify-content:flex-start;gap:12px}
+.wk-wrap{max-height:none}.wk-wrap .pg-table{min-width:720px}
+.wk-who{display:flex;align-items:center;gap:8px}
+.wk-num{font-size:15px}.wk-num.ok{color:#1e7a3c}.wk-num.low{color:#c2410c}
+.wk-score{display:inline-grid;place-items:center;min-width:34px;height:24px;padding:0 6px;border-radius:12px;font-size:12.5px;font-weight:700;background:var(--soft2);color:var(--muted)}
+.wk-score.low{background:#fff1e8;color:#b4471a}.wk-score.ok{background:#e8f5ec;color:#1e7a3c}
+.wk-list{display:grid;gap:2px}
+.wk-item{display:flex;align-items:flex-start;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.wk-it{display:grid;gap:2px;min-width:0}.wk-co{font-weight:700;font-size:14px;text-align:left}
+.wk-why{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}.wk-sum{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.wk-src{display:flex;flex-wrap:wrap;gap:8px}.wk-chip{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:12px;background:var(--soft);font-size:13px}.wk-chip b{font-size:12px}
+.wk-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:760px}.wk-stats div{display:grid}.wk-stats b{font-size:26px;letter-spacing:-.02em}.wk-stats span{font-size:12.5px;color:var(--muted)}
+.wk-ncols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.wk-n{display:grid;gap:6px}.wk-n b{font-size:13px}.wk-n textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);resize:vertical}
+.wk-dir{white-space:pre-wrap;margin:0;font-size:14px}
+.wk-sub{display:block;margin:18px 0 6px;font-size:13px}
+.wk-acts{display:grid;gap:2px}.wk-act{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line);font-size:14px}
+.wk-act span{flex:1}.wk-act em{font-style:normal;font-size:12px;color:var(--muted);padding:2px 8px;border-radius:9px;background:var(--soft2)}.wk-act.done span{text-decoration:line-through;color:var(--faint)}
+.wk-add{display:flex;gap:8px;margin-top:10px}.wk-add input{flex:1}
+@media (max-width:760px){.wk-stats{grid-template-columns:repeat(2,1fr)}}
+
 </style>
 
 <div class="wrap">
@@ -746,6 +771,7 @@ body{background:var(--page)}
       <button role="tab" id="tab-messages" aria-selected="false">Inbox <span class="badge" id="msg-badge" hidden></span></button>
       <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
+      <button role="tab" id="tab-weekly" aria-selected="false">Weekly</button>
       <button role="tab" id="tab-contacts" aria-selected="false" hidden>Contacts</button>
       <button role="tab" id="tab-resume" aria-selected="false">Resume</button>
       <button role="tab" id="tab-brief" aria-selected="false">How we work</button>
@@ -782,6 +808,7 @@ body{background:var(--page)}
   </div>
 
   <div id="view-team" hidden><div id="team"></div></div>
+  <div id="view-weekly" hidden><div id="weekly-view"></div></div>
 
   <div id="view-messages" hidden><div id="messages-view"></div></div>
 
@@ -1081,6 +1108,7 @@ body{background:var(--page)}
       if(cd.k==="done")return el("span",{class:"pg-pill sent",title:"Two touches: note and follow-up",text:"Followed up "+md(l.at)});
       return el("span",{class:"pg-pill sent",title:(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via),text:(o[0].via==="LinkedIn"?"Note sent ":"Emailed ")+md(o[0].at)})}
     function nextCell(j,c){var cd=cadence(c);
+      if(!S.isOwner){var T={"new":"Ifeanyi to reach out",waiting:"Waiting on them to accept",accepted:"Ifeanyi following up",nudge:"Ifeanyi following up",done:"Followed up",replied:""};return el("span",{class:"pg-dim",text:T[cd.k]||""})}
       if(cd.k==="new")return c.draft&&c.draftMode!=="followup"?el("span",{class:"pg-ready",text:"\u2726 Note ready"}):el("span",{class:"pg-dim",text:"Send connection note"});
       if(cd.k==="waiting")return el("span",{class:"pg-dim",text:"Check "+md(cd.check)+" if not accepted"});
       if(cd.k==="accepted")return el("span",{class:"pg-due",text:cd.late?"Follow up now (accepted "+rel(c.acceptedAt)+")":"Send follow-up today"});
@@ -1111,6 +1139,7 @@ body{background:var(--page)}
         more.push(item("Follow-up sent as InMail",function(){logOut(j,c,"InMail","Follow-up logged. Leave it unless they reply.")}));
         more.push(item("They accepted",patchB("accepted","Marked accepted.")));more.push(item("They replied",patchB("replied","Marked replied")))}
       else if(cd.k==="done")more.push(item("They replied",patchB("replied","Marked replied")));
+      if(!S.isOwner){acts=[];more=[]}
       if(opts.compact&&S.uid){more.push(item("Edit details",function(){S.editContact=j.id+":"+c.id;rr()}));if(S.isOwner)more.push(item("Remove",function(){api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast("Removed");refresh()},fail)}))}
       if(!acts.length&&more.length)acts.push(el("span",{class:"pg-go-gap"}));
       if(more.length)acts.push(moreMenu(more));
@@ -1172,7 +1201,7 @@ body{background:var(--page)}
     var cnt={all:all.length,due:0,"new":0};all.forEach(function(x){var k=cadence(x.c);if(k.due)cnt.due++;if(k.k==="new")cnt["new"]++});
     S.ctView=S.ctView||"all";
     var RULE="Send the connection note first. If they accept, send the full follow-up within a day. If they haven't accepted after 7 days, follow up by email or InMail. After one follow-up, stop.";
-    var chips=el("div",{class:"pg-chips",role:"tablist"},[["all","All",cnt.all],["due","Due now",cnt.due],["new","Not contacted",cnt["new"]]].map(function(f){
+    var chips=el("div",{class:"pg-chips",role:"tablist"},[["all","All",cnt.all]].concat(S.isOwner?[["due","Due now",cnt.due]]:[],[["new","Not contacted",cnt["new"]]]).map(function(f){
       return el("button",{type:"button",role:"tab",class:"pg-chip"+(S.ctView===f[0]?" on":"")+(f[0]==="due"&&cnt.due?" hot":""),title:f[0]==="due"?RULE:null,onclick:function(){S.ctView=S.ctView===f[0]&&f[0]!=="all"?"all":f[0];rr()}},[f[1],f[2]!=null?el("b",{text:String(f[2])}):null])}));
     var tools=[q,chips];
     if(opts.exportable){tools.push(el("button",{class:"pg-export",type:"button",title:"Download as CSV",text:"Export",disabled:all.length?null:true,onclick:function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Reached out"]].concat(all.map(function(x){var o=(x.c.outreach||[]).slice(-1)[0];return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",o?o.via+" "+o.at.slice(0,10):""]}));
@@ -1356,9 +1385,84 @@ body{background:var(--page)}
     else wrap.appendChild(el("p",{class:"muted-line",text:"Tell "+whoName(j.addedBy).split(" ")[0]+" what you think of this one. It lands here and in their email."}));
     return wrap}
 
+
+  // ---------- Weekly: the Monday meeting on direction and progress ----------
+  function fitOf(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f.replace(/'/g,'"').replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false"))}catch(e){f=null}}return f&&typeof f.score==="number"?f:null}
+  function renderWeekly(){
+    var V=$("weekly-view");var a=document.activeElement;if(a&&/^wk-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
+    if(S.wkOff==null)S.wkOff=-1;
+    var mon=monday(new Date());mon.setDate(mon.getDate()+7*S.wkOff);var sun=new Date(mon);sun.setDate(sun.getDate()+6);var end=new Date(mon);end.setDate(end.getDate()+7);
+    var wk=dayKey(mon),inWk=function(iso){if(!iso)return false;var d=new Date(iso);return d>=mon&&d<end};
+    var fmt=function(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})};
+    var sent=S.jobs.filter(function(j){return SENT[j.status]&&inWk(sentAt(j))});
+    var people=(S.isOwner?mates():[S.uid]).concat(S.isOwner&&sent.some(function(j){return j.addedBy==="owner"})?["owner"]:[]);
+    var LOW=60;
+    // header
+    V.appendChild(el("div",{class:"wk-head"},[
+      el("div",{},[el("h2",{text:"Week of "+fmt(mon)}),el("p",{class:"muted-line",text:fmt(mon)+" to "+fmt(sun)+(S.wkOff===-1?". Last week, for Monday's meeting.":S.wkOff===0?". This week so far.":"")})]),
+      el("div",{class:"wk-nav"},[el("button",{class:"btn ghost small",type:"button",text:"‹ Earlier",onclick:function(){S.wkOff--;renderWeekly()}}),el("button",{class:"btn ghost small",type:"button",text:"Later ›",disabled:S.wkOff>=0?true:null,onclick:function(){S.wkOff++;renderWeekly()}})])]));
+    // team at a glance
+    var tb=el("tbody");
+    people.forEach(function(pid){var mine=sent.filter(function(j){return j.addedBy===pid}),g=pid==="owner"?null:goalOf(pid);
+      var fits=mine.map(fitOf).filter(Boolean),avg=fits.length?Math.round(fits.reduce(function(n,f){return n+f.score},0)/fits.length):null,low=fits.filter(function(f){return f.score<LOW}).length;
+      var skipped=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="skipped"&&inWk(j.updatedAt)}).length;
+      var wins=S.jobs.filter(function(j){return j.addedBy===pid&&REPLIED[j.status]&&inWk(j.updatedAt)}).length;
+      var asks=allMsgs().filter(function(m){return m.thread===pid&&m.from!=="owner"&&inWk(m.at)}).length;
+      tb.appendChild(el("tr",{},[el("td",{class:"wk-who"},[el("span",{class:"mg-av sm",style:"--h:"+hue(whoName(pid)),text:initials(whoName(pid))}),el("b",{text:whoName(pid)})]),
+        el("td",{},[el("b",{class:"wk-num"+(g&&mine.length>=g?" ok":g&&mine.length<g*0.7?" low":""),text:String(mine.length)}),g?el("span",{class:"pg-dim",text:" / "+g}):null]),
+        el("td",{},[avg==null?el("span",{class:"pg-dim",text:"No fit checks"}):el("span",{class:"wk-score"+(avg<LOW?" low":avg>=70?" ok":""),text:String(avg)})]),
+        el("td",{},[low?el("b",{class:"wk-num low",text:String(low)}):el("span",{class:"pg-dim",text:"0"})]),
+        el("td",{class:"pg-dim",text:String(skipped)}),el("td",{},[wins?el("b",{class:"wk-num ok",text:String(wins)}):el("span",{class:"pg-dim",text:"0"})]),el("td",{class:"pg-dim",text:String(asks)})]))});
+    V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Who","Sent","Avg fit","Low fits","Not a fit","Replies and interviews","Asks"].map(function(h){return el("th",{text:h})}))]),tb])])));
+    // low fits to call out
+    var lows=sent.map(function(j){return {j:j,f:fitOf(j)}}).filter(function(x){return x.f&&x.f.score<LOW}).sort(function(a,b){return a.f.score-b.f.score});
+    var unscored=sent.filter(function(j){return !fitOf(j)}).length;
+    var lowBox=el("div",{class:"wk-list"});
+    if(!lows.length)lowBox.appendChild(el("p",{class:"muted-line",text:sent.length?"Nothing under "+LOW+" this week.":"Nothing sent this week."}));
+    lows.forEach(function(x){var j=x.j,f=x.f;lowBox.appendChild(el("div",{class:"wk-item"},[el("span",{class:"wk-score low",text:String(f.score)}),
+      el("div",{class:"wk-it"},[el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:"Sent by "+whoName(j.addedBy)+(j.source?" · found on "+j.source:"")}),
+        (f.concerns&&f.concerns.length)?el("ul",{class:"wk-why"},f.concerns.slice(0,3).map(function(c){return el("li",{text:c})})):(f.summary?el("p",{class:"wk-sum",text:f.summary}):null)])]))});
+    V.appendChild(wkSection("Low fits to talk through",lows.length?lows.length+" under "+LOW+(unscored?" · "+unscored+" without a fit check":""):(unscored?unscored+" without a fit check":null),lowBox));
+    // wins
+    var wins=S.jobs.filter(function(j){return REPLIED[j.status]&&inWk(j.updatedAt)});
+    var winBox=el("div",{class:"wk-list"});
+    if(!wins.length)winBox.appendChild(el("p",{class:"muted-line",text:"No replies or interviews logged this week."}));
+    wins.forEach(function(j){winBox.appendChild(el("div",{class:"wk-item"},[el("span",{class:"pg-pill ok",text:(ST.find(function(o){return o.k===j.status})||{l:j.status}).l}),el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:whoName(j.addedBy)})]))});
+    V.appendChild(wkSection("Replies and interviews",null,winBox));
+    // where jobs came from
+    var src={};sent.forEach(function(j){var k=j.source||"Not set";src[k]=(src[k]||0)+1});
+    var srcBox=el("div",{class:"wk-src"},Object.keys(src).sort(function(a,b){return src[b]-src[a]}).map(function(k){return el("span",{class:"wk-chip"},[k,el("b",{text:String(src[k])})])}));
+    if(!sent.length)srcBox.appendChild(el("span",{class:"pg-dim",text:"Nothing sent this week."}));
+    V.appendChild(wkSection("Where jobs came from",null,srcBox));
+    // Ifeanyi's outreach (everyone can see progress)
+    var ev=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){(c.outreach||[]).forEach(function(o,i){if(inWk(o.at))ev.push({k:i===0?"note":"follow",c:c})});if(c.acceptedAt&&inWk(c.acceptedAt))ev.push({k:"acc"});if(c.repliedAt&&inWk(c.repliedAt))ev.push({k:"rep"})})});
+    var cntK=function(k){return ev.filter(function(e){return e.k===k}).length};
+    V.appendChild(wkSection("Ifeanyi's outreach",null,el("div",{class:"wk-stats"},[["note","Connection notes sent"],["acc","Accepted"],["follow","Follow-ups sent"],["rep","Replies"]].map(function(x){return el("div",{},[el("b",{text:String(cntK(x[0]))}),el("span",{text:x[1]})])}))));
+    // agenda and notes, shared
+    var notesBox=el("div",{class:"wk-notes"},[el("p",{class:"muted-line",text:"Loading notes..."})]);
+    V.appendChild(wkSection("Meeting notes and action items",null,notesBox));
+    api("GET","/api/meeting/"+wk).then(function(m){S.meet=S.meet||{};S.meet[wk]=m;drawNotes()},function(){notesBox.textContent="";notesBox.appendChild(el("p",{class:"muted-line",text:"Couldn't load the notes."}))});
+    function save(patch){api("PUT","/api/meeting/"+wk,patch).then(function(m){S.meet[wk]=m},fail)}
+    function drawNotes(){var m=S.meet[wk];notesBox.textContent="";
+      var cols=el("div",{class:"wk-ncols"});
+      people.filter(function(pid){return pid!=="owner"}).forEach(function(pid){var ta=el("textarea",{id:"wk-n-"+pid,rows:"4",placeholder:"Talking points for "+whoName(pid).split(" ")[0]+": wins, low fits, what to change next week",disabled:S.isOwner||pid===S.uid?null:true});ta.value=(m.notes||{})[pid]||"";
+        ta.addEventListener("blur",function(){var n={};n[pid]=ta.value;save({notes:n})});
+        cols.appendChild(el("label",{class:"wk-n"},[el("b",{text:whoName(pid)}),ta]))});
+      if(S.isOwner){var ta=el("textarea",{id:"wk-n-owner",rows:"4",placeholder:"Your agenda: direction for the week, what to target, what to stop"});ta.value=(m.notes||{}).owner||"";ta.addEventListener("blur",function(){save({notes:{owner:ta.value}})});cols.appendChild(el("label",{class:"wk-n"},[el("b",{text:"Direction (Ifeanyi)"}),ta]))}
+      else if((m.notes||{}).owner)cols.appendChild(el("div",{class:"wk-n"},[el("b",{text:"Direction (Ifeanyi)"}),el("p",{class:"wk-dir",text:m.notes.owner})]));
+      notesBox.appendChild(cols);
+      var acts=(m.actions||[]).slice(),list=el("div",{class:"wk-acts"});
+      acts.forEach(function(x,i){list.appendChild(el("label",{class:"wk-act"+(x.done?" done":"")},[el("input",{type:"checkbox",checked:x.done?true:null,onchange:function(e){acts[i].done=e.target.checked;save({actions:acts});drawLater()}}),el("span",{text:x.text}),x.who?el("em",{text:x.who}):null,S.isOwner?el("button",{class:"linkish",type:"button",text:"Remove",onclick:function(e){e.preventDefault();acts.splice(i,1);save({actions:acts});m.actions=acts;drawNotes()}}):null]))});
+      var who=el("select",{id:"wk-who"},[el("option",{value:"",text:"Anyone"})].concat(people.map(function(pid){return el("option",{value:whoName(pid),text:whoName(pid)})})));
+      var inp=el("input",{id:"wk-new",placeholder:"Add an action item, like: target RevOps roles at SaaS companies"});
+      var add=el("form",{class:"wk-add",onsubmit:function(e){e.preventDefault();var t=inp.value.trim();if(!t)return;acts.push({text:t,who:who.value,done:false});m.actions=acts;save({actions:acts});inp.value="";drawNotes();setTimeout(function(){var n=$("wk-new");if(n)n.focus()},0)}},[inp,who,el("button",{class:"btn small",type:"submit",text:"Add"})]);
+      notesBox.appendChild(el("b",{class:"wk-sub",text:"Action items"}));notesBox.appendChild(list);notesBox.appendChild(add);
+      function drawLater(){m.actions=acts;setTimeout(drawNotes,0)}}
+  }
+  function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
-    ["apps","messages","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
+    ["apps","messages","replies","team","weekly","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
     $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=true;if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
@@ -1367,6 +1471,7 @@ body{background:var(--page)}
     if(S.tab==="apps"){renderSummary();renderWho();renderAdd();renderRows()}
     if(S.tab==="replies"){renderReplyAdd();renderReplies()}
     if(S.tab==="team")renderTeam();
+    if(S.tab==="weekly")renderWeekly();
     if(S.tab==="brief")renderBrief();
     if(S.tab==="contacts")renderContacts();
     if(S.tab==="messages")renderMessages();
@@ -1552,6 +1657,7 @@ body{background:var(--page)}
         :j.status==="interview"&&j.interviewAt?{t:"Interview "+rel(j.interviewAt),hot:true}
         :j.status==="saved"?{t:"Apply: resume, letter, submit"}
         :j.status==="rejected"||j.status==="skipped"?{t:""}
+        :!S.isOwner?(fresh?{t:"Ifeanyi to reach out"}:due?{t:"Ifeanyi following up"}:waiting?{t:"Waiting on "+waiting+" to accept"}:reached?{t:"Waiting to hear back"}:{t:""})
         :due?{t:due+" follow-up"+(due>1?"s":"")+" due",hot:true}
         :fresh?{t:"Send "+fresh+" connection note"+(fresh>1?"s":"")}
         :waiting?{t:"Waiting on "+waiting+" to accept"}
@@ -1674,6 +1780,7 @@ body{background:var(--page)}
     setTimeout(function(){m.focus()},0);return box;
   }
   function followBlock(j){
+    if(!S.isOwner)return null;
     if(j.status!=="applied"&&!j.followedUpAt)return null;
     var dueOn=new Date(new Date(j.appliedAt||j.addedAt).getTime()+7*864e5).toLocaleDateString(undefined,{month:"short",day:"numeric"});
     var wrap=el("div",{class:"block fb-line"+(needsFollowUp(j)&&!j.followedUpAt?" due":"")},[el("b",{text:"Follow-up"}),el("span",{text:j.followedUpAt?"Last follow-up "+rel(j.followedUpAt):needsFollowUp(j)?"No reply after a week. Nudge one of the people below, then log it.":"Due "+dueOn+" if there's no reply"})]);
@@ -2042,7 +2149,7 @@ body{background:var(--page)}
   }
 
   // events
-  ["apps","messages","replies","team","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  ["apps","messages","replies","team","weekly","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
   function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="dark"?"Dark":"Light";$("theme-btn").title=(t==="dark"?"Dark mode":"Light mode")+". Click to switch."}
@@ -2054,7 +2161,7 @@ body{background:var(--page)}
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
