@@ -680,6 +680,30 @@ body{background:var(--page)}
 .fu-rule{flex:1;font-size:12.5px;color:var(--faint);min-width:240px}
 .pg-pill.acc{background:#fff1e8;color:#b4471a}
 
+/* tidy pass: one toolbar, one next step per person */
+.pg-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pg-tools input[type=search]{flex:1;min-width:220px}
+.pg-chips{display:inline-flex;gap:2px;padding:3px;border-radius:12px;background:var(--soft2)}
+.pg-chip{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-size:13px;font-weight:600;font-family:inherit;color:var(--muted);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.pg-chip b{font-size:11.5px;font-weight:700;min-width:18px;padding:1px 6px;border-radius:9px;background:var(--card);color:var(--muted)}
+.pg-chip.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pg-chip.hot b{background:#d9541a;color:#fff}
+.pg-export{margin-left:auto;border:1px solid var(--line);background:var(--card);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:600;font-family:inherit;color:var(--muted);cursor:pointer}
+.pg-table td.pg-acts{text-align:left;width:170px}
+.pg-go{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:7px;padding:4px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;min-width:104px;text-align:left}
+.pg-go:hover{background:var(--soft)}.pg-go .spark{color:#d9541a}
+.pg-go.hot{background:#d9541a;border-color:#d9541a;color:#fff}.pg-go.hot .spark{color:#fff}.pg-go.hot:hover{filter:brightness(.95)}
+.pg-go.on{box-shadow:0 0 0 2px #f3c3a6}
+.pg-more{border:0;background:none;color:var(--faint);font-size:16px;line-height:1;padding:3px 7px;border-radius:6px;cursor:pointer;margin-left:4px;vertical-align:middle}.pg-more:hover{background:var(--soft2);color:var(--fg)}
+.pg-menu{position:fixed;z-index:80;min-width:210px;padding:5px;border-radius:10px;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.14);display:grid}
+.pg-menu button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:7px;font-size:13px;font-family:inherit;color:var(--fg);cursor:pointer}.pg-menu button:hover{background:var(--soft)}
+.pg-li{opacity:0;transition:opacity .15s}.pg-grp:hover .pg-li{opacity:1}
+.pg-li a{margin-left:10px}
+.pg-grp td.pg-acts{text-align:right}
+.pg-table .pg-due::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#d9541a;margin-right:6px;vertical-align:1px}
+
+.pg-go-gap{display:inline-block;width:104px}
+
 </style>
 
 <div class="wrap">
@@ -1011,7 +1035,6 @@ body{background:var(--page)}
   function contactsPanel(all,opts){
     opts=opts||{};var box=el("div",{class:"ct-panel"});
     var q=el("input",{id:"mg-ctq",type:"search",placeholder:"Search name, company or title","aria-label":"Search contacts"});q.value=S.ctq||"";
-    var only=el("button",{type:"button",class:"btn ghost small"+(S.ctTodo?" on":""),text:S.ctTodo?"Showing not contacted":"Not contacted only",onclick:function(){S.ctTodo=!S.ctTodo;renderMessages()}});
     var list=el("div",{class:"ct-list"});
     function lnk(u){return /^https?:/.test(u)?u:"https://"+u}
     var GOAL=3;S.found=S.found||{};
@@ -1032,22 +1055,32 @@ body{background:var(--page)}
       if(cd.k==="nudge")return el("span",{class:"pg-due",text:"Email or InMail ("+cd.days+"d, no accept)"});
       if(cd.k==="done")return el("span",{class:"pg-dim",text:"Leave it unless they reply"});
       return el("span",{class:"pg-dim",text:""})}
+    function moreMenu(items){var b=el("button",{class:"pg-more",type:"button","aria-label":"More","aria-haspopup":"menu",text:"\u22ef"});
+      b.onclick=function(e){e.stopPropagation();var old=document.querySelector(".pg-menu");if(old){var same=old._for===b;old.remove();if(same)return}
+        var r=b.getBoundingClientRect(),m=el("div",{class:"pg-menu",role:"menu"},items.map(function(it){return el("button",{type:"button",role:"menuitem",text:it.label,onclick:function(){m.remove();it.fn()}})}));m._for=b;
+        document.body.appendChild(m);var h=m.offsetHeight,top=r.bottom+4+h>window.innerHeight?r.top-4-h:r.bottom+4;m.style.top=top+"px";m.style.left=Math.max(8,r.right-m.offsetWidth)+"px";
+        setTimeout(function(){document.addEventListener("click",function off(){m.remove();document.removeEventListener("click",off)})},0)};
+      return b}
     function personRow(tb,x,n,rolesN){var c=x.c,j=x.j,o=c.outreach||[],l=o[o.length-1],open=S.drafting&&S.drafting.cid===c.id;
       var ai=/^AI web search/.test(c.source||"");
       var go=function(mode){S.drafting=open&&S.drafting.mode===mode?null:{cid:c.id,mode:mode};renderMessages()};
-      var cd=cadence(c),acts=[];
-      var markB=function(field,label,tip,msg){return el("button",{class:"pg-act",type:"button",title:tip,text:label,onclick:function(){var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){c[field==="replied"?"repliedAt":"acceptedAt"]=new Date().toISOString();toast(msg);renderMessages();refresh()},fail)}})};
-      var aiA=function(mode,label){return el("button",{class:"pg-act ai"+(open&&S.drafting.mode===mode?" on":""),type:"button",title:mode==="first"?"Draft the 300-character connection note":"Draft the full follow-up message",onclick:function(){go(mode)}},[el("span",{class:"spark",text:"\u2726"})," "+label])};
-      if(cd.k==="new"){acts.push(aiA("first",c.draft&&c.draftMode!=="followup"?"Open note":"Note"));
-        if(S.isOwner&&c.linkedin)acts.push(el("button",{class:"pg-act",type:"button",title:"Log: sent the connection request",text:"Sent \u2713",onclick:function(){logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")}}));
-        if(c.email)acts.push(el("button",{class:"pg-act",type:"button",title:"Log: emailed them",text:"\u2709 \u2713",onclick:function(){logOut(j,c,"email")}}))}
-      else if(cd.k==="waiting")acts.push(markB("accepted","Accepted","They accepted your connection request","Marked accepted. Send the follow-up today."));
-      else if(cd.k==="accepted"){acts.push(aiA("followup","Follow-up"));if(c.linkedin)acts.push(el("button",{class:"pg-act",type:"button",title:"Log: sent the follow-up on LinkedIn",text:"Sent \u2713",onclick:function(){logOut(j,c,"LinkedIn message","Follow-up logged. Leave it unless they reply.")}}))}
-      else if(cd.k==="nudge"){acts.push(aiA("followup","Follow-up"));
-        if(c.email)acts.push(el("button",{class:"pg-act",type:"button",title:"Log: emailed the follow-up",text:"\u2709 \u2713",onclick:function(){logOut(j,c,"email","Follow-up logged. Leave it unless they reply.")}}));
-        acts.push(el("button",{class:"pg-act",type:"button",title:"Log: sent the follow-up as an InMail",text:"InMail \u2713",onclick:function(){logOut(j,c,"InMail","Follow-up logged. Leave it unless they reply.")}}));
-        acts.push(markB("accepted","Accepted","They accepted your connection request","Marked accepted."))}
-      if(cd.k!=="new"&&cd.k!=="replied")acts.push(markB("replied","Replied","They replied","Marked replied"));
+      var cd=cadence(c),acts=[],more=[];
+      var patchB=function(field,msg){return function(){var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){c[field==="replied"?"repliedAt":"acceptedAt"]=new Date().toISOString();toast(msg);renderMessages();refresh()},fail)}};
+      var item=function(label,fn){return {label:label,fn:fn}};
+      var primary=function(label,fn,hot,ai){return el("button",{class:"pg-go"+(hot?" hot":"")+(open&&ai&&S.drafting.mode===ai?" on":""),type:"button",onclick:fn},[ai?el("span",{class:"spark",text:"\u2726"}):null,ai?" "+label:label])};
+      if(cd.k==="new"){acts.push(primary(c.draft&&c.draftMode!=="followup"?"Open note":"Write note",function(){go("first")},false,"first"));
+        if(c.linkedin)more.push(item("Connection request sent",function(){logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")}));
+        if(c.email)more.push(item("Emailed them",function(){logOut(j,c,"email")}))}
+      else if(cd.k==="waiting"){acts.push(primary("Mark accepted",patchB("accepted","Marked accepted. Send the follow-up today.")));more.push(item("They replied",patchB("replied","Marked replied")))}
+      else if(cd.k==="accepted"){acts.push(primary("Follow-up",function(){go("followup")},true,"followup"));
+        more.push(item("Follow-up sent on LinkedIn",function(){logOut(j,c,"LinkedIn message","Follow-up logged. Leave it unless they reply.")}));more.push(item("They replied",patchB("replied","Marked replied")))}
+      else if(cd.k==="nudge"){acts.push(primary("Follow-up",function(){go("followup")},true,"followup"));
+        if(c.email)more.push(item("Follow-up sent by email",function(){logOut(j,c,"email","Follow-up logged. Leave it unless they reply.")}));
+        more.push(item("Follow-up sent as InMail",function(){logOut(j,c,"InMail","Follow-up logged. Leave it unless they reply.")}));
+        more.push(item("They accepted",patchB("accepted","Marked accepted.")));more.push(item("They replied",patchB("replied","Marked replied")))}
+      else if(cd.k==="done")more.push(item("They replied",patchB("replied","Marked replied")));
+      if(!acts.length&&more.length)acts.push(el("span",{class:"pg-go-gap"}));
+      if(more.length)acts.push(moreMenu(more));
       tb.appendChild(el("tr",{class:"pg-row"+(open?" open":"")},[
         el("td",{class:"pg-n",text:String(n)}),
         el("td",{class:"pg-name"},[el("b",{text:c.name}),c.linkedin?el("a",{href:lnk(c.linkedin),target:"_blank",rel:"noopener",class:"pg-in",title:"LinkedIn",text:"in"}):null,c.email?el("a",{href:"mailto:"+c.email,class:"pg-in mail",title:c.email,text:"@"}):null]),
@@ -1069,9 +1102,9 @@ body{background:var(--page)}
             el("button",{class:"pg-act",type:"button",text:"Not them",onclick:function(){f.skip=(f.skip||[]).concat([p.name]);f.people.splice(i,1);draw()}})])]))});
       if(f.done&&!(f.people||[]).length&&!f.err)tb.appendChild(el("tr",{class:"pg-sub"},[el("td"),el("td",{colspan:"6",class:"pg-note",text:"No one solid turned up. Try the LinkedIn searches."})]))}
     function groupRow(tb,g,shownPeople){var n=g.people.length,need=Math.max(0,GOAL-n),f=S.found[g.key],closed=!!S.ctOpen[g.key];
-      var dots=el("span",{class:"pg-dots",title:n+" of "+GOAL+" people"},[0,1,2].map(function(i){return el("i",{class:i<n?"on":""})}).concat([el("em",{text:n+"/"+GOAL})]));
+      var dots=el("span",{class:"pg-dots",title:n+" of "+GOAL+" people"},[0,1,2].map(function(i){return el("i",{class:i<n?"on":""})}).concat([el("em",{text:Math.min(n,GOAL)+"/"+GOAL+(n>GOAL?" +"+(n-GOAL):"")})]));
       var role0=g.roles[0].replace(/\b(senior|sr\.?|junior|jr\.?|lead|principal|staff)\b/ig,"").trim();
-      var li=el("span",{class:"pg-li"},["Search LinkedIn: ",el("a",{href:liSearch(g.company+" recruiter"),target:"_blank",rel:"noopener",text:"recruiters"}),el("a",{href:liSearch(g.company+" "+role0+" manager"),target:"_blank",rel:"noopener",text:"manager"}),el("a",{href:liSearch(g.company+" "+g.roles[0]),target:"_blank",rel:"noopener",text:"team"})]);
+      var li=el("span",{class:"pg-li"},["LinkedIn",el("a",{href:liSearch(g.company+" recruiter"),target:"_blank",rel:"noopener",text:"recruiters"}),el("a",{href:liSearch(g.company+" "+role0+" manager"),target:"_blank",rel:"noopener",text:"manager"}),el("a",{href:liSearch(g.company+" "+g.roles[0]),target:"_blank",rel:"noopener",text:"team"})]);
       var find=need?el("button",{class:"pg-find",type:"button",disabled:f&&f.loading?true:null,text:f&&f.loading?"Searching...":"✦ Find "+need,onclick:function(){var skip=(f&&f.skip||[]).concat((f&&f.people||[]).map(function(p){return p.name}));S.found[g.key]={loading:true,skip:skip};S.ctOpen[g.key]=false;draw();
         api("POST","/api/find-people",{jobId:g.job.id,want:need,skip:skip}).then(function(r){S.found[g.key]={people:r.people||[],done:true,skip:skip};draw()},function(e){S.found[g.key]={err:e.msg&&e.msg!=="failed"?e.msg:"The search didn't go through. Try again.",done:true,skip:skip};draw()})}}):null;
       tb.appendChild(el("tr",{class:"pg-grp"+(n>=GOAL?" full":"")},[
@@ -1091,10 +1124,10 @@ body{background:var(--page)}
         .sort(function(a,b){return b.at.localeCompare(a.at)});
       var tb=el("tbody"),shown=0,n=0;
       gs.forEach(function(g){
-        var rows=g.people.filter(function(x){return (!t||norm(x.c.name+" "+(x.c.title||"")+" "+x.j.company+" "+x.j.role).indexOf(t)>=0)&&(!S.ctTodo||!(x.c.outreach&&x.c.outreach.length))&&(!S.ctDue||cadence(x.c).due)});
+        var rows=g.people.filter(function(x){return (!t||norm(x.c.name+" "+(x.c.title||"")+" "+x.j.company+" "+x.j.role).indexOf(t)>=0)&&(S.ctView!=="new"||cadence(x.c).k==="new")&&(S.ctView!=="due"||cadence(x.c).due)});
         var coHit=!t||norm(g.company).indexOf(t)>=0;
-        if(S.ctNeed&&g.people.length>=GOAL)return;
-        if(!rows.length&&!(coHit&&!S.ctTodo&&!S.ctDue))return;
+        if(S.ctView==="need"&&g.people.length>=GOAL)return;
+        if(!rows.length&&!(coHit&&(S.ctView==="all"||S.ctView==="need")))return;
         shown++;var closed=groupRow(tb,g);
         if(!closed){rows.forEach(function(x){personRow(tb,x,++n,g.roles.length)});finderRows(tb,g)}else n+=rows.length});
       if(!shown){list.appendChild(el("div",{class:"empty"},[el("h3",{text:all.length||(opts.jobs||[]).length?"No one matches":"No contacts yet"}),el("p",{text:all.length?"Try a different search.":"Applications show up here once they're sent."})]));return}
@@ -1103,17 +1136,16 @@ body{background:var(--page)}
         el("thead",{},[el("tr",{},[el("th",{class:"pg-n"},[el("button",{class:"pg-caret"+(allClosed?" shut":""),type:"button",title:allClosed?"Expand all":"Collapse all",text:"▾",onclick:function(){gs.forEach(function(g){S.ctOpen[g.key]=!allClosed});draw()}})]),
           el("th",{text:"Name"}),el("th",{text:"Title"}),el("th",{text:"Status"}),el("th",{text:"Next"}),el("th",{text:"Found by"}),el("th",{class:"pg-acts",text:"Actions"})])]),tb])]))}
     q.addEventListener("input",draw);
-    var need=el("button",{type:"button",class:"btn ghost small"+(S.ctNeed?" on":""),text:S.ctNeed?"Showing under 3 people":"Under 3 people",onclick:function(){S.ctNeed=!S.ctNeed;renderMessages()}});
-    var dueN=all.filter(function(x){return cadence(x.c).due}).length,accN=all.filter(function(x){return cadence(x.c).k==="accepted"}).length,newN=all.filter(function(x){return cadence(x.c).k==="new"}).length;
-    var dueBar=el("div",{class:"fu-bar"},[
-      el("div",{class:"fu-stats"},[el("span",{},[el("b",{text:String(dueN)})," follow-ups due"+(dueN?" ("+accN+" accepted, "+(dueN-accN)+" not accepted after 7 days)":"")]),el("span",{},[el("b",{text:String(newN)})," not contacted"])]),
-      el("span",{class:"fu-rule",text:"Note first \u00b7 accepted: full message within a day \u00b7 no accept in 7 days: email or InMail \u00b7 then stop"}),
-      el("button",{type:"button",class:"btn small"+(S.ctDue?" accent":" ghost"),text:S.ctDue?"Showing follow-ups due":"Show follow-ups due",disabled:dueN||S.ctDue?null:true,onclick:function(){S.ctDue=!S.ctDue;renderMessages()}})]);
-    var tools=[q,only,need];
-    if(opts.exportable){tools.push(el("button",{class:"btn ghost small",type:"button",text:"Export CSV",disabled:all.length?null:true,onclick:function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Reached out"]].concat(all.map(function(x){var o=(x.c.outreach||[]).slice(-1)[0];return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",o?o.via+" "+o.at.slice(0,10):""]}));
+    var cnt={all:all.length,due:0,"new":0};all.forEach(function(x){var k=cadence(x.c);if(k.due)cnt.due++;if(k.k==="new")cnt["new"]++});
+    S.ctView=S.ctView||"all";
+    var RULE="Send the connection note first. If they accept, send the full follow-up within a day. If they haven't accepted after 7 days, follow up by email or InMail. After one follow-up, stop.";
+    var chips=el("div",{class:"pg-chips",role:"tablist"},[["all","All",cnt.all],["due","Due now",cnt.due],["new","Not contacted",cnt["new"]],["need","Under 3 people",null]].map(function(f){
+      return el("button",{type:"button",role:"tab",class:"pg-chip"+(S.ctView===f[0]?" on":"")+(f[0]==="due"&&cnt.due?" hot":""),title:f[0]==="due"?RULE:null,onclick:function(){S.ctView=S.ctView===f[0]&&f[0]!=="all"?"all":f[0];renderMessages()}},[f[1],f[2]!=null?el("b",{text:String(f[2])}):null])}));
+    var tools=[q,chips];
+    if(opts.exportable){tools.push(el("button",{class:"pg-export",type:"button",title:"Download as CSV",text:"Export",disabled:all.length?null:true,onclick:function(){var rows=[["Name","Title","Company","Role","LinkedIn","Email","Found by","Found on","Reached out"]].concat(all.map(function(x){var o=(x.c.outreach||[]).slice(-1)[0];return [x.c.name,x.c.title||"",x.j.company,x.j.role,x.c.linkedin||"",x.c.email||"",nameOf(x.c.addedBy).replace(" (you)",""),x.c.addedAt?x.c.addedAt.slice(0,10):"",o?o.via+" "+o.at.slice(0,10):""]}));
       var txt=rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")}).join("\n");
       var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));a.download="team-board-contacts.csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},100)}}))}
-    if(S.isOwner)box.appendChild(dueBar);box.appendChild(el("div",{class:"ct-tools"},tools));box.appendChild(list);draw();return box;
+    box.appendChild(el("div",{class:"ct-tools pg-tools"},tools));box.appendChild(list);draw();return box;
   }
   function contactsFor(thread){return allContacts().filter(function(x){return thread==="__all"||(S.isOwner?x.j.addedBy===thread:true)})}
   function toContact(rows){return rows.filter(function(x){return !(x.c.outreach&&x.c.outreach.length)}).length}
