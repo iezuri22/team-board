@@ -1150,14 +1150,15 @@ body{background:var(--page)}
         body.appendChild(el("div",{class:"qa-sug"},[sug,note]));
         setTimeout(function(){if(!(q.options&&q.options.length))ta.focus()},0)}
       var back=el("button",{class:"btn ghost",type:"button",text:"Back",disabled:idx===0?true:null,onclick:function(){idx--;draw()}});
-      var foot=[back,el("span",{class:"sp"})];
-      if(review){var send=el("button",{class:"btn accent",type:"button",text:"Send answers to "+who,onclick:function(){
+      var send=el("button",{class:"btn accent",type:"button",text:"Send answers to "+who,onclick:function(){
+          if(!review&&!qs.some(function(_,i){return answered(i)})){toast("Answer at least one question first");return}
           var body2="Here are the answers:\n\n"+qs.map(function(q,i){return (i+1)+". "+q.text+"\n"+(answerText(i)||"(I'll get back to you on this one.)")}).join("\n\n");
           send.disabled=true;send.textContent="Sending...";
           api("POST","/api/messages",{to:m.thread,body:body2,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);m.status="done";try{localStorage.removeItem(sk)}catch(e){}close(true);toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");if(onDone)onDone();else{render();refresh()}},function(e){send.disabled=false;send.textContent="Send answers to "+who;fail(e)})}});
-        foot.push(send)}
-      else{foot.push(el("button",{class:"btn ghost",type:"button",text:answered(idx)?"Next":"Skip for now",onclick:function(){idx++;draw()}}));
-        if(idx===n-1)foot[foot.length-1].textContent="Review answers"}
+      var foot=[back];
+      if(!review){var nx=el("button",{class:"btn ghost",type:"button",text:idx===n-1?"Review answers":answered(idx)?"Next":"Skip for now",onclick:function(){idx++;draw()}});foot.push(nx);
+        box.oninput=function(){if(idx<n-1)nx.textContent=answered(idx)?"Next":"Skip for now"}}else box.oninput=null;
+      foot.push(el("span",{class:"sp"}),send);
       box.appendChild(el("div",{class:"qa-foot"},foot))}
     box.appendChild(el("div",{class:"qa-load",text:"Splitting "+who+"'s message into questions..."}));
     document.body.appendChild(wrap);document.addEventListener("keydown",key);
