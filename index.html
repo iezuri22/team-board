@@ -1418,7 +1418,7 @@ body{background:var(--page)}
         el("td",{},[low?el("b",{class:"wk-num low",text:String(low)}):el("span",{class:"pg-dim",text:"0"})]),
         el("td",{class:"pg-dim",text:String(skipped)}),el("td",{},[heard?el("b",{class:"wk-num ok",text:String(heard)}):el("span",{class:"pg-dim",text:"0"})]),
         el("td",{},[ivs?el("b",{class:"wk-iv",text:String(ivs)}):el("span",{class:"pg-dim",text:"0"})]),el("td",{class:"pg-dim",text:String(asks)})]))});
-    V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Who","Sent","Avg fit","Low fits","Not a fit","Replies","Interviews","Asks"].map(function(h){return el("th",{text:h})}))]),tb])])));
+    V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[["Who"],["Sent","Applications sent this week"],["Avg fit","Average fit score of what was sent"],["Low fits","Sent with a fit score under 60"],["Screened out","Looked at and not applied to (marked Not a fit). Not part of Sent."],["Replies"],["Interviews"],["Asks"]].map(function(h){return el("th",{text:h[0],title:h[1]||null})}))]),tb])])));
     // interviews: the most important line of the week, on its own
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
     var ivBox=el("div",{class:"wk-list"});
