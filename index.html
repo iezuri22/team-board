@@ -764,6 +764,21 @@ body{background:var(--page)}
 .wk-iv{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 7px;border-radius:12px;background:#1e3a8a;color:#fff;font-size:13px}
 .wk-ivdate{flex:none;min-width:96px;padding:4px 10px;border-radius:9px;background:#e7efff;color:#1d4ed8;font-weight:700;font-size:12.5px;text-align:center}
 
+.wk-cell{border:0;background:none;padding:2px 6px;margin:-2px -6px;border-radius:8px;font:inherit;font-weight:700;cursor:pointer;color:inherit;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
+.wk-cell:hover{background:var(--soft2);text-decoration-color:currentColor}
+.wk-cell.wk-score,.wk-cell.wk-iv{text-decoration:none;margin:0}.wk-cell.wk-score:hover,.wk-cell.wk-iv:hover{filter:brightness(.95);box-shadow:0 0 0 2px var(--line)}
+button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}button.wk-chip:hover{background:var(--soft2)}
+.wk-stat{border:0;background:none;text-align:left;padding:8px 10px;margin:-8px -10px;border-radius:10px;cursor:pointer;font-family:inherit;color:var(--fg);display:grid}
+.wk-stat:hover:not(:disabled){background:var(--soft)}.wk-stat:disabled{cursor:default}
+.wk-stat b{font-size:26px;letter-spacing:-.02em}.wk-stat span{font-size:12.5px;color:var(--muted)}
+.wk-modal{width:min(820px,100%)}
+.wk-mlist{display:grid;gap:2px;padding-top:8px}
+.wk-mrow{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;border:0;background:none;padding:11px 8px;border-bottom:1px solid var(--line);border-radius:8px;cursor:pointer;font-family:inherit;color:var(--fg)}
+.wk-mrow:hover{background:var(--soft)}.wk-mrow.flag{background:#fff6ef}
+.wk-mrow,.wk-stat,.wk-cell,button.wk-chip{height:auto;min-height:0;white-space:normal}
+.wk-mt{display:grid;gap:2px;flex:1;min-width:0}.wk-mt b{font-size:14.5px}.wk-mwhy{font-size:12.5px;color:var(--muted)}
+.wk-go{font-size:12.5px;color:var(--faint);white-space:nowrap;padding-top:2px}.wk-mrow:hover .wk-go{color:var(--accent)}
+
 </style>
 
 <div class="wrap">
@@ -1406,18 +1421,23 @@ body{background:var(--page)}
       el("div",{class:"wk-nav"},[el("button",{class:"btn ghost small",type:"button",text:"‹ Earlier",onclick:function(){S.wkOff--;renderWeekly()}}),el("button",{class:"btn ghost small",type:"button",text:"Later ›",disabled:S.wkOff>=0?true:null,onclick:function(){S.wkOff++;renderWeekly()}})])]));
     // team at a glance
     var tb=el("tbody");
-    people.forEach(function(pid){var mine=sent.filter(function(j){return j.addedBy===pid}),g=pid==="owner"?null:goalOf(pid);
-      var fits=mine.map(fitOf).filter(Boolean),avg=fits.length?Math.round(fits.reduce(function(n,f){return n+f.score},0)/fits.length):null,low=fits.filter(function(f){return f.score<LOW}).length;
-      var skipped=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="skipped"&&inWk(j.updatedAt)}).length;
-      var heard=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="heard"&&inWk(j.updatedAt)}).length;
-      var ivs=S.jobs.filter(function(j){return j.addedBy===pid&&(j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).length;
-      var asks=allMsgs().filter(function(m){return m.thread===pid&&m.from!=="owner"&&inWk(m.at)}).length;
+    people.forEach(function(pid){var mine=sent.filter(function(j){return j.addedBy===pid}),g=pid==="owner"?null:goalOf(pid),nm=whoName(pid).split(" ")[0];
+      var byScore=function(a,b){var x=fitOf(a),y=fitOf(b);return (x?x.score:-1)-(y?y.score:-1)};
+      var fits=mine.map(fitOf).filter(Boolean),avg=fits.length?Math.round(fits.reduce(function(n,f){return n+f.score},0)/fits.length):null;
+      var lowJ=mine.filter(function(j){var f=fitOf(j);return f&&f.score<LOW}).sort(byScore);
+      var skipJ=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="skipped"&&inWk(j.updatedAt)}).sort(function(a,b){return byScore(b,a)});
+      var heardJ=S.jobs.filter(function(j){return j.addedBy===pid&&j.status==="heard"&&inWk(j.updatedAt)});
+      var ivJ=S.jobs.filter(function(j){return j.addedBy===pid&&(j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))});
+      var askM=allMsgs().filter(function(m){return m.thread===pid&&m.from!=="owner"&&inWk(m.at)});
+      var flagSkip=function(j,f){return f&&f.score>=70?"Scored "+f.score+" but marked Not a fit":f&&f.score>=50?"Borderline":""};
       tb.appendChild(el("tr",{},[el("td",{class:"wk-who"},[el("span",{class:"mg-av sm",style:"--h:"+hue(whoName(pid)),text:initials(whoName(pid))}),el("b",{text:whoName(pid)})]),
-        el("td",{},[el("b",{class:"wk-num"+(g&&mine.length>=g?" ok":g&&mine.length<g*0.7?" low":""),text:String(mine.length)}),g?el("span",{class:"pg-dim",text:" / "+g}):null]),
-        el("td",{},[avg==null?el("span",{class:"pg-dim",text:"No fit checks"}):el("span",{class:"wk-score"+(avg<LOW?" low":avg>=70?" ok":""),text:String(avg)})]),
-        el("td",{},[low?el("b",{class:"wk-num low",text:String(low)}):el("span",{class:"pg-dim",text:"0"})]),
-        el("td",{class:"pg-dim",text:String(skipped)}),el("td",{},[heard?el("b",{class:"wk-num ok",text:String(heard)}):el("span",{class:"pg-dim",text:"0"})]),
-        el("td",{},[ivs?el("b",{class:"wk-iv",text:String(ivs)}):el("span",{class:"pg-dim",text:"0"})]),el("td",{class:"pg-dim",text:String(asks)})]))});
+        el("td",{},[mine.length?el("button",{type:"button",class:"wk-cell wk-num"+(g&&mine.length>=g?" ok":g&&mine.length<g*0.7?" low":""),onclick:function(){wkList(nm+" sent "+mine.length+(g?" of "+g:""),"Lowest fit first.",mine.slice().sort(byScore))}},[String(mine.length)]):el("span",{class:"pg-dim",text:"0"}),g?el("span",{class:"pg-dim",text:" / "+g}):null]),
+        el("td",{},[avg==null?el("span",{class:"pg-dim",text:"No fit checks"}):el("button",{type:"button",class:"wk-cell wk-score"+(avg<LOW?" low":avg>=70?" ok":""),onclick:function(){wkList(nm+"'s fit scores","Average "+avg+". Lowest first.",mine.slice().sort(byScore))}},[String(avg)])]),
+        el("td",{},[wkCell(lowJ.length,"wk-num low",function(){wkList(nm+"'s low fits","Sent with a fit score under "+LOW+".",lowJ,{why:true})})]),
+        el("td",{},[wkCell(skipJ.length,"",function(){wkList(nm+" screened out "+skipJ.length,"Looked at and not applied to. Highest score first, so borderline calls are on top.",skipJ,{flag:flagSkip,why:true})})]),
+        el("td",{},[wkCell(heardJ.length,"wk-num ok",function(){wkList(nm+"'s replies",null,heardJ,{why:false})})]),
+        el("td",{},[ivJ.length?el("button",{type:"button",class:"wk-cell wk-iv",onclick:function(){wkList(nm+"'s interviews",null,ivJ.map(function(j){return {j:j,badge:el("span",{class:"wk-ivdate",text:j.interviewAt?new Date(j.interviewAt).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date not set"})}}),{why:false})}},[String(ivJ.length)]):el("span",{class:"pg-dim",text:"0"})]),
+        el("td",{},[wkCell(askM.length,"",function(){S.tab="messages";S.mThread=pid;S.mView="talk";render();window.scrollTo(0,0)})])]))});
     V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[["Who"],["Sent","Applications sent this week"],["Avg fit","Average fit score of what was sent"],["Low fits","Sent with a fit score under 60"],["Screened out","Looked at and not applied to (marked Not a fit). Not part of Sent."],["Replies"],["Interviews"],["Asks"]].map(function(h){return el("th",{text:h[0],title:h[1]||null})}))]),tb])])));
     // interviews: the most important line of the week, on its own
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
@@ -1443,13 +1463,13 @@ body{background:var(--page)}
     V.appendChild(wkSection("Replies",null,winBox));
     // where jobs came from
     var src={};sent.forEach(function(j){var k=j.source||"Not set";src[k]=(src[k]||0)+1});
-    var srcBox=el("div",{class:"wk-src"},Object.keys(src).sort(function(a,b){return src[b]-src[a]}).map(function(k){return el("span",{class:"wk-chip"},[k,el("b",{text:String(src[k])})])}));
+    var srcBox=el("div",{class:"wk-src"},Object.keys(src).sort(function(a,b){return src[b]-src[a]}).map(function(k){return el("button",{type:"button",class:"wk-chip",onclick:function(){wkList("Found on "+k,src[k]+" sent this week.",sent.filter(function(j){return (j.source||"Not set")===k}))}},[k,el("b",{text:String(src[k])})])}));
     if(!sent.length)srcBox.appendChild(el("span",{class:"pg-dim",text:"Nothing sent this week."}));
     V.appendChild(wkSection("Where jobs came from",null,srcBox));
     // Ifeanyi's outreach (everyone can see progress)
-    var ev=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){(c.outreach||[]).forEach(function(o,i){if(inWk(o.at))ev.push({k:i===0?"note":"follow",c:c})});if(c.acceptedAt&&inWk(c.acceptedAt))ev.push({k:"acc"});if(c.repliedAt&&inWk(c.repliedAt))ev.push({k:"rep"})})});
+    var ev=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){(c.outreach||[]).forEach(function(o,i){if(inWk(o.at))ev.push({k:i===0?"note":"follow",c:c,j:j,at:o.at})});if(c.acceptedAt&&inWk(c.acceptedAt))ev.push({k:"acc",c:c,j:j,at:c.acceptedAt});if(c.repliedAt&&inWk(c.repliedAt))ev.push({k:"rep",c:c,j:j,at:c.repliedAt})})});
     var cntK=function(k){return ev.filter(function(e){return e.k===k}).length};
-    V.appendChild(wkSection("Ifeanyi's outreach",null,el("div",{class:"wk-stats"},[["note","Connection notes sent"],["acc","Accepted"],["follow","Follow-ups sent"],["rep","Replies"]].map(function(x){return el("div",{},[el("b",{text:String(cntK(x[0]))}),el("span",{text:x[1]})])}))));
+    V.appendChild(wkSection("Ifeanyi's outreach",null,el("div",{class:"wk-stats"},[["note","Connection notes sent"],["acc","Accepted"],["follow","Follow-ups sent"],["rep","Replies"]].map(function(x){var list=ev.filter(function(e){return e.k===x[0]});return el("button",{type:"button",class:"wk-stat",disabled:list.length?null:true,onclick:function(){wkList(x[1],null,list.map(function(e){return {j:e.j,sub:e.c.name+(e.c.title?", "+e.c.title:"")+" \u00b7 "+new Date(e.at).toLocaleDateString(undefined,{month:"short",day:"numeric"}),badge:el("span",{class:"wk-score",text:initials(e.c.name)})}}),{why:false})}},[el("b",{text:String(list.length)}),el("span",{text:x[1]})])}))));
     // agenda and notes, shared
     var notesBox=el("div",{class:"wk-notes"},[el("p",{class:"muted-line",text:"Loading notes..."})]);
     V.appendChild(wkSection("Meeting notes and action items",null,notesBox));
@@ -1471,6 +1491,22 @@ body{background:var(--page)}
       notesBox.appendChild(el("b",{class:"wk-sub",text:"Action items"}));notesBox.appendChild(list);notesBox.appendChild(add);
       function drawLater(){m.actions=acts;setTimeout(drawNotes,0)}}
   }
+  function wkList(title,sub,jobs,opt){opt=opt||{};var prev=document.activeElement;
+    var box=el("div",{class:"qa wk-modal",role:"dialog","aria-modal":"true","aria-label":title});
+    var wrap=el("div",{class:"qa-wrap",onclick:function(e){if(e.target===wrap)close()}},[box]);
+    function close(){wrap.remove();document.removeEventListener("keydown",key);if(prev&&prev.focus)prev.focus()}
+    function key(e){if(e.key==="Escape")close()}
+    var body=el("div",{class:"qa-body wk-mlist"});
+    if(!jobs.length)body.appendChild(el("p",{class:"muted-line",text:opt.empty||"Nothing here."}));
+    jobs.forEach(function(x){var j=x.j||x,f=fitOf(j),flag=opt.flag&&opt.flag(j,f);
+      body.appendChild(el("button",{type:"button",class:"wk-mrow"+(flag?" flag":""),onclick:function(){close();openJob(j.id)}},[
+        x.badge?x.badge:f?el("span",{class:"wk-score"+(f.score<60?" low":f.score>=70?" ok":""),text:String(f.score)}):el("span",{class:"wk-score",text:"\u2013"}),
+        el("span",{class:"wk-mt"},[el("b",{text:(j.company||"Untitled")+", "+(j.role||"")}),el("span",{class:"pg-dim",text:(x.sub||("Found by "+whoName(j.addedBy)+(j.source?" \u00b7 "+j.source:"")))+(flag?" \u00b7 "+flag:"")}),
+          (opt.why!==false&&f&&f.concerns&&f.concerns.length&&(f.score<70||opt.why))?el("span",{class:"wk-mwhy",text:f.concerns.slice(0,2).join(" \u00b7 ")}):null]),
+        el("span",{class:"wk-go",text:"Open \u203a"})]))});
+    box.appendChild(el("div",{class:"qa-top"},[el("div",{},[el("h3",{text:title}),sub?el("p",{text:sub}):null]),el("button",{class:"qa-x",type:"button","aria-label":"Close",text:"\u00d7",onclick:close})]));
+    box.appendChild(body);document.body.appendChild(wrap);document.addEventListener("keydown",key)}
+  function wkCell(n,cls,onclick){return n?el("button",{type:"button",class:"wk-cell "+(cls||""),onclick:onclick},[String(n)]):el("span",{class:"pg-dim",text:"0"})}
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
