@@ -673,6 +673,8 @@ body{background:var(--page)}
 .rail-off .mg-person{grid-template-columns:34px;padding:6px 9px;position:relative;justify-items:center}
 .rail-off .mg-count,.rail-off .mg-dot{position:absolute;top:0;right:0;transform:scale(.85)}
 
+.dr-count{display:block;font-size:12px;color:var(--faint);text-align:right;margin-top:-4px}.dr-count.over{color:#c2410c;font-weight:700}
+
 </style>
 
 <div class="wrap">
@@ -1681,7 +1683,8 @@ body{background:var(--page)}
       if(S.isOwner&&lnk)acts.push(el("button",{class:"btn small",type:"button",text:"Sent on LinkedIn",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"LinkedIn"}).then(function(){S.drafting=null;toast("Logged. Follow-up reminder in 10 days.");refresh()},fail)}}));
       if(c.email)acts.push(el("button",{class:"btn small"+(S.isOwner&&lnk?" ghost":""),type:"button",text:"Sent by email",onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"email"}).then(function(){S.drafting=null;toast("Logged. Follow-up reminder in 10 days.");refresh()},fail)}}))}
     acts.push(el("button",{class:"linkish dr-close",type:"button",text:"Close",onclick:function(){S.drafting=null;rerender()}}));
-    return el("div",{class:"dr-panel"},[el("div",{class:"dr-top"},[el("b",{text:(mode==="followup"?"Follow-up to ":"First message to ")+first}),el("span",{text:"Short, specific, with your portfolio link."})]),ctx,outBox,el("div",{class:"dr-acts"},acts)]);
+    var cnt=null;if(mode!=="followup"){cnt=el("span",{class:"dr-count"});var upd=function(){var n=outBox.value.length;cnt.textContent=n?n+" / 300 characters":"";cnt.className="dr-count"+(n>300?" over":"")};outBox.addEventListener("input",upd);upd()}
+    return el("div",{class:"dr-panel"},[el("div",{class:"dr-top"},[el("b",{text:(mode==="followup"?"Follow-up to ":"Connection note to ")+first}),el("span",{text:mode==="followup"?"The full message, with your portfolio link.":"Fits LinkedIn's 300-character connection note."})]),ctx,outBox,cnt,el("div",{class:"dr-acts"},acts)]);
   }
   function contactsBlock(j){
     var cs=j.contacts||[];
