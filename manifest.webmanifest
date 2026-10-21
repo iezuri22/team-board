@@ -1,0 +1,16 @@
+{
+  "name": "Apply Yourself",
+  "short_name": "Apply Yourself",
+  "description": "The team's job applications, resumes, cover letters and inbox.",
+  "id": "/team-board/",
+  "start_url": "/team-board/",
+  "scope": "/team-board/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#fafafa",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

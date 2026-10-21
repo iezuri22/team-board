@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <circle cx="256" cy="256" r="256" fill="#FFB627"/>
-  <line x1="310" y1="310" x2="398" y2="398" stroke="#141414" stroke-width="56" stroke-linecap="round"/>
-  <circle cx="222" cy="218" r="126" fill="#FFFFFF" stroke="#141414" stroke-width="42"/>
-  <text x="222" y="246" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-3" fill="#141414">Jobs</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-80 -80 160 160">
+  <circle r="78" fill="#FFB627"/>
+  <line x1="18" y1="18" x2="50" y2="50" stroke="#141414" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="-8" cy="-8" r="36" fill="#FFFFFF" stroke="#141414" stroke-width="15"/>
 </svg>
