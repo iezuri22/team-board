@@ -598,7 +598,7 @@ body{background:var(--page)}
 .qa-sug{display:flex;align-items:center;gap:10px;margin:10px 0 4px;flex-wrap:wrap}
 .qa-note{font-size:13.5px;color:var(--muted)}
 .qa-foot{display:flex;align-items:center;gap:10px;padding:14px 26px 20px;border-top:1px solid var(--line)}
-.qa-foot .sp{flex:1}
+.qa-foot .sp{flex:1}.qa-saved{font-size:13px;color:#1e7a3c;font-weight:600}
 .qa-rev{display:flex;flex-direction:column;gap:14px}
 .qa-rev div{border-bottom:1px solid var(--line);padding-bottom:12px}
 .qa-rev b{display:block;font-size:14.5px;margin-bottom:4px}
@@ -1150,15 +1150,17 @@ body{background:var(--page)}
         body.appendChild(el("div",{class:"qa-sug"},[sug,note]));
         setTimeout(function(){if(!(q.options&&q.options.length))ta.focus()},0)}
       var back=el("button",{class:"btn ghost",type:"button",text:"Back",disabled:idx===0?true:null,onclick:function(){idx--;draw()}});
-      var send=el("button",{class:"btn accent",type:"button",text:"Send answers to "+who,onclick:function(){
+      var send=el("button",{class:"btn accent",type:"button",text:"Send all "+n+" answers to "+who,onclick:function(){
           if(!review&&!qs.some(function(_,i){return answered(i)})){toast("Answer at least one question first");return}
           var body2="Here are the answers:\n\n"+qs.map(function(q,i){return (i+1)+". "+q.text+"\n"+(answerText(i)||"(I'll get back to you on this one.)")}).join("\n\n");
           send.disabled=true;send.textContent="Sending...";
-          api("POST","/api/messages",{to:m.thread,body:body2,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);m.status="done";try{localStorage.removeItem(sk)}catch(e){}close(true);toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");if(onDone)onDone();else{render();refresh()}},function(e){send.disabled=false;send.textContent="Send answers to "+who;fail(e)})}});
+          api("POST","/api/messages",{to:m.thread,body:body2,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);m.status="done";try{localStorage.removeItem(sk)}catch(e){}close(true);toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");if(onDone)onDone();else{render();refresh()}},function(e){send.disabled=false;send.textContent="Send all "+n+" answers to "+who;fail(e)})}});
       var foot=[back];
-      if(!review){var nx=el("button",{class:"btn ghost",type:"button",text:idx===n-1?"Review answers":answered(idx)?"Next":"Skip for now",onclick:function(){idx++;draw()}});foot.push(nx);
-        box.oninput=function(){if(idx<n-1)nx.textContent=answered(idx)?"Next":"Skip for now"}}else box.oninput=null;
-      foot.push(el("span",{class:"sp"}),send);
+      if(!review){var saved=el("span",{class:"qa-saved",text:answered(idx)?"Saved":""});
+        var nx=el("button",{class:"btn accent",type:"button",text:idx===n-1?"Review all answers":answered(idx)?"Next":"Skip for now",onclick:function(){idx++;draw()}});
+        box.oninput=function(){saved.textContent=answered(idx)?"Saved":"";if(idx<n-1)nx.textContent=answered(idx)?"Next":"Skip for now"};
+        foot.push(el("span",{class:"sp"}),saved,nx)}
+      else{box.oninput=null;foot.push(el("span",{class:"sp"}),send)}
       box.appendChild(el("div",{class:"qa-foot"},foot))}
     box.appendChild(el("div",{class:"qa-load",text:"Splitting "+who+"'s message into questions..."}));
     document.body.appendChild(wrap);document.addEventListener("keydown",key);
