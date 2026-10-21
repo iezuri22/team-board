@@ -779,6 +779,15 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .wk-mt{display:grid;gap:2px;flex:1;min-width:0}.wk-mt b{font-size:14.5px}.wk-mwhy{font-size:12.5px;color:var(--muted)}
 .wk-go{font-size:12.5px;color:var(--faint);white-space:nowrap;padding-top:2px}.wk-mrow:hover .wk-go{color:var(--accent)}
 
+.iv-add{border:1px dashed var(--line);background:none;color:var(--faint);border-radius:8px;padding:3px 9px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;opacity:0;transition:opacity .12s;height:auto}
+.ap-row:hover .iv-add,.iv-add:focus{opacity:1}.iv-add:hover{border-color:#1d4ed8;color:#1d4ed8}
+.iv-chip{border:0;background:#e7efff;color:#1d4ed8;border-radius:9px;padding:4px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;height:auto}
+.iv-chip:hover{box-shadow:0 0 0 2px #bcd0ff}
+.wk-ivrow .iv-chip,.wk-ivrow .iv-add{opacity:1;min-width:150px}
+.iv-pop{position:fixed;z-index:90;display:grid;gap:10px;width:290px;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 12px 34px rgba(0,0,0,.16)}
+.iv-pop b{font-size:14px}.iv-in{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--fg)}
+.iv-acts{display:flex;align-items:center;gap:8px}.iv-acts .sp{flex:1}
+
 </style>
 
 <div class="wrap">
@@ -1404,6 +1413,22 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     return wrap}
 
 
+  // Interview date and time, set right from a row
+  function ivLabel(j){return j.interviewAt?new Date(j.interviewAt).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+", "+new Date(j.interviewAt).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):""}
+  function ivPicker(j,after){
+    var has=!!j.interviewAt,b=el("button",{type:"button",class:has?"iv-chip":"iv-add",title:has?"Change the interview date and time":"Log an interview",text:has?ivLabel(j):"+ Interview"});
+    b.onclick=function(e){e.stopPropagation();var old=document.querySelector(".iv-pop");if(old){var same=old._for===b;old.remove();if(same)return}
+      var pad=function(n){return String(n).padStart(2,"0")},d=j.interviewAt?new Date(j.interviewAt):null;
+      var inp=el("input",{type:"datetime-local",class:"iv-in",value:d?d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes()):""});
+      var save=el("button",{class:"btn accent small",type:"button",text:has?"Save":"Log interview",onclick:function(){if(!inp.value){inp.focus();return}var t=new Date(inp.value).toISOString();
+        var patch={interviewAt:t,note:"Interview "+(has?"moved to ":"set for ")+new Date(t).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})};
+        if(j.status!=="interview"&&j.status!=="offer")patch.status="interview";if(!S.isOwner)patch.needsIfeanyi=true;
+        save.disabled=true;api("PATCH","/api/jobs/"+j.id,patch).then(function(){j.interviewAt=t;if(patch.status)j.status=patch.status;pop.remove();toast("Interview "+(has?"updated":"logged"));(after||refresh)();refresh()},function(err){save.disabled=false;fail(err)})}});
+      var clear=has?el("button",{class:"linkish",type:"button",text:"Clear date",onclick:function(){api("PATCH","/api/jobs/"+j.id,{interviewAt:null,note:"Interview date cleared"}).then(function(){j.interviewAt=null;pop.remove();toast("Cleared");(after||refresh)();refresh()},fail)}}):null;
+      var pop=el("div",{class:"iv-pop",onclick:function(e){e.stopPropagation()}},[el("b",{text:(has?"Interview with ":"Log an interview with ")+j.company}),inp,el("div",{class:"iv-acts"},[clear,el("span",{class:"sp"}),save])]);pop._for=b;
+      document.body.appendChild(pop);var r=b.getBoundingClientRect(),h=pop.offsetHeight;pop.style.top=(r.bottom+6+h>window.innerHeight?r.top-6-h:r.bottom+6)+"px";pop.style.left=Math.max(8,Math.min(window.innerWidth-pop.offsetWidth-8,r.left))+"px";
+      setTimeout(function(){inp.focus();document.addEventListener("click",function off(e){if(!pop.contains(e.target)){pop.remove();document.removeEventListener("click",off)}})},0)};
+    return b}
   // ---------- Weekly: the Monday meeting on direction and progress ----------
   function fitOf(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f.replace(/'/g,'"').replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false"))}catch(e){f=null}}return f&&typeof f.score==="number"?f:null}
   function renderWeekly(){
@@ -1443,7 +1468,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
     var ivBox=el("div",{class:"wk-list"});
     if(!ivJobs.length)ivBox.appendChild(el("p",{class:"muted-line",text:"No interviews this week."}));
-    ivJobs.forEach(function(j){ivBox.appendChild(el("div",{class:"wk-item wk-ivrow"},[el("span",{class:"wk-ivdate",text:j.interviewAt?new Date(j.interviewAt).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):j.status==="offer"?"Offer":"Date not set"}),
+    ivJobs.forEach(function(j){ivBox.appendChild(el("div",{class:"wk-item wk-ivrow"},[ivPicker(j,renderWeekly),
       el("div",{class:"wk-it"},[el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:"Found by "+whoName(j.addedBy)+(j.interviewAt?" \u00b7 "+new Date(j.interviewAt).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"")})])]))});
     V.appendChild(wkSection("Interviews",ivJobs.length?String(ivJobs.length):null,ivBox));
     // low fits to call out
@@ -1719,12 +1744,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         el("td",{class:"pg-found",text:nameOf(j.addedBy).replace(" (you)","")}),
         el("td",{class:"pg-found",text:j.status==="saved"?"Not yet":rel(sentAt(j))||rel(j.addedAt)}),
         el("td",{class:"pg-found",text:np?np+(np===1?" person":" people"):""}),
+        el("td",{class:"ap-iv"},[j.status==="rejected"||j.status==="skipped"?null:ivPicker(j,renderRows)]),
         el("td",{},[nx.t?el("span",{class:nx.hot?"pg-due":"pg-dim",text:nx.t}):null]),
         el("td",{class:"pg-acts"},[el("button",{class:"pg-go"+(isOpen?" on":""),type:"button",onclick:function(e){e.stopPropagation();toggle()}},[isOpen?"Close":"Open"])])]));
-      if(isOpen)tb.appendChild(el("tr",{class:"ap-detail"},[el("td",{colspan:"8"},[detail(j)])]));
+      if(isOpen)tb.appendChild(el("tr",{class:"ap-detail"},[el("td",{colspan:"9"},[detail(j)])]));
     });
     R.appendChild(el("div",{class:"pg-wrap ap-wrap"},[el("table",{class:"pg-table ap-table"},[
-      el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Status"}),el("th",{text:"Found by"}),el("th",{text:"Sent"}),el("th",{text:"People"}),el("th",{text:"Next"}),el("th",{class:"pg-acts",text:""})])]),tb])]));
+      el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Status"}),el("th",{text:"Found by"}),el("th",{text:"Sent"}),el("th",{text:"People"}),el("th",{text:"Interview"}),el("th",{text:"Next"}),el("th",{class:"pg-acts",text:""})])]),tb])]));
     if(rows.length>S.limit)R.appendChild(el("div",{style:"padding:14px 6px"},[el("button",{class:"btn ghost small",type:"button",text:"Show more",onclick:function(){S.limit+=150;renderRows()}})]));
   }
   function bhead(title,acts){return el("div",{class:"bhead"},[el("h3",{text:title}),acts&&acts.length?el("div",{class:"bhead-acts"},acts):null])}
