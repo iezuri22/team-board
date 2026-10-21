@@ -1433,7 +1433,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function fitOf(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f.replace(/'/g,'"').replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false"))}catch(e){f=null}}return f&&typeof f.score==="number"?f:null}
   function renderWeekly(){
     var V=$("weekly-view");var a=document.activeElement;if(a&&/^wk-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
-    if(S.wkOff==null)S.wkOff=-1;
+    if(S.wkOff==null)S.wkOff=0;
     var mon=monday(new Date());mon.setDate(mon.getDate()+7*S.wkOff);var sun=new Date(mon);sun.setDate(sun.getDate()+6);var end=new Date(mon);end.setDate(end.getDate()+7);
     var wk=dayKey(mon),inWk=function(iso){if(!iso)return false;var d=new Date(iso);return d>=mon&&d<end};
     var fmt=function(d){return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})};
