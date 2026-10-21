@@ -364,7 +364,7 @@ body{background:var(--page)}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:50}
 .note{background:var(--amber-wash);border-radius:10px;padding:10px 14px;font-size:14px;margin-top:10px}
 /* job detail, v2 */
-.wrap{max-width:1280px}
+.wrap{max-width:min(1760px,100%)}
 .detail{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;padding:14px 16px 22px;background:var(--soft);border-bottom:1px solid var(--line)}
 @media (max-width:900px){.detail{grid-template-columns:1fr}}
 .d-main,.d-side{display:grid;gap:14px;align-content:start;min-width:0}
@@ -655,6 +655,23 @@ body{background:var(--page)}
 .pg-find{border:0;background:var(--fg);color:var(--card);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}.pg-find:disabled{opacity:.6}
 .pg-sug td{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(217,84,26,.04) 6px 12px)}
 .pg-sub td{background:var(--card)}.pg-note{color:var(--muted);font-size:12.5px;padding:10px}
+
+.fq .qa-body{display:grid;gap:14px;align-content:start}
+.fq-msg{white-space:pre-wrap;font-size:15.5px;line-height:1.55;padding:14px 16px;border-radius:12px;background:var(--soft);max-height:40vh;overflow:auto}
+.fq-job{justify-self:start}
+.fq-qa{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--muted)}
+.fq-reply{display:grid;gap:8px}
+.fq-tag{margin-left:8px;color:#1e7a3c}
+.fq-done{display:grid;gap:6px;padding:30px 0;text-align:center}.fq-done b{font-size:18px}.fq-done span{color:var(--muted)}
+.fq-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;margin:0 0 4px;border-radius:12px;background:#fff4ee;border:1px solid #f6d3bf;font-size:14px}
+
+.mg-rail-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px 4px}.mg-rail-h .mg-rail-t{margin:0}
+.mg-rail-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);width:26px;height:26px;border-radius:8px;cursor:pointer;font-size:14px;line-height:1}
+.mg-rail-btn:hover{color:var(--fg)}
+.mg-wrap.rail-off{grid-template-columns:52px minmax(0,1fr);gap:18px}
+.rail-off .mg-rail-h{justify-content:center;margin-left:0}.rail-off .mg-rail-t,.rail-off .mg-pt{display:none}
+.rail-off .mg-person{grid-template-columns:34px;padding:6px 9px;position:relative;justify-items:center}
+.rail-off .mg-count,.rail-off .mg-dot{position:absolute;top:0;right:0;transform:scale(.85)}
 
 </style>
 
@@ -1097,7 +1114,7 @@ body{background:var(--page)}
     var foot=[];
     if(ask&&!compact){
       if(open){foot.push(el("span",{class:"mg-state pending",text:S.isOwner?"Waiting on you":"Pending response"}));
-        if(S.isOwner&&m.kind==="question")foot.push(el("button",{class:"mg-link strong",type:"button",text:"Answer one by one",onclick:function(){openQA(m)}}));
+        if(S.isOwner)foot.push(el("button",{class:"mg-link strong",type:"button",text:"Open",onclick:function(){openFocus(m.thread,m.id)}}));
         if(S.isOwner){foot.push(el("button",{class:"mg-link",type:"button",text:"Reply",onclick:function(){S.replyTo=m.id;S.mKind="reply";S.mJob=m.jobId||"";renderMessages();var t=$("mg-text");if(t)t.focus()}}));
           foot.push(el("button",{class:"mg-link",type:"button",text:"Mark done",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){m.status="done";render()},fail)}}))}}
       else foot.push(el("span",{class:"mg-state done",text:"\u2713 Answered"}))}
@@ -1106,13 +1123,13 @@ body{background:var(--page)}
       el("div",{class:"mg-col"},[cont?null:el("div",{class:"mg-meta"},[el("b",{text:mine?"You":whoName(m.from)}),el("span",{text:tm})]),bubble,foot.length?el("div",{class:"mg-foot"},foot):null])]);
   }
   // ---------- answer a teammate's questions one at a time ----------
-  function openQA(m){
+  function openQA(m,onDone,onClose){
     var who=whoName(m.thread).split(" ")[0],data=null,idx=0,ans={},sk="qa-"+m.id;
     try{ans=JSON.parse(localStorage.getItem(sk)||"{}")}catch(e){}
     function save(){try{localStorage.setItem(sk,JSON.stringify(ans))}catch(e){}}
     var prev=document.activeElement,box=el("div",{class:"qa",role:"dialog","aria-modal":"true","aria-label":who+"'s questions"});
     var wrap=el("div",{class:"qa-wrap",onclick:function(e){if(e.target===wrap)close()}},[box]);
-    function close(){wrap.remove();document.removeEventListener("keydown",key);if(prev&&prev.focus)prev.focus()}
+    function close(sent){wrap.remove();document.removeEventListener("keydown",key);if(prev&&prev.focus)prev.focus();if(!sent&&onClose)onClose()}
     function key(e){if(e.key==="Escape")close()}
     function a(i){return ans[i]||(ans[i]={pick:[],text:""})}
     function answered(i){var x=ans[i];return !!(x&&((x.pick&&x.pick.length)||(x.text||"").trim()))}
@@ -1137,7 +1154,7 @@ body{background:var(--page)}
       if(review){var send=el("button",{class:"btn accent",type:"button",text:"Send answers to "+who,onclick:function(){
           var body2="Here are the answers:\n\n"+qs.map(function(q,i){return (i+1)+". "+q.text+"\n"+(answerText(i)||"(I'll get back to you on this one.)")}).join("\n\n");
           send.disabled=true;send.textContent="Sending...";
-          api("POST","/api/messages",{to:m.thread,body:body2,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);m.status="done";try{localStorage.removeItem(sk)}catch(e){}close();toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");render();refresh()},function(e){send.disabled=false;send.textContent="Send answers to "+who;fail(e)})}});
+          api("POST","/api/messages",{to:m.thread,body:body2,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);m.status="done";try{localStorage.removeItem(sk)}catch(e){}close(true);toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");if(onDone)onDone();else{render();refresh()}},function(e){send.disabled=false;send.textContent="Send answers to "+who;fail(e)})}});
         foot.push(send)}
       else{foot.push(el("button",{class:"btn ghost",type:"button",text:answered(idx)?"Next":"Skip for now",onclick:function(){idx++;draw()}}));
         if(idx===n-1)foot[foot.length-1].textContent="Review answers"}
@@ -1145,6 +1162,41 @@ body{background:var(--page)}
     box.appendChild(el("div",{class:"qa-load",text:"Splitting "+who+"'s message into questions..."}));
     document.body.appendChild(wrap);document.addEventListener("keydown",key);
     api("POST","/api/messages/"+m.id+"/questions",{}).then(function(r){data=r;draw()},function(e){close();fail(e)});
+  }
+  // ---------- work through open asks one message at a time ----------
+  function openFocus(thread,startId){
+    var who=whoName(thread).split(" ")[0],handled={},prev=document.activeElement;
+    var queue=openAsks(thread).sort(function(a,b){return String(a.at).localeCompare(String(b.at))});
+    if(!queue.length){toast("Nothing waiting on you from "+who);return}
+    var idx=Math.max(0,queue.findIndex(function(m){return m.id===startId}));
+    var box=el("div",{class:"qa fq",role:"dialog","aria-modal":"true","aria-label":who+"'s open asks"});
+    var wrap=el("div",{class:"qa-wrap",onclick:function(e){if(e.target===wrap)close()}},[box]);
+    function close(){wrap.remove();document.removeEventListener("keydown",key);if(prev&&prev.focus)prev.focus();render();refresh()}
+    function key(e){if(e.key==="Escape"&&document.body.lastElementChild===wrap)close()}
+    function next(){var i=queue.findIndex(function(m,k){return k>idx&&!handled[m.id]});if(i<0)i=queue.findIndex(function(m){return !handled[m.id]});if(i<0){idx=queue.length}else idx=i;draw()}
+    function finish(m,label){handled[m.id]=label;m.status="done";next()}
+    function draw(){box.textContent="";var left=queue.filter(function(m){return !handled[m.id]}).length;
+      box.appendChild(el("div",{class:"qa-top"},[el("div",{},[el("h3",{text:who+"'s open asks"}),el("p",{text:left?left+" waiting on you. Oldest first.":"All caught up."})]),el("button",{class:"qa-x",type:"button","aria-label":"Close",text:"×",onclick:close})]));
+      box.appendChild(el("div",{class:"qa-steps"},queue.map(function(m,i){return el("button",{type:"button",title:handled[m.id]||"",class:(i===idx?"on":handled[m.id]?"done":""),text:String(i+1),onclick:function(){idx=i;draw()}})})));
+      var body=el("div",{class:"qa-body"});box.appendChild(body);
+      if(idx>=queue.length){body.appendChild(el("div",{class:"fq-done"},[el("b",{text:"That's everything from "+who+"."}),el("span",{text:Object.keys(handled).length+" handled. Each reply also went to "+who+"'s email."})]));
+        box.appendChild(el("div",{class:"qa-foot"},[el("span",{class:"sp"}),el("button",{class:"btn accent",type:"button",text:"Done",onclick:close})]));return}
+      var m=queue[idx],j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId});
+      body.appendChild(el("div",{class:"qa-num"},[(KIND_L[m.kind]||m.kind)+" · "+when(m.at),handled[m.id]?el("span",{class:"fq-tag",text:handled[m.id]}):null]));
+      if(j)body.appendChild(el("button",{class:"mg-job fq-job",type:"button",onclick:function(){close();openJob(j.id)}},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{},[el("b",{text:j.company}),el("span",{text:j.role})])]));
+      body.appendChild(el("div",{class:"fq-msg",text:m.body}));
+      var multi=m.kind==="question";
+      if(multi)body.appendChild(el("div",{class:"fq-qa"},[el("span",{text:"Form questions in here?"}),el("button",{class:"btn accent small",type:"button",text:"Answer one by one",onclick:function(){wrap.style.display="none";openQA(m,function(){wrap.style.display="";finish(m,"Answered")},function(){wrap.style.display=""})}})]));
+      var ta=el("textarea",{placeholder:"Reply to "+who+"...",rows:"3"});ta.value=(S.fqDraft||{})[m.id]||"";ta.addEventListener("input",function(){S.fqDraft=S.fqDraft||{};S.fqDraft[m.id]=ta.value});
+      var chips=el("div",{class:"mg-quick"},["Yes, go ahead and apply.","Skip this one.","I reached out to them.","Got it, thanks."].map(function(q){return el("button",{type:"button",text:q,onclick:function(){ta.value=(ta.value?ta.value.trim()+" ":"")+q;ta.dispatchEvent(new Event("input"));ta.focus()}})}));
+      body.appendChild(el("div",{class:"fq-reply"},[chips,ta]));
+      var send=el("button",{class:"btn accent",type:"button",text:"Send reply",onclick:function(){var t=ta.value.trim();if(!t){ta.focus();return}send.disabled=true;
+        api("POST","/api/messages",{to:thread,body:t,kind:"reply",jobId:m.jobId||null,closes:m.id}).then(function(r){if(r&&r.message)S.messages.push(r.message);if(S.fqDraft)delete S.fqDraft[m.id];toast(r&&r.emailed?"Sent. Emailed "+who+".":"Sent on the board.");finish(m,"Replied")},function(e){send.disabled=false;fail(e)})}});
+      var done=el("button",{class:"btn ghost",type:"button",text:"Mark done",title:"Close it without replying",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){finish(m,"Marked done")},fail)}});
+      box.appendChild(el("div",{class:"qa-foot"},[el("button",{class:"btn ghost",type:"button",text:"Back",disabled:idx===0?true:null,onclick:function(){idx--;draw()}}),
+        el("button",{class:"btn ghost",type:"button",text:"Skip",onclick:function(){if(idx<queue.length-1){idx++;draw()}else next()}}),el("span",{class:"sp"}),done,send]));
+      if(!multi)setTimeout(function(){ta.focus()},0)}
+    document.body.appendChild(wrap);document.addEventListener("keydown",key);draw();
   }
   function timeline(list){var box=el("div",{class:"mg-tl"}),day="",prev=null;
     if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"No messages yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
@@ -1189,13 +1241,16 @@ body{background:var(--page)}
     var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:thread==="__all"?"All contacts":S.isOwner?whoName(thread):"Inbox"}),el("p",{class:"muted-line",text:sub})]),views]);
     var filt=el("div",{class:"mg-subfilter"},[["all","Everything"],["open","Open asks only"]].map(function(f){return el("button",{type:"button",class:"linkish"+((S.mFilter||"all")===f[0]?" on":""),text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}));
     var tlBox=timeline(list);
-    var main=el("div",{class:"mg-main"},view==="people"?[head,contactsPanel(people,{exportable:S.isOwner,jobs:S.jobs.filter(function(j){return SENT[j.status]&&(thread==="__all"||!S.isOwner||j.addedBy===thread)})})]:[head,el("div",{class:"mg-chat"},[filt,tlBox,form])]);
+    var focusBar=S.isOwner&&oa&&thread!=="__all"?el("div",{class:"fq-bar"},[el("span",{},[el("b",{text:oa+" "+(oa===1?"ask":"asks")})," waiting on you"]),el("button",{class:"btn accent small",type:"button",text:"Work through them",onclick:function(){openFocus(thread)}})]):null;
+    var main=el("div",{class:"mg-main"},view==="people"?[head,contactsPanel(people,{exportable:S.isOwner,jobs:S.jobs.filter(function(j){return SENT[j.status]&&(thread==="__all"||!S.isOwner||j.addedBy===thread)})})]:[head,el("div",{class:"mg-chat"},[focusBar,filt,tlBox,form])]);
     if(S.isOwner){var allP=contactsFor("__all"),allT=toContact(allP);
-      var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("span",{class:"mg-rail-t",text:"Team"})].concat(mates().map(function(k){var n=openAsks(k).length,u=unseenMsgs(k),t=toContact(contactsFor(k));
+      var railOff=false;try{railOff=localStorage.getItem("ay-rail")==="off"}catch(e){}
+      var railBtn=el("button",{class:"mg-rail-btn",type:"button",title:railOff?"Show the team panel":"Hide the team panel","aria-label":railOff?"Show the team panel":"Hide the team panel",text:railOff?"\u00bb":"\u00ab",onclick:function(){try{localStorage.setItem("ay-rail",railOff?"on":"off")}catch(e){}renderMessages()}});
+      var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("div",{class:"mg-rail-h"},[el("span",{class:"mg-rail-t",text:"Team"}),railBtn])].concat(mates().map(function(k){var n=openAsks(k).length,u=unseenMsgs(k),t=toContact(contactsFor(k));
         var line=[n?n+" open "+(n===1?"ask":"asks"):"",t?t+" to contact":""].filter(Boolean).join(" \u00b7 ")||"All caught up";
-        return el("button",{type:"button",class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:line})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])}),
-        [el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
-      V.appendChild(el("div",{class:"mg-wrap"},[rail,main]))}
+        return el("button",{type:"button",title:whoName(k),class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:line})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])}),
+        [el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",title:"All contacts",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
+      V.appendChild(el("div",{class:"mg-wrap"+(railOff?" rail-off":"")},[rail,main]))}
     else V.appendChild(el("div",{class:"mg-wrap solo"},[main]));
     var tl=V.querySelector(".mg-tl");if(tl){var down=function(){tl.scrollTop=tl.scrollHeight};down();requestAnimationFrame(down);setTimeout(down,80)}
     if(S.mFocus){S.mFocus=false;setTimeout(function(){ta.focus()},0)}
