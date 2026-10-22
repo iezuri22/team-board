@@ -806,6 +806,16 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 
 .pg-person{border:0;background:none;padding:0;font:inherit;font-weight:600;font-size:13.5px;color:var(--fg);cursor:pointer;height:auto}.pg-person:hover{text-decoration:underline}
 
+.cv-h{margin-top:4px}
+.cv-msgs{display:grid;gap:8px}
+.cv-msg{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+.cv-msg.mine{border-left:4px solid #d9541a}.cv-msg.theirs{border-left:4px solid #1e7a3c;background:#f4fbf6}.cv-msg.soft{border-left-color:var(--line);background:var(--soft)}
+.cv-when{display:grid;gap:1px}.cv-when b{font-size:13.5px}.cv-when span{font-size:12px;color:var(--muted)}
+.cv-mbody{display:grid;gap:4px;min-width:0}.cv-mh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.cv-mh b{font-size:14px}
+.cv-mtext{margin:4px 0 0;white-space:pre-wrap;font-size:13.5px;line-height:1.5;color:var(--fg);background:var(--soft);border-radius:8px;padding:10px 12px}
+.cv-notext{font-size:12px}
+.cv-other summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600;margin:4px 0 8px}
+
 </style>
 
 <div class="wrap">
@@ -1146,7 +1156,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     S.ctOpen=S.ctOpen||{};if(opts.compact)S.ctView="all";
     function md(iso){return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric"})}
     function logBtn(j,c,via,label,tip){return el("button",{class:"pg-act",type:"button",title:tip,text:label,onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){toast("Logged");refresh()},fail)}})}
-    function statusCell(c){var cd=cadence(c),o=c.outreach||[],l=o[o.length-1];
+    function statusCell(c){var cd=cadence(c),o=outs(c),l=o[o.length-1];
       if(cd.k==="answer")return el("span",{class:"pg-pill ok",text:"Responded "+md(c.repliedAt)});
       if(cd.k==="talking"||cd.k==="check")return el("span",{class:"pg-pill ok",text:"In conversation"});
       if(cd.k==="closed")return el("span",{class:"pg-pill",text:"Done "+md(c.closedAt)});
@@ -1266,7 +1276,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   }
   function contactsFor(thread){return allContacts().filter(function(x){return thread==="__all"||(S.isOwner?x.j.addedBy===thread:true)})}
   function toContact(rows){return rows.filter(function(x){return !(x.c.outreach&&x.c.outreach.length)}).length}
-  function outreachEvents(thread){var out=[];contactsFor(thread).forEach(function(x){(x.c.outreach||[]).forEach(function(o){out.push({ev:true,at:o.at,by:o.by,via:o.via,c:x.c,j:x.j})})});return out}
+  function outreachEvents(thread){var out=[];contactsFor(thread).forEach(function(x){outs(x.c).forEach(function(o){out.push({ev:true,at:o.at,by:o.by,via:o.via,c:x.c,j:x.j})})});return out}
   function inboxMark(){try{return localStorage.getItem("ay-inbox-"+S.uid)||""}catch(e){return ""}}
   function unseenEvents(){if(S.isOwner)return 0;var m=inboxMark();return outreachEvents(S.uid).filter(function(e){return e.by==="owner"&&e.at>m}).length}
   // ---------- messages: asks tied to jobs, answered on the board and by email ----------
@@ -1489,12 +1499,30 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         else if(cd.k==="closed")acts.push(Q("Reopen conversation",patch("reopen","Reopened")));
         body.appendChild(el("div",{class:"cv-acts"},acts));
         var dp=draftPanel(j,c,draw);if(dp)body.appendChild(dp)}
-      // timeline: every touch with this person, newest first
-      var first=c.name.split(" ")[0],ev=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0}).slice().reverse();
-      var tl=el("ol",{class:"tl cv-tl"});
-      if(!ev.length)tl.appendChild(el("li",{},["Found",el("span",{text:nameOf(c.addedBy).replace(" (you)","")+(c.addedAt?", "+rel(c.addedAt):"")})]));
-      ev.forEach(function(h){tl.appendChild(el("li",{},[h.text.replace("Found a contact: ","Found: "),el("span",{text:nameOf(h.by).replace(" (you)","")+", "+new Date(h.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})})]))});
-      body.appendChild(el("b",{class:"wk-sub",text:"Timeline"}));body.appendChild(tl);
+      // Messages: what was sent, when, how, by whom; their replies in the same list
+      var VIA={"LinkedIn":"LinkedIn connection note","LinkedIn message":"LinkedIn message","email":"Email","InMail":"InMail"};
+      var hist=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0});
+      var msgs=outs(c).map(function(o,i){return {at:o.at,mine:true,label:(i===0?"First message":"Follow-up")+" · "+(VIA[o.via]||o.via),by:o.by,text:o.text}});
+      hist.forEach(function(h){var t=h.text;
+        if(/ replied$/.test(t)&&t.indexOf("Ifeanyi replied to")<0)msgs.push({at:h.at,mine:false,label:"They replied"});
+        else if(t.indexOf("Ifeanyi replied to")===0)msgs.push({at:h.at,mine:true,label:"You replied",by:h.by});
+        else if(t.indexOf("checked in with")>0)msgs.push({at:h.at,mine:true,label:"Check-in",by:h.by});
+        else if(/accepted the LinkedIn connection/.test(t))msgs.push({at:h.at,mine:false,label:"Accepted your connection",soft:true});
+        else if(/Conversation with .* marked done/.test(t))msgs.push({at:h.at,mine:true,label:"Conversation marked done",soft:true})});
+      msgs.sort(function(a,b){return String(b.at).localeCompare(String(a.at))});
+      var ml=el("div",{class:"cv-msgs"});
+      if(!msgs.length)ml.appendChild(el("p",{class:"muted-line",text:"Nothing sent yet."}));
+      msgs.forEach(function(m){var dt=new Date(m.at);
+        ml.appendChild(el("div",{class:"cv-msg"+(m.mine?" mine":" theirs")+(m.soft?" soft":"")},[
+          el("div",{class:"cv-when"},[el("b",{text:dt.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}),el("span",{text:dt.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]),
+          el("div",{class:"cv-mbody"},[el("div",{class:"cv-mh"},[el("b",{text:m.label}),m.by?el("span",{class:"pg-dim",text:"sent by "+(m.by==="owner"?"Ifeanyi":nameOf(m.by).replace(" (you)",""))}):null]),
+            m.text?el("p",{class:"cv-mtext",text:m.text}):(m.mine&&/message|Follow-up/.test(m.label)?el("span",{class:"pg-dim cv-notext",text:"Text not saved (logged before message text was kept)"}):null)])]))});
+      body.appendChild(el("b",{class:"wk-sub cv-h",text:"Messages"}));body.appendChild(ml);
+      // everything else (drafts, found, edits), quieter
+      var other=hist.filter(function(h){return !/reached out to|replied|checked in|accepted the LinkedIn|marked done/.test(h.text)}).slice().reverse();
+      if(other.length){var det=el("details",{class:"cv-other"},[el("summary",{text:"Other activity ("+other.length+")"})]);var tl=el("ol",{class:"tl cv-tl"});
+        other.forEach(function(h){tl.appendChild(el("li",{},[h.text.replace("Found a contact: ","Found: "),el("span",{text:nameOf(h.by).replace(" (you)","")+", "+new Date(h.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})})]))});
+        det.appendChild(tl);body.appendChild(det)}
       body.appendChild(el("button",{class:"linkish cv-job",type:"button",text:"Open the full job page ›",onclick:function(){close();openJob(j.id)}}))}
     document.body.appendChild(wrap);document.addEventListener("keydown",key);draw()}
   // ---------- Weekly: the Monday meeting on direction and progress ----------
@@ -1540,7 +1568,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       el("div",{class:"wk-it"},[el("button",{type:"button",class:"linkish wk-co",text:j.company+", "+j.role,onclick:function(){openJob(j.id)}}),el("span",{class:"pg-dim",text:"Found by "+whoName(j.addedBy)+(j.interviewAt?" \u00b7 "+new Date(j.interviewAt).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}):"")})])]))});
     V.appendChild(wkSection("Interviews",ivJobs.length?String(ivJobs.length):null,ivBox));
     // outreach pipeline: from people found to an actual conversation
-    var pc=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){pc.push({c:c,j:j,cd:cadence(c),o:c.outreach||[]})})});
+    var pc=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){pc.push({c:c,j:j,cd:cadence(c),o:outs(c)})})});
     var stages=[
       ["found","People found",function(x){return true},function(x){return x.c.addedAt}],
       ["contacted","Contacted",function(x){return x.o.length>0},function(x){return x.o[0]&&x.o[0].at}],
@@ -2030,7 +2058,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   // The follow-up playbook: connection note first; if they accept, send the full
   // message within a day; if not accepted after 7 days, follow up by email or InMail;
   // after one follow-up, stop.
-  function cadence(c){var o=c.outreach||[],d=function(i){return Math.floor((Date.now()-new Date(i))/864e5)};
+  // the same send logged twice within 10 minutes counts once
+  function outs(c){var r=[];(c.outreach||[]).forEach(function(o){var l=r[r.length-1];if(l&&l.via===o.via&&Math.abs(new Date(o.at)-new Date(l.at))<600000){if(o.text&&!l.text)l.text=o.text;return}r.push(Object.assign({},o))});return r}
+  function cadence(c){var o=outs(c),d=function(i){return Math.floor((Date.now()-new Date(i))/864e5)};
     if(c.closedAt)return {k:"closed",at:c.closedAt};
     if(c.repliedAt){if(!c.answeredAt||new Date(c.repliedAt)>new Date(c.answeredAt))return {k:"answer",due:true,at:c.repliedAt};
       var q=d(c.answeredAt);return q>=3?{k:"check",due:true,days:q,at:c.answeredAt}:{k:"talking",at:c.answeredAt,check:new Date(new Date(c.answeredAt).getTime()+3*864e5)}}
@@ -2040,7 +2070,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(c.acceptedAt)return {k:"accepted",due:true,at:c.acceptedAt,late:d(c.acceptedAt)>=1};
     if(days>=7)return {k:"nudge",due:true,days:days,at:first.at};
     return {k:"waiting",at:first.at,check:new Date(new Date(first.at).getTime()+7*864e5)}}
-  function logOut(j,c,via,msg){return api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){S.drafting=null;toast(msg||"Logged");refresh()},fail)}
+  function logOut(j,c,via,msg,text){return api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,text?{outreach:via,text:text}:{outreach:via}).then(function(){S.drafting=null;toast(msg||"Logged");refresh()},fail)}
   function outreachLine(c){var o=(c.outreach||[]);if(!o.length)return null;var l=o[o.length-1];
     return el("div",{class:"c-out"},[el("span",{class:"c-out-dot"}),(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via)+", "+rel(l.at)+(o.length>1?" ("+o.length+" times)":"")])}
   function outreachBtns(j,c,after){var mk=function(via,label){return el("button",{class:"btn ghost small",type:"button",text:label,onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){toast("Logged");(after||refresh)()},fail)}})};
@@ -2074,12 +2104,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(text){acts.push(el("button",{class:"btn ghost small",type:"button",text:"Copy",onclick:function(){var b=this;try{navigator.clipboard.writeText(outBox.value).then(function(){b.textContent="Copied"})}catch(e){}}}));
       if(lnk)acts.push(el("a",{class:"btn ghost small",href:lnk,target:"_blank",rel:"noopener",text:"Open LinkedIn"}));
       if(mode!=="followup"){
-        if(S.isOwner&&lnk)acts.push(el("button",{class:"btn small",type:"button",text:"Sent the connection request",onclick:function(){logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect; if not, follow up in 7 days.")}}));
-        if(c.email)acts.push(el("button",{class:"btn small"+(S.isOwner&&lnk?" ghost":""),type:"button",text:"Sent by email",onclick:function(){logOut(j,c,"email","Logged. Follow up in 7 days if no reply.")}}))}
+        if(S.isOwner&&lnk)acts.push(el("button",{class:"btn small",type:"button",text:"Sent the connection request",onclick:function(){logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect; if not, follow up in 7 days.",outBox.value)}}));
+        if(c.email)acts.push(el("button",{class:"btn small"+(S.isOwner&&lnk?" ghost":""),type:"button",text:"Sent by email",onclick:function(){logOut(j,c,"email","Logged. Follow up in 7 days if no reply.",outBox.value)}}))}
       else{
-        if(lnk&&c.acceptedAt)acts.push(el("button",{class:"btn small",type:"button",text:"Sent on LinkedIn",onclick:function(){logOut(j,c,"LinkedIn message","Follow-up logged. That's two touches; leave it there.")}}));
-        if(c.email)acts.push(el("button",{class:"btn small ghost",type:"button",text:"Sent by email",onclick:function(){logOut(j,c,"email","Follow-up logged. That's two touches; leave it there.")}}));
-        if(!c.acceptedAt)acts.push(el("button",{class:"btn small ghost",type:"button",text:"Sent as InMail",onclick:function(){logOut(j,c,"InMail","Follow-up logged. That's two touches; leave it there.")}}))}}
+        if(lnk&&c.acceptedAt)acts.push(el("button",{class:"btn small",type:"button",text:"Sent on LinkedIn",onclick:function(){logOut(j,c,"LinkedIn message","Follow-up logged. That's two touches; leave it there.",outBox.value)}}));
+        if(c.email)acts.push(el("button",{class:"btn small ghost",type:"button",text:"Sent by email",onclick:function(){logOut(j,c,"email","Follow-up logged. That's two touches; leave it there.",outBox.value)}}));
+        if(!c.acceptedAt)acts.push(el("button",{class:"btn small ghost",type:"button",text:"Sent as InMail",onclick:function(){logOut(j,c,"InMail","Follow-up logged. That's two touches; leave it there.",outBox.value)}}))}}
     acts.push(el("button",{class:"linkish dr-close",type:"button",text:"Close",onclick:function(){S.drafting=null;rerender()}}));
     var cnt=null;if(mode!=="followup"){cnt=el("span",{class:"dr-count"});var upd=function(){var n=outBox.value.length;cnt.textContent=n?n+" / 300 characters":"";cnt.className="dr-count"+(n>300?" over":"")};outBox.addEventListener("input",upd);upd()}
     return el("div",{class:"dr-panel"},[el("div",{class:"dr-top"},[el("b",{text:(mode==="followup"?"Follow-up to ":"Connection note to ")+first}),el("span",{text:mode==="followup"?"The full message, with your portfolio link.":"Fits LinkedIn's 300-character connection note."})]),ctx,outBox,cnt,el("div",{class:"dr-acts"},acts)]);
