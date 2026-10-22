@@ -1916,6 +1916,15 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function historyCard(j){
     var ol=el("ol",{class:"tl"}),h=(j.history||[]).filter(function(e){return !/^AI drafted /.test(e.text)}).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{},["Logged",el("span",{text:nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+rel(j.addedAt):"")})]));
+    // messages show as one line here; the full text lives in the Inbox
+    var cut=function(t,n){t=t.replace(/\s+/g," ").trim();return t.length>n?t.slice(0,n).replace(/\s+\S*$/,"")+"\u2026":t};
+    var short=function(t){var m;
+      if((m=/^Texted Ifeanyi:\s*(.*)$/.exec(t)))return nameOf(j.addedBy).replace(" (you)","")+" messaged Ifeanyi: "+cut(m[1],70);
+      if((m=/^Ifeanyi's feedback:\s*(.*)$/.exec(t)))return "Ifeanyi's feedback: "+cut(m[1],70);
+      if((m=/^Ifeanyi:\s*(.*)$/.exec(t)))return "Ifeanyi replied: "+cut(m[1],70);
+      return t.length>140?cut(t,120):t};
+    var merged=[];h.forEach(function(e){var p=merged[merged.length-1];if(p&&p.text===e.text&&p.by===e.by&&/^(Updated notes|Updated contact )/.test(e.text)){p.n=(p.n||1)+1;return}merged.push(Object.assign({},e))});
+    h=merged.map(function(e){return Object.assign(e,{text:short(e.text)+(e.n>1?" \u00d7"+e.n:"")})});
     S.histAll=S.histAll||{};var all=!!S.histAll[j.id];
     (all?h:h.slice(0,6)).forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
     var more=h.length>6?el("button",{class:"linkish hist-more",type:"button",text:all?"Show less":"Show all "+h.length,onclick:function(e){e.stopPropagation();S.histAll[j.id]=!all;renderRows()}}):null;
