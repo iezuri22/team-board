@@ -1143,7 +1143,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   }
 
   function allContacts(){var out=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){var first=c.name.split(" ")[0];
-      var last=(j.history||[]).filter(function(h){return h.text.indexOf("Found a contact")!==0&&(h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0))}).pop();
+      var last=(j.history||[]).filter(function(h){return h.text.indexOf("Found a contact")!==0&&!/^AI drafted /.test(h.text)&&(h.text.indexOf(c.name)>=0||(first.length>2&&/^(Followed up|Texted Ifeanyi)/.test(h.text)&&h.text.indexOf(first)>=0))}).pop();
       out.push({c:c,j:j,last:last})})});return out.sort(function(a,b){return String(b.c.addedAt||"").localeCompare(String(a.c.addedAt||""))})}
   function renderContacts(){S.tab="messages";S.mThread="__all";render()}
   function contactsPanel(all,opts){
@@ -1501,7 +1501,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         var dp=draftPanel(j,c,draw);if(dp)body.appendChild(dp)}
       // Messages: what was sent, when, how, by whom; their replies in the same list
       var VIA={"LinkedIn":"LinkedIn connection note","LinkedIn message":"LinkedIn message","email":"Email","InMail":"InMail"};
-      var hist=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0});
+      var hist=(j.history||[]).filter(function(h){return h.text.indexOf(c.name)>=0&&!/^AI drafted /.test(h.text)});
       var msgs=outs(c).map(function(o,i){return {at:o.at,mine:true,label:(i===0?"First message":"Follow-up")+" · "+(VIA[o.via]||o.via),by:o.by,text:o.text}});
       hist.forEach(function(h){var t=h.text;
         if(/ replied$/.test(t)&&t.indexOf("Ifeanyi replied to")<0)msgs.push({at:h.at,mine:false,label:"They replied"});
@@ -1914,7 +1914,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     return list.length?scard(null,[el("div",{class:"side-acts"},list)]):null;
   }
   function historyCard(j){
-    var ol=el("ol",{class:"tl"}),h=(j.history||[]).slice().reverse();
+    var ol=el("ol",{class:"tl"}),h=(j.history||[]).filter(function(e){return !/^AI drafted /.test(e.text)}).slice().reverse();
     if(!h.length)ol.appendChild(el("li",{},["Logged",el("span",{text:nameOf(j.addedBy).replace(" (you)","")+(j.addedAt?", "+rel(j.addedAt):"")})]));
     S.histAll=S.histAll||{};var all=!!S.histAll[j.id];
     (all?h:h.slice(0,6)).forEach(function(e){ol.appendChild(el("li",{},[e.text,el("span",{text:nameOf(e.by).replace(" (you)","")+", "+rel(e.at)})]))});
