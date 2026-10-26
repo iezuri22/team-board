@@ -678,7 +678,7 @@ body{background:var(--page)}
 .fu-bar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 14px;margin:0 0 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
 .fu-stats{display:flex;gap:18px;font-size:14px}.fu-stats b{font-size:16px}
 .fu-rule{flex:1;font-size:12.5px;color:var(--faint);min-width:240px}
-.pg-pill.acc{background:#fff1e8;color:#b4471a}
+.pg-pill.acc{background:#fff1e8;color:#b4471a}.pg-pill.bad{background:#fde8e8;color:#b42318}
 
 /* tidy pass: one toolbar, one next step per person */
 .pg-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -1201,6 +1201,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function md(iso){return new Date(iso).toLocaleDateString(undefined,{month:"short",day:"numeric"})}
     function logBtn(j,c,via,label,tip){return el("button",{class:"pg-act",type:"button",title:tip,text:label,onclick:function(){api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:via}).then(function(){toast("Logged");refresh()},fail)}})}
     function statusCell(c){var cd=cadence(c),o=outs(c),l=o[o.length-1];
+      if(cd.k==="toEmail")return el("span",{class:"pg-pill",text:"To email"});
+      if(cd.k==="emailed")return el("span",{class:"pg-pill sent",text:"Emailed "+md(cd.at)});
+      if(cd.k==="li")return el("span",{class:"pg-pill "+(cd.bounced?"bad":"sent"),text:cd.bounced?"Bad email":"Emailed "+md(cd.at)});
       if(cd.k==="answer")return el("span",{class:"pg-pill ok",text:"Responded "+md(c.repliedAt)});
       if(cd.k==="talking"||cd.k==="check")return el("span",{class:"pg-pill ok",text:"In conversation"});
       if(cd.k==="closed")return el("span",{class:"pg-pill",text:"Done "+md(c.closedAt)});
@@ -1209,8 +1212,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(cd.k==="done")return el("span",{class:"pg-pill sent",title:"Two touches: note and follow-up",text:"Followed up "+md(l.at)});
       return el("span",{class:"pg-pill sent",title:(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via),text:(o[0].via==="LinkedIn"?"Note sent ":"Emailed ")+md(o[0].at)})}
     function nextCell(j,c){var cd=cadence(c);
-      if(!S.isOwner){var T={"new":"Ifeanyi to reach out",waiting:"Waiting on them to accept",accepted:"Ifeanyi following up",nudge:"Ifeanyi following up",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};return el("span",{class:"pg-dim",text:T[cd.k]||""})}
+      if(!S.isOwner){var T={toEmail:"Email them",emailed:"Emailed; Ifeanyi sends LinkedIn in 3 days",li:"Ifeanyi to send LinkedIn note","new":"Ifeanyi to reach out",waiting:"Waiting on them to accept",accepted:"Ifeanyi following up",nudge:"Ifeanyi following up",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};return el("span",{class:"pg-dim",text:T[cd.k]||""})}
       if(cd.k==="new")return c.draft&&c.draftMode!=="followup"?el("span",{class:"pg-ready",text:"\u2726 Note ready"}):el("span",{class:"pg-dim",text:"Send connection note"});
+      if(cd.k==="toEmail")return el("span",{class:"pg-dim",text:"Team to email"});
+      if(cd.k==="emailed")return el("span",{class:"pg-dim",text:"LinkedIn note "+md(cd.check)+" if no reply"});
+      if(cd.k==="li")return el("span",{class:"pg-due",text:cd.bounced?"Email bounced: send LinkedIn note":"No reply to email: send LinkedIn note"});
       if(cd.k==="waiting")return el("span",{class:"pg-dim",text:"Check "+md(cd.check)+" if not accepted"});
       if(cd.k==="accepted")return el("span",{class:"pg-due",text:cd.late?"Follow up now (accepted "+rel(c.acceptedAt)+")":"Send follow-up today"});
       if(cd.k==="nudge")return el("span",{class:"pg-due",text:"Email or InMail ("+cd.days+"d, no accept)"});
@@ -1521,8 +1527,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function draw(){var o=cur(),j=o.j,c=o.c;box.textContent="";if(!c){close();return}
       var cd=cadence(c),lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
       var md=function(i){return new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"})};
-      var STL={"new":"Not contacted",waiting:"Note sent "+(c.outreach&&c.outreach[0]?md(c.outreach[0].at):""),accepted:"Accepted "+(c.acceptedAt?md(c.acceptedAt):""),nudge:"No reply after 7 days",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};
-      var NX={"new":"Send the connection note",waiting:"Mark accepted when they connect"+(cd.check?" (check "+md(cd.check)+")":""),accepted:"Send the full follow-up today",nudge:"Follow up by email or InMail",done:"Leave it unless they reply",answer:"Reply to them",talking:"Check in "+(cd.check?md(cd.check):"in 3 days")+" if no reply",check:"Check in ("+cd.days+" days since your last note)",closed:""};
+      var STL={toEmail:"To email",emailed:"Emailed",li:c.emailBad?"Bad email":"Emailed, no reply","new":"Not contacted",waiting:"Note sent "+(c.outreach&&c.outreach[0]?md(c.outreach[0].at):""),accepted:"Accepted "+(c.acceptedAt?md(c.acceptedAt):""),nudge:"No reply after 7 days",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};
+      var NX={toEmail:"Esther or Gilaiza sends the email",emailed:"LinkedIn note "+(cd.check?md(cd.check):"in 3 days")+" if no reply",li:"Send the LinkedIn connection note","new":"Send the connection note",waiting:"Mark accepted when they connect"+(cd.check?" (check "+md(cd.check)+")":""),accepted:"Send the full follow-up today",nudge:"Follow up by email or InMail",done:"Leave it unless they reply",answer:"Reply to them",talking:"Check in "+(cd.check?md(cd.check):"in 3 days")+" if no reply",check:"Check in ("+cd.days+" days since your last note)",closed:""};
       box.appendChild(el("div",{class:"qa-top"},[el("div",{},[el("h3",{},[c.name,lnk?el("a",{href:lnk,target:"_blank",rel:"noopener",class:"pg-in",text:"in"}):null,c.email?el("a",{href:"mailto:"+c.email,class:"pg-in mail",title:c.email,text:"@"}):null]),
         el("p",{text:(c.title?c.title+" · ":"")+j.company+", "+j.role})]),el("button",{class:"qa-x",type:"button","aria-label":"Close",text:"×",onclick:close})]));
       var body=el("div",{class:"qa-body cv-body"});box.appendChild(body);
@@ -1578,7 +1584,10 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     S.jobs.forEach(function(j){if(!SENT[j.status]||j.status==="rejected")return;var applied=sentAt(j)||j.addedAt,cs=j.contacts||[];
       if(!cs.length){out.push({j:j,c:null,tab:"find",applied:applied});return}
       cs.forEach(function(c){var cd=cadence(c),o=outs(c),t={j:j,c:c,cd:cd,applied:applied},n;
-        if(cd.k==="new"){t.tab="first";n=daysSince(applied);t.late=n>=5;t.what=t.late?"Send the connection note ("+n+" days since applying)":"Send the connection note"}
+        if(cd.k==="toEmail"){t.tab=S.isOwner?"team":"toemail";n=daysSince(applied);t.what=S.isOwner?"Waiting on "+whoName(j.addedBy).split(" ")[0]+" to email ("+(c.email||c.emailGuess)+")":"Send the email";if(!S.isOwner&&n>=3){t.late=true;t.what="Send the email ("+n+" days since applying)"}}
+        else if(cd.k==="emailed"){t.tab=S.isOwner?"waiting":"emailed";t.what=S.isOwner?"Emailed "+fmtD(cd.at)+". LinkedIn note "+fmtD(cd.check)+" if no reply":"Emailed "+fmtD(cd.at)+". Ifeanyi follows up on LinkedIn "+fmtD(cd.check)+" if no reply"}
+        else if(cd.k==="li"){t.tab=S.isOwner?"first":"emailed";n=daysSince(cd.at);t.late=S.isOwner&&n>=(cd.bounced?2:6);t.what=S.isOwner?(cd.bounced?"Email bounced. Send the LinkedIn note":"No reply to the email in "+cd.days+" days. Send the LinkedIn note"):(cd.bounced?"Bad email. Ifeanyi is reaching out on LinkedIn":"No reply. Ifeanyi is reaching out on LinkedIn")}
+        else if(cd.k==="new"){t.tab="first";n=daysSince(applied);t.late=n>=5;t.what=t.late?"Send the connection note ("+n+" days since applying)":"Send the connection note"}
         else if(cd.k==="waiting"){t.tab="waiting";t.what="Waiting on accept, check "+fmtD(cd.check)}
         else if(cd.k==="accepted"){t.tab="follow";n=daysSince(c.acceptedAt);t.late=n>=2;t.what="Send the full follow-up (accepted "+agoN(n)+")"}
         else if(cd.k==="nudge"){t.tab="follow";t.late=cd.days>=10;t.what="No accept in "+cd.days+" days: email or InMail the follow-up"}
@@ -1587,7 +1596,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         else if(cd.k==="talking"){t.tab="waiting";t.what="Check in "+fmtD(cd.check)+" if they go quiet"}
         else if(cd.k==="check"){t.tab="follow";t.late=cd.days>=7;t.what="Quiet "+cd.days+" days since your last note. Check in"}
         else if(cd.k==="closed"){t.tab="done";t.what="Done "+fmtD(c.closedAt)}
-        if(t.late)t.tab="late";out.push(t)})});
+        if(t.late)t.tab=S.isOwner||t.tab==="toemail"?"late":t.tab;if(!S.isOwner&&!/^(toemail|emailed|late)$/.test(t.tab))return;out.push(t)})});
     return out}
   function fmtD(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""}
   function agoN(n){return n<=0?"today":n===1?"1 day ago":n+" days ago"}
@@ -1601,11 +1610,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(F.email==="has"&&!(c&&(c.email||c.emailGuess)))return false;if(F.email==="confirmed"&&!(c&&c.email))return false;if(F.email==="none"&&c&&(c.email||c.emailGuess))return false;
       var q=norm(F.q);if(q&&norm(j.company+" "+j.role+" "+(c?c.name+" "+(c.title||""):"")).indexOf(q)<0)return false;return true};
     var tasks=all.filter(pass);
-    var TABS=[["late","Late","These slipped past their window. Do them first."],["replies","Replies","They wrote back. Reply, then click I replied."],["follow","Follow up","Accepted: send the full follow-up within a day. No accept in 7 days: email or InMail. Quiet 3+ days after your last note: check in."],["first","First reach out","Open the note, send the connection request on LinkedIn, then click Sent."],["find","Find people","No one to contact yet. Each company is searched once with AI; after that, use the LinkedIn links."],["waiting","Waiting","Nothing to do here. Each one moves back up when it's due."],["done","Done","Conversations you closed."]];
+    var TABS=!S.isOwner?[["late","Late","These have waited 3+ days. Send them first."],["toemail","Emails to send","Copy the subject and email, send it from Ifeanyi's Gmail, then click Sent. If it bounces, click Bad email."],["emailed","Sent","Ifeanyi sends a LinkedIn note 3 days after each email if there's no reply. Mark Bad email if one bounces back."]]:[["late","Late","These slipped past their window. Do them first."],["replies","Replies","They wrote back. Reply, then click I replied."],["follow","Follow up","Accepted: send the full follow-up within a day. No accept in 7 days: email or InMail. Quiet 3+ days after your last note: check in."],["first","First reach out","Open the note, send the connection request on LinkedIn, then click Sent."],["find","Find people","No one to contact yet. Each company is searched once with AI; after that, use the LinkedIn links."],["waiting","Waiting","Nothing to do here. Each one moves back up when it's due."],["team","Team emailing","Esther and Gilaiza email these first. Each comes to you for a LinkedIn note 3 days after the email if there's no reply, or right away if it bounces."],["done","Done","Conversations you closed."]];
     var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
-    if(!S.rcTab||!cnt.hasOwnProperty(S.rcTab))S.rcTab=(["late","replies","follow","first","find"].find(function(k){return cnt[k]})||"waiting");
+    if(!S.rcTab||!cnt.hasOwnProperty(S.rcTab))S.rcTab=(S.isOwner?["late","replies","follow","first","find"]:["late","toemail"]).find(function(k){return cnt[k]})||(S.isOwner?"waiting":"toemail");
     // what to do today, in words
-    var bits=[["late",cnt.late,"late"],["replies",cnt.replies,cnt.replies===1?"reply":"replies"],["follow",cnt.follow,cnt.follow===1?"follow-up":"follow-ups"],["first",cnt.first,cnt.first===1?"first note":"first notes"],["find",cnt.find,cnt.find===1?"company needs people":"companies need people"]].filter(function(b){return b[1]});
+    var bits=!S.isOwner?[["late",cnt.late,"late"],["toemail",cnt.toemail,cnt.toemail===1?"email to send":"emails to send"]].filter(function(b){return b[1]}):[["late",cnt.late,"late"],["replies",cnt.replies,cnt.replies===1?"reply":"replies"],["follow",cnt.follow,cnt.follow===1?"follow-up":"follow-ups"],["first",cnt.first,cnt.first===1?"first note":"first notes"],["find",cnt.find,cnt.find===1?"company needs people":"companies need people"]].filter(function(b){return b[1]});
     V.appendChild(el("div",{class:"rc-head"},[el("h2",{text:"Reach out"}),el("p",{class:"rc-today"},bits.length?["Today: "].concat(bits.map(function(b,i){return el("span",{},[i?" · ":"",el("button",{type:"button",class:"linkish rc-tl"+(b[0]==="late"?" late":""),text:b[1]+" "+b[2],onclick:function(){S.rcTab=b[0];renderReach()}})])})):["Nothing due today."])]));
     V.appendChild(el("div",{class:"rc-tabs",role:"tablist"},TABS.map(function(t){return el("button",{type:"button",role:"tab",class:"rc-tab"+(S.rcTab===t[0]?" on":"")+(t[0]==="late"&&cnt.late?" late":""),onclick:function(){S.rcTab=t[0];renderReach()}},[t[1],el("b",{text:String(cnt[t[0]])})])})));
     var q=el("input",{id:"rc-q",type:"search",placeholder:"Search company, role or person"});q.value=F.q;q.addEventListener("input",function(){F.q=q.value;drawBody()});
@@ -1626,11 +1635,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function msgMode(cd){return /^(accepted|nudge|check|answer|talking|done)$/.test(cd.k)?"followup":"first"}
     function msgText(c,mode){return c.draft&&((c.draftMode||"first")===mode)?c.draft:""}
     function msgCell(t){var c=t.c,mode=msgMode(t.cd),tx=msgText(c,mode),open=S.rcMsg&&S.rcMsg[c.id];
-      if(t.cd.k==="closed")return null;
+      if(t.cd.k==="closed"||t.cd.k==="emailed")return null;
       var toggle=function(e){e.stopPropagation();S.rcMsg=S.rcMsg||{};S.rcMsg[c.id]=!open;drawBody()};
+      if(!S.isOwner||t.cd.k==="toEmail"){var ew=(c.emailDraft||"").trim().split(/\s+/).filter(Boolean).length;return el("button",{type:"button",class:"rc-msgbtn"+(open?" on":"")+(ew?"":" empty"),onclick:toggle},[ew?"Email · "+ew+" words":"\u2726 Write email",el("span",{class:"rc-caret",text:open?" \u25b4":" \u25be"})])}
       return el("button",{type:"button",class:"rc-msgbtn"+(open?" on":"")+(tx||c.emailDraft?"":" empty"),onclick:toggle},[tx?(mode==="first"?"Note · "+tx.length+"/300":"Follow-up · "+tx.split(/\s+/).length+" words"):"✦ Write "+(mode==="first"?"note":"follow-up"),mode==="first"&&c.emailDraft?el("span",{class:"rc-em",text:" · Email"}):null,el("span",{class:"rc-caret",text:open?" ▴":" ▾"})])}
     function msgRow(t){var j=t.j,c=t.c,mode=msgMode(t.cd),addr=c.email||c.emailGuess||"";
-      S.rcCh=S.rcCh||{};var ch=mode==="first"&&addr?(S.rcCh[c.id]||(c.emailDraft?"email":"note")):"note";
+      S.rcCh=S.rcCh||{};var ch=!S.isOwner?"email":mode==="first"&&addr?(S.rcCh[c.id]||(t.cd.k==="toEmail"?"email":"note")):"note";
       var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
       var isEmail=ch==="email",aiMode=isEmail?"email":mode,tx=isEmail?(c.emailDraft||""):msgText(c,mode);
       var subj=null;if(isEmail){subj=el("input",{id:"rc-s-"+c.id,class:"rc-subj",placeholder:"Subject"});subj.value=c.emailSubject||"";
@@ -1644,19 +1654,21 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var gen=el("button",{type:"button",class:"pg-act",text:tx?"✦ Rewrite":"✦ Write with AI",onclick:function(e){e.stopPropagation();gen.disabled=true;gen.textContent="Writing...";
         api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id,mode:aiMode,context:""}).then(function(r){if(isEmail){c.emailDraft=r.draft;c.emailSubject=r.subject;if(subj)subj.value=r.subject||""}else{c.draft=r.draft;c.draftMode=r.mode}ta.value=r.draft;saved=r.draft;fit();gen.disabled=false;gen.textContent="✦ Rewrite"},function(err){gen.disabled=false;gen.textContent=tx?"✦ Rewrite":"✦ Write with AI";fail(err)})}});
       var via=isEmail?"email":mode==="first"?"LinkedIn":(c.acceptedAt?"LinkedIn message":c.email?"email":"InMail");
+      var gmail=function(){return "https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(addr)+"&su="+encodeURIComponent(subj?subj.value:"")+"&body="+encodeURIComponent(ta.value)};
       var mailto=function(){return "mailto:"+addr+"?subject="+encodeURIComponent(subj?subj.value:"")+"&body="+encodeURIComponent(ta.value)};
       var acts=isEmail?[
           el("button",{type:"button",class:"pg-go hot",text:"Copy email",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
           el("button",{type:"button",class:"pg-act",text:"Copy subject",onclick:function(e){e.stopPropagation();copyText(subj.value)}}),
-          el("a",{class:"pg-act rc-mailto",href:mailto(),onclick:function(e){e.stopPropagation();this.href=mailto()},text:"Open in email"}),gen,el("span",{class:"sp"}),
+          el("a",{class:"pg-act rc-mailto",target:"_blank",rel:"noopener",href:gmail(),onclick:function(e){e.stopPropagation();this.href=gmail()},text:"Open in Gmail"}),
+          el("a",{class:"pg-act rc-mailto",href:mailto(),onclick:function(e){e.stopPropagation();this.href=mailto()},text:"Mail app"}),gen,el("span",{class:"sp"}),
           el("button",{type:"button",class:"pg-act",text:"Sent by email ✓",title:"Log it as sent by email, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,"email","Logged as emailed.",(subj&&subj.value?"Subject: "+subj.value+"\n\n":"")+ta.value);S.rcMsg[c.id]=false}})]
         :[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
           lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",onclick:function(e){e.stopPropagation();copyText(ta.value,function(){window.open(lnk,"_blank","noopener")})}}):null,
           gen,el("span",{class:"sp"}),
           el("button",{type:"button",class:"pg-act",text:"Sent ✓",title:"Log it as sent, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,via,"Logged as sent.",ta.value);S.rcMsg[c.id]=false}})];
-      var chTabs=mode==="first"&&addr?el("div",{class:"rc-chtabs"},[["note","LinkedIn note"],["email","Email"+(c.email?"":" (likely)")]].map(function(x){return el("button",{type:"button",class:"rc-chtab"+(ch===x[0]?" on":""),text:x[1],onclick:function(e){e.stopPropagation();S.rcCh[c.id]=x[0];drawBody()}})})):null;
+      var chTabs=S.isOwner&&mode==="first"&&addr?el("div",{class:"rc-chtabs"},[["note","LinkedIn note"],["email","Email"+(c.email?"":" (likely)")]].map(function(x){return el("button",{type:"button",class:"rc-chtab"+(ch===x[0]?" on":""),text:x[1],onclick:function(e){e.stopPropagation();S.rcCh[c.id]=x[0];drawBody()}})})):null;
       return el("tr",{class:"rc-msgrow",onclick:function(e){e.stopPropagation()}},[el("td"),el("td",{colspan:"6"},[el("div",{class:"rc-msg"},[
-        el("div",{class:"rc-msgh"},[chTabs||el("b",{text:(mode==="first"?"Connection note to ":"Follow-up to ")+c.name.split(" ")[0]}),isEmail?el("span",{class:"rc-to",text:"To "+addr}):null,count]),
+        el("div",{class:"rc-msgh"},[chTabs||el("b",{text:(isEmail?"Email to ":mode==="first"?"Connection note to ":"Follow-up to ")+c.name.split(" ")[0]}),isEmail?el("span",{class:"rc-to",text:"To "+addr}):null,count]),
         subj,ta,el("div",{class:"rc-msga"},acts)])])])}
     function taskRow(t,i){var j=t.j,c=t.c,cd=t.cd,o=outs(c),l=o[o.length-1];
       var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
@@ -1665,7 +1677,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var patch=function(field,msg){return stop(function(){var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){toast(msg);refresh()},fail)})};
       var log=function(via,msg){return stop(function(){logOut(j,c,via,msg)})};
       var P=function(tx,fn,hot){return el("button",{type:"button",class:"pg-go"+(hot?" hot":""),onclick:fn},[tx])},Q=function(tx,fn,tip){return el("button",{type:"button",class:"pg-act",title:tip||null,onclick:fn,text:tx})};
-      var hot=t.tab==="late"||t.tab==="replies"||t.tab==="follow",acts=[];
+      var hot=t.tab==="late"||t.tab==="replies"||t.tab==="follow"||t.tab==="toemail",acts=[];
+      var bad=Q("Bad email",patch("emailBad","Marked as a bad email. It goes to Ifeanyi for LinkedIn."),"The email bounced or isn't a real address");
+      if(cd.k==="toEmail"){if(!S.isOwner){acts.push(P("Sent \u2713",log("email","Logged. Ifeanyi follows up on LinkedIn in 3 days if there's no reply."),"Email sent"))}acts.push(bad)}
+      else if(cd.k==="emailed"){acts.push(bad);acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"))}
+      else if(cd.k==="li"&&S.isOwner){acts.push(P("\u2726 "+(c.draft&&c.draftMode!=="followup"?"Open note":"Write note"),draft("first"),true));if(lnk)acts.push(Q("Sent \u2713",log("LinkedIn","Logged. Mark them Accepted when they connect."),"Connection request sent"));acts.push(Q("Replied",patch("replied","Marked replied"),"They replied to the email"))}
+      else if(!S.isOwner){}
+      else 
       if(cd.k==="new"){acts.push(P("✦ "+(c.draft&&c.draftMode!=="followup"?"Open note":"Write note"),draft("first"),hot));if(lnk)acts.push(Q("Sent ✓",log("LinkedIn","Logged. Mark them Accepted when they connect."),"Connection request sent"));if(c.email)acts.push(Q("✉ ✓",log("email","Logged."),"Emailed them"))}
       else if(cd.k==="waiting"){acts.push(P("Accepted",patch("accepted","Marked accepted. Follow up today.")));acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"))}
       else if(cd.k==="accepted"){acts.push(P("✦ Follow up",draft("followup"),true));if(lnk)acts.push(Q("Sent ✓",log("LinkedIn message","Follow-up logged."),"Follow-up sent on LinkedIn"))}
@@ -1825,10 +1843,10 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
-    if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(!S.isOwner&&S.tab==="reach")S.tab="apps";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
+    if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
     ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
-    $("tab-team").textContent="My week";$("tab-team").hidden=!!S.isOwner;$("tab-reach").hidden=!S.isOwner;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
+    $("tab-team").textContent="My week";$("tab-team").hidden=!!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
     if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
@@ -2017,7 +2035,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     // Applications as a grid, same feel as People: one row per job, a computed next step
     var tb=el("tbody"),n=0;
     rows.slice(0,S.limit).forEach(function(j){n++;
-      var cs=j.contacts||[],np=cs.length,cds=cs.map(cadence),due=cds.filter(function(k){return k.due&&k.k!=="answer"&&k.k!=="check"}).length,chk=cds.filter(function(k){return k.k==="check"}).length,ans=cds.filter(function(k){return k.k==="answer"}).length,fresh=cds.filter(function(k){return k.k==="new"}).length,waiting=cds.filter(function(k){return k.k==="waiting"}).length,reached=cds.filter(function(k){return k.k!=="new"}).length;
+      var cs=j.contacts||[],np=cs.length,cds=cs.map(cadence),due=cds.filter(function(k){return k.due&&k.k!=="answer"&&k.k!=="check"}).length,chk=cds.filter(function(k){return k.k==="check"}).length,ans=cds.filter(function(k){return k.k==="answer"}).length,fresh=cds.filter(function(k){return k.k==="new"||k.k==="li"}).length,waiting=cds.filter(function(k){return k.k==="waiting"}).length,reached=cds.filter(function(k){return k.k!=="new"}).length;
       var ask=S.isOwner&&openAsks().some(function(f){return f.jobId===j.id});
       var nx=ask||j.needsIfeanyi?{t:S.isOwner?"Question waiting on you":"Waiting on Ifeanyi",hot:S.isOwner}
         :j.status==="interview"&&j.interviewAt?{t:"Interview "+rel(j.interviewAt),hot:true}
@@ -2255,7 +2273,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(c.closedAt)return {k:"closed",at:c.closedAt};
     if(c.repliedAt){if(!c.answeredAt||new Date(c.repliedAt)>new Date(c.answeredAt))return {k:"answer",due:true,at:c.repliedAt};
       var q=d(c.answeredAt);return q>=3?{k:"check",due:true,days:q,at:c.answeredAt}:{k:"talking",at:c.answeredAt,check:new Date(new Date(c.answeredAt).getTime()+3*864e5)}}
-    if(!o.length)return {k:"new"};
+    var li=-1;for(var x=0;x<o.length;x++){if(o[x].via==="LinkedIn"){li=x;break}}
+    if(li<0){var em=o.find(function(e){return e.via==="email"});
+      if(!o.length)return (c.email||c.emailGuess)&&!c.emailBad?{k:"toEmail"}:{k:"new"};
+      if(em){if(c.emailBad)return {k:"li",due:true,bounced:true,at:c.emailBad};var de=d(em.at);
+        return de>=3?{k:"li",due:true,days:de,at:em.at}:{k:"emailed",at:em.at,check:new Date(new Date(em.at).getTime()+3*864e5)}}}
+    else o=o.slice(li);
     if(o.length>=2)return {k:"done",at:o[o.length-1].at};
     var first=o[0],days=d(first.at);
     if(c.acceptedAt)return {k:"accepted",due:true,at:c.acceptedAt,late:d(c.acceptedAt)>=1};
