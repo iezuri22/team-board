@@ -841,6 +841,16 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-bulk{display:flex;align-items:center;gap:14px;margin:0 0 10px;font-size:14px}
 .rc-li a{font-size:12.5px;color:#1d4ed8;margin-right:10px}
 
+.rc-msgbtn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:4px 9px;font:inherit;font-size:12px;font-weight:600;color:var(--fg);cursor:pointer;white-space:nowrap;height:auto}
+.rc-msgbtn:hover{background:var(--soft)}.rc-msgbtn.on{background:#fff1e8;border-color:#f3c3a6}.rc-msgbtn.empty{color:#b4471a}.rc-caret{color:var(--faint)}
+.rc-msgrow td{background:#fffaf6!important;border-bottom:2px solid #f3c3a6}
+.rc-msg{display:grid;gap:8px;padding:6px 0 8px;max-width:900px}
+.rc-msgh{display:flex;align-items:baseline;gap:12px}.rc-msgh b{font-size:13.5px}
+.rc-count{font-size:12px;color:var(--faint)}.rc-count.over{color:#c2410c;font-weight:700}
+.rc-ta{width:100%;box-sizing:border-box;font:inherit;font-size:14px;line-height:1.55;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg);resize:vertical}
+.rc-msga{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.rc-msga .sp{flex:1}.rc-msga .pg-go{min-width:0}
+.rc-mailto{text-decoration:none;display:inline-block}
+
 </style>
 
 <div class="wrap">
@@ -1604,12 +1614,38 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function drawBody(){body.textContent="";var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
       if(S.rcTab==="find"){drawFind(list);return}
       if(!list.length){body.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here"}),el("p",{text:"Try another tab or clear the filters."})]));return}
-      var tb=el("tbody");list.forEach(function(t,i){tb.appendChild(taskRow(t,i))});
-      body.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Person"}),el("th",{text:"Last touch"}),el("th",{text:"What to do"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
+      var tb=el("tbody");list.forEach(function(t,i){tb.appendChild(taskRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t))});
+      body.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Person"}),el("th",{text:"Last touch"}),el("th",{text:"What to do"}),el("th",{text:"Message"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
+    // the message for this step, quick to see, edit and copy
+    function msgMode(cd){return /^(accepted|nudge|check|answer|talking|done)$/.test(cd.k)?"followup":"first"}
+    function msgText(c,mode){return c.draft&&((c.draftMode||"first")===mode)?c.draft:""}
+    function msgCell(t){var c=t.c,mode=msgMode(t.cd),tx=msgText(c,mode),open=S.rcMsg&&S.rcMsg[c.id];
+      if(t.cd.k==="closed")return null;
+      var toggle=function(e){e.stopPropagation();S.rcMsg=S.rcMsg||{};S.rcMsg[c.id]=!open;drawBody()};
+      return el("button",{type:"button",class:"rc-msgbtn"+(open?" on":"")+(tx?"":" empty"),onclick:toggle},[tx?(mode==="first"?"Note · "+tx.length+"/300":"Follow-up · "+tx.split(/\s+/).length+" words"):"✦ Write "+(mode==="first"?"note":"follow-up"),el("span",{class:"rc-caret",text:open?" ▴":" ▾"})])}
+    function msgRow(t){var j=t.j,c=t.c,mode=msgMode(t.cd),tx=msgText(c,mode);
+      var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
+      var ta=el("textarea",{id:"rc-m-"+c.id,class:"rc-ta",placeholder:"No draft yet. Write one with AI, or type your own."});ta.value=tx;
+      var count=el("span",{class:"rc-count"});
+      var fit=function(){ta.style.height="auto";ta.style.height=Math.max(70,ta.scrollHeight+2)+"px";var n=ta.value.length;count.textContent=mode==="first"?n+" / 300 characters":ta.value.trim().split(/\s+/).filter(Boolean).length+" words";count.className="rc-count"+(mode==="first"&&n>300?" over":"")};
+      ta.addEventListener("input",fit);setTimeout(fit,0);
+      var saved=tx;ta.addEventListener("blur",function(){if(ta.value===saved)return;saved=ta.value;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{draft:ta.value,draftMode:mode}).then(function(){c.draft=ta.value;c.draftMode=mode;toast("Saved")},fail)});
+      var copy=function(then){return function(e){e.stopPropagation();try{navigator.clipboard.writeText(ta.value).then(function(){toast("Copied");if(then)then()})}catch(x){ta.select();document.execCommand("copy");toast("Copied");if(then)then()}}};
+      var gen=el("button",{type:"button",class:"pg-act",text:tx?"✦ Rewrite":"✦ Write with AI",onclick:function(e){e.stopPropagation();gen.disabled=true;gen.textContent="Writing...";
+        api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id,mode:mode,context:""}).then(function(r){c.draft=r.draft;c.draftMode=r.mode;ta.value=r.draft;saved=r.draft;fit();gen.disabled=false;gen.textContent="✦ Rewrite"},function(err){gen.disabled=false;gen.textContent=tx?"✦ Rewrite":"✦ Write with AI";fail(err)})}});
+      var via=mode==="first"?"LinkedIn":(c.acceptedAt?"LinkedIn message":c.email?"email":"InMail");
+      var acts=[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:copy()}),
+        lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",onclick:copy(function(){window.open(lnk,"_blank","noopener")})}):null,
+        c.email?el("a",{class:"pg-act rc-mailto",href:"mailto:"+c.email+"?body="+encodeURIComponent(ta.value),onclick:function(e){e.stopPropagation();this.href="mailto:"+c.email+"?body="+encodeURIComponent(ta.value)},text:"Open in email"}):null,
+        gen,
+        el("span",{class:"sp"}),
+        el("button",{type:"button",class:"pg-act",text:"Sent ✓",title:"Log it as sent, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,via,"Logged as sent.",ta.value);S.rcMsg[c.id]=false}})];
+      return el("tr",{class:"rc-msgrow",onclick:function(e){e.stopPropagation()}},[el("td"),el("td",{colspan:"6"},[el("div",{class:"rc-msg"},[
+        el("div",{class:"rc-msgh"},[el("b",{text:(mode==="first"?"Connection note to ":"Follow-up to ")+c.name.split(" ")[0]}),count]),ta,el("div",{class:"rc-msga"},acts)])])])}
     function taskRow(t,i){var j=t.j,c=t.c,cd=t.cd,o=outs(c),l=o[o.length-1];
       var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
       var stop=function(fn){return function(e){e.stopPropagation();fn()}};
-      var draft=function(mode){return stop(function(){S.drafting={cid:c.id,mode:mode};openContact(j.id,c.id)})};
+      var draft=function(mode){return stop(function(){S.rcMsg=S.rcMsg||{};S.rcMsg[c.id]=!S.rcMsg[c.id];drawBody()})};
       var patch=function(field,msg){return stop(function(){var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){toast(msg);refresh()},fail)})};
       var log=function(via,msg){return stop(function(){logOut(j,c,via,msg)})};
       var P=function(tx,fn,hot){return el("button",{type:"button",class:"pg-go"+(hot?" hot":""),onclick:fn},[tx])},Q=function(tx,fn,tip){return el("button",{type:"button",class:"pg-act",title:tip||null,onclick:fn,text:tx})};
@@ -1629,6 +1665,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         el("td",{},[el("span",{class:"rc-d"},[el("b",{},[c.name,lnk?el("a",{href:lnk,target:"_blank",rel:"noopener",class:"pg-in",text:"in",onclick:function(e){e.stopPropagation()}}):null]),el("span",{text:c.title||""}),emailBit])]),
         el("td",{},[l?el("span",{class:"rc-d"},[el("b",{text:fmtD(l.at)}),el("span",{text:({"LinkedIn":"Connection note","email":"Email","InMail":"InMail","LinkedIn message":"LinkedIn message"})[l.via]||l.via})]):el("span",{class:"pg-dim",text:"Not yet"})]),
         el("td",{class:"rc-what"},[el("span",{class:t.tab==="late"?"pg-due":hot?"rc-do":"pg-dim",text:t.what})]),
+        el("td",{},[msgCell(t)]),
         el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},acts)])])}
     function drawFind(list){
       var todo=list.filter(function(t){return !companySearch(t.j.company)});
