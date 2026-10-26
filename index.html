@@ -851,6 +851,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-msga{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.rc-msga .sp{flex:1}.rc-msga .pg-go{min-width:0}
 .rc-mailto{text-decoration:none;display:inline-block}
 
+.rc-chtabs{display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--soft2)}
+.rc-chtab{border:0;background:transparent;border-radius:8px;padding:5px 12px;font:inherit;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;height:auto}
+.rc-chtab.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.rc-to{font-size:12.5px;color:var(--muted)}.rc-em{color:#1d4ed8;font-weight:600}
+.rc-subj{font:inherit;font-size:14px;font-weight:600;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+
 </style>
 
 <div class="wrap">
@@ -1622,26 +1628,36 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function msgCell(t){var c=t.c,mode=msgMode(t.cd),tx=msgText(c,mode),open=S.rcMsg&&S.rcMsg[c.id];
       if(t.cd.k==="closed")return null;
       var toggle=function(e){e.stopPropagation();S.rcMsg=S.rcMsg||{};S.rcMsg[c.id]=!open;drawBody()};
-      return el("button",{type:"button",class:"rc-msgbtn"+(open?" on":"")+(tx?"":" empty"),onclick:toggle},[tx?(mode==="first"?"Note · "+tx.length+"/300":"Follow-up · "+tx.split(/\s+/).length+" words"):"✦ Write "+(mode==="first"?"note":"follow-up"),el("span",{class:"rc-caret",text:open?" ▴":" ▾"})])}
-    function msgRow(t){var j=t.j,c=t.c,mode=msgMode(t.cd),tx=msgText(c,mode);
+      return el("button",{type:"button",class:"rc-msgbtn"+(open?" on":"")+(tx||c.emailDraft?"":" empty"),onclick:toggle},[tx?(mode==="first"?"Note · "+tx.length+"/300":"Follow-up · "+tx.split(/\s+/).length+" words"):"✦ Write "+(mode==="first"?"note":"follow-up"),mode==="first"&&c.emailDraft?el("span",{class:"rc-em",text:" · Email"}):null,el("span",{class:"rc-caret",text:open?" ▴":" ▾"})])}
+    function msgRow(t){var j=t.j,c=t.c,mode=msgMode(t.cd),addr=c.email||c.emailGuess||"";
+      S.rcCh=S.rcCh||{};var ch=mode==="first"&&addr?(S.rcCh[c.id]||(c.emailDraft?"email":"note")):"note";
       var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
+      var isEmail=ch==="email",aiMode=isEmail?"email":mode,tx=isEmail?(c.emailDraft||""):msgText(c,mode);
+      var subj=null;if(isEmail){subj=el("input",{id:"rc-s-"+c.id,class:"rc-subj",placeholder:"Subject"});subj.value=c.emailSubject||"";
+        subj.addEventListener("blur",function(){if(subj.value===(c.emailSubject||""))return;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{emailSubject:subj.value}).then(function(){c.emailSubject=subj.value;toast("Saved")},fail)})}
       var ta=el("textarea",{id:"rc-m-"+c.id,class:"rc-ta",placeholder:"No draft yet. Write one with AI, or type your own."});ta.value=tx;
       var count=el("span",{class:"rc-count"});
-      var fit=function(){ta.style.height="auto";ta.style.height=Math.max(70,ta.scrollHeight+2)+"px";var n=ta.value.length;count.textContent=mode==="first"?n+" / 300 characters":ta.value.trim().split(/\s+/).filter(Boolean).length+" words";count.className="rc-count"+(mode==="first"&&n>300?" over":"")};
+      var fit=function(){ta.style.height="auto";ta.style.height=Math.max(70,ta.scrollHeight+2)+"px";var n=ta.value.length;count.textContent=!isEmail&&mode==="first"?n+" / 300 characters":ta.value.trim().split(/\s+/).filter(Boolean).length+" words";count.className="rc-count"+(!isEmail&&mode==="first"&&n>300?" over":"")};
       ta.addEventListener("input",fit);setTimeout(fit,0);
-      var saved=tx;ta.addEventListener("blur",function(){if(ta.value===saved)return;saved=ta.value;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{draft:ta.value,draftMode:mode}).then(function(){c.draft=ta.value;c.draftMode=mode;toast("Saved")},fail)});
-      var copy=function(then){return function(e){e.stopPropagation();try{navigator.clipboard.writeText(ta.value).then(function(){toast("Copied");if(then)then()})}catch(x){ta.select();document.execCommand("copy");toast("Copied");if(then)then()}}};
+      var saved=tx;ta.addEventListener("blur",function(){if(ta.value===saved)return;saved=ta.value;var b=isEmail?{emailDraft:ta.value}:{draft:ta.value,draftMode:mode};api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){if(isEmail)c.emailDraft=ta.value;else{c.draft=ta.value;c.draftMode=mode}toast("Saved")},fail)});
+      var copyText=function(text,then){try{navigator.clipboard.writeText(text).then(function(){toast("Copied");if(then)then()})}catch(x){toast("Copy didn't work here; select the text and copy")}};
       var gen=el("button",{type:"button",class:"pg-act",text:tx?"✦ Rewrite":"✦ Write with AI",onclick:function(e){e.stopPropagation();gen.disabled=true;gen.textContent="Writing...";
-        api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id,mode:mode,context:""}).then(function(r){c.draft=r.draft;c.draftMode=r.mode;ta.value=r.draft;saved=r.draft;fit();gen.disabled=false;gen.textContent="✦ Rewrite"},function(err){gen.disabled=false;gen.textContent=tx?"✦ Rewrite":"✦ Write with AI";fail(err)})}});
-      var via=mode==="first"?"LinkedIn":(c.acceptedAt?"LinkedIn message":c.email?"email":"InMail");
-      var acts=[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:copy()}),
-        lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",onclick:copy(function(){window.open(lnk,"_blank","noopener")})}):null,
-        c.email?el("a",{class:"pg-act rc-mailto",href:"mailto:"+c.email+"?body="+encodeURIComponent(ta.value),onclick:function(e){e.stopPropagation();this.href="mailto:"+c.email+"?body="+encodeURIComponent(ta.value)},text:"Open in email"}):null,
-        gen,
-        el("span",{class:"sp"}),
-        el("button",{type:"button",class:"pg-act",text:"Sent ✓",title:"Log it as sent, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,via,"Logged as sent.",ta.value);S.rcMsg[c.id]=false}})];
+        api("POST","/api/ai/outreach",{jobId:j.id,contactId:c.id,mode:aiMode,context:""}).then(function(r){if(isEmail){c.emailDraft=r.draft;c.emailSubject=r.subject;if(subj)subj.value=r.subject||""}else{c.draft=r.draft;c.draftMode=r.mode}ta.value=r.draft;saved=r.draft;fit();gen.disabled=false;gen.textContent="✦ Rewrite"},function(err){gen.disabled=false;gen.textContent=tx?"✦ Rewrite":"✦ Write with AI";fail(err)})}});
+      var via=isEmail?"email":mode==="first"?"LinkedIn":(c.acceptedAt?"LinkedIn message":c.email?"email":"InMail");
+      var mailto=function(){return "mailto:"+addr+"?subject="+encodeURIComponent(subj?subj.value:"")+"&body="+encodeURIComponent(ta.value)};
+      var acts=isEmail?[
+          el("button",{type:"button",class:"pg-go hot",text:"Copy email",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
+          el("button",{type:"button",class:"pg-act",text:"Copy subject",onclick:function(e){e.stopPropagation();copyText(subj.value)}}),
+          el("a",{class:"pg-act rc-mailto",href:mailto(),onclick:function(e){e.stopPropagation();this.href=mailto()},text:"Open in email"}),gen,el("span",{class:"sp"}),
+          el("button",{type:"button",class:"pg-act",text:"Sent by email ✓",title:"Log it as sent by email, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,"email","Logged as emailed.",(subj&&subj.value?"Subject: "+subj.value+"\n\n":"")+ta.value);S.rcMsg[c.id]=false}})]
+        :[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
+          lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",onclick:function(e){e.stopPropagation();copyText(ta.value,function(){window.open(lnk,"_blank","noopener")})}}):null,
+          gen,el("span",{class:"sp"}),
+          el("button",{type:"button",class:"pg-act",text:"Sent ✓",title:"Log it as sent, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,via,"Logged as sent.",ta.value);S.rcMsg[c.id]=false}})];
+      var chTabs=mode==="first"&&addr?el("div",{class:"rc-chtabs"},[["note","LinkedIn note"],["email","Email"+(c.email?"":" (likely)")]].map(function(x){return el("button",{type:"button",class:"rc-chtab"+(ch===x[0]?" on":""),text:x[1],onclick:function(e){e.stopPropagation();S.rcCh[c.id]=x[0];drawBody()}})})):null;
       return el("tr",{class:"rc-msgrow",onclick:function(e){e.stopPropagation()}},[el("td"),el("td",{colspan:"6"},[el("div",{class:"rc-msg"},[
-        el("div",{class:"rc-msgh"},[el("b",{text:(mode==="first"?"Connection note to ":"Follow-up to ")+c.name.split(" ")[0]}),count]),ta,el("div",{class:"rc-msga"},acts)])])])}
+        el("div",{class:"rc-msgh"},[chTabs||el("b",{text:(mode==="first"?"Connection note to ":"Follow-up to ")+c.name.split(" ")[0]}),isEmail?el("span",{class:"rc-to",text:"To "+addr}):null,count]),
+        subj,ta,el("div",{class:"rc-msga"},acts)])])])}
     function taskRow(t,i){var j=t.j,c=t.c,cd=t.cd,o=outs(c),l=o[o.length-1];
       var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
       var stop=function(fn){return function(e){e.stopPropagation();fn()}};
