@@ -816,6 +816,15 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .cv-notext{font-size:12px}
 .cv-other summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600;margin:4px 0 8px}
 
+/* Reach out page */
+.rc-head{padding:18px 0 4px}.rc-head h2{margin:0}.rc-head p{max-width:900px}
+.rc-tools{margin:10px 0 12px}.rc-tools input[type=search]{flex:1;min-width:200px}.rc-tools select{max-width:200px}
+.rc-wrap{max-height:none}.rc-wrap .pg-table{min-width:1000px}
+.rc-row{cursor:pointer}.rc-row.due td{background:#fffaf6}.rc-row:hover td{background:var(--soft)}
+.rc-d{display:grid;gap:1px}.rc-d b{font-size:13.5px;font-weight:600}.rc-d span{font-size:12px;color:var(--muted);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc-more{font-style:normal;font-size:11.5px;color:var(--faint);font-weight:600}
+.guide-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;height:auto}.guide-btn:hover{color:var(--fg)}
+
 </style>
 
 <div class="wrap">
@@ -826,6 +835,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       <button role="tab" id="tab-messages" aria-selected="false">Inbox <span class="badge" id="msg-badge" hidden></span></button>
       <button role="tab" id="tab-replies" aria-selected="false" hidden>Replies <span class="badge" id="reply-badge" hidden></span></button>
       <button role="tab" id="tab-team" aria-selected="false">Team</button>
+      <button role="tab" id="tab-reach" aria-selected="false" hidden>Reach out <span class="badge" id="reach-badge" hidden></span></button>
       <button role="tab" id="tab-weekly" aria-selected="false">Weekly</button>
       <button role="tab" id="tab-contacts" aria-selected="false" hidden>Contacts</button>
       <button role="tab" id="tab-resume" aria-selected="false">Resume</button>
@@ -833,6 +843,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     </nav>
     <div class="spacer"></div>
     <button class="btn accent small" id="ping-btn" type="button" hidden>Reach Ifeanyi now</button>
+    <button class="guide-btn" id="guide-btn" type="button" title="How we work">Guide</button>
     <button class="theme-btn" id="theme-btn" type="button" aria-label="Switch light or dark mode"></button>
     <div class="who-me" id="who-me"></div>
   </header>
@@ -864,6 +875,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 
   <div id="view-team" hidden><div id="team"></div></div>
   <div id="view-weekly" hidden><div id="weekly-view"></div></div>
+  <div id="view-reach" hidden><div id="reach-view"></div></div>
 
   <div id="view-messages" hidden><div id="messages-view"></div></div>
 
@@ -1424,7 +1436,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       chips,el("div",{class:"mg-inputrow"},[ta,send]),el("span",{class:"mg-hint",text:(S.isOwner?"Shows here and goes to "+first+"'s email.":"Ifeanyi gets a text and an email.")+" Enter to send, Shift+Enter for a new line."})]);
     var tc=toContact(people);
     var sub=thread==="__all"?people.length+" people found across the team, "+tc+" not contacted yet.":(oa?oa+" open "+(oa===1?"ask":"asks")+" waiting on "+(S.isOwner?"you":"Ifeanyi")+". ":"")+people.length+" "+(people.length===1?"contact":"contacts")+", "+tc+" not contacted yet.";
-    var views=thread==="__all"?null:el("div",{class:"mg-filter"},[["talk","Conversation"],["people","People ("+people.length+")"]].map(function(f){return el("button",{type:"button",class:view===f[0]?"on":null,text:f[1],onclick:function(){S.mView=f[0];renderMessages()}})}));
+    var views=thread==="__all"||S.isOwner?null:el("div",{class:"mg-filter"},[["talk","Conversation"],["people","People ("+people.length+")"]].map(function(f){return el("button",{type:"button",class:view===f[0]?"on":null,text:f[1],onclick:function(){S.mView=f[0];renderMessages()}})}));
     var head=el("div",{class:"mg-head"},[el("div",{},[el("h2",{text:thread==="__all"?"All contacts":S.isOwner?whoName(thread):"Inbox"}),el("p",{class:"muted-line",text:sub})]),views]);
     var filt=el("div",{class:"mg-subfilter"},[["all","Everything"],["open","Open asks only"]].map(function(f){return el("button",{type:"button",class:"linkish"+((S.mFilter||"all")===f[0]?" on":""),text:f[1],onclick:function(){S.mFilter=f[0];renderMessages()}})}));
     var tlBox=timeline(list);
@@ -1436,7 +1448,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var rail=el("nav",{class:"mg-rail","aria-label":"Teammates"},[el("div",{class:"mg-rail-h"},[el("span",{class:"mg-rail-t",text:"Team"}),railBtn])].concat(mates().map(function(k){var n=openAsks(k).length,u=unseenMsgs(k),t=toContact(contactsFor(k));
         var line=[n?n+" open "+(n===1?"ask":"asks"):"",t?t+" to contact":""].filter(Boolean).join(" \u00b7 ")||"All caught up";
         return el("button",{type:"button",title:whoName(k),class:"mg-person"+(k===thread?" on":""),onclick:function(){S.mThread=k;S.replyTo=null;S.mJob="";renderMessages()}},[el("span",{class:"mg-av",style:"--h:"+hue(whoName(k)),text:initials(whoName(k))}),el("span",{class:"mg-pt"},[el("b",{text:whoName(k)}),el("span",{text:line})]),n?el("span",{class:"mg-count",text:String(n)}):u?el("span",{class:"mg-dot"}):null])}),
-        [el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",title:"All contacts",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
+        S.isOwner?[]:[el("span",{class:"mg-rail-t mg-rail-t2",text:"Everyone"}),el("button",{type:"button",title:"All contacts",class:"mg-person"+(thread==="__all"?" on":""),onclick:function(){S.mThread="__all";renderMessages()}},[el("span",{class:"mg-av all",text:String(allP.length)}),el("span",{class:"mg-pt"},[el("b",{text:"All contacts"}),el("span",{text:allT?allT+" not contacted yet":"Everyone contacted"})])])]));
       V.appendChild(el("div",{class:"mg-wrap"+(railOff?" rail-off":"")},[rail,main]))}
     else V.appendChild(el("div",{class:"mg-wrap solo"},[main]));
     var tl=V.querySelector(".mg-tl");if(tl){var down=function(){tl.scrollTop=tl.scrollHeight};down();requestAnimationFrame(down);setTimeout(down,80)}
@@ -1525,6 +1537,73 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         det.appendChild(tl);body.appendChild(det)}
       body.appendChild(el("button",{class:"linkish cv-job",type:"button",text:"Open the full job page ›",onclick:function(){close();openJob(j.id)}}))}
     document.body.appendChild(wrap);document.addEventListener("keydown",key);draw()}
+
+  // ---------- Reach out (Ifeanyi only): one row per application, from applied to done ----------
+  function reachRows(){var out=[];
+    S.jobs.forEach(function(j){if(!SENT[j.status]||j.status==="rejected")return;
+      var cs=(j.contacts||[]).slice(),focus=null;
+      // show the person who needs him most; reached-out people before untouched ones
+      var RANK={answer:0,check:1,accepted:2,nudge:3,talking:4,waiting:5,done:6,"new":7,closed:8};
+      focus=cs.sort(function(a,b){var x=RANK[cadence(a).k],y=RANK[cadence(b).k];return x-y||String(a.addedAt||"").localeCompare(String(b.addedAt||""))})[0]||null;
+      var cd=focus?cadence(focus):{k:"noone"};
+      var grp={noone:"notyet","new":"notyet",waiting:"waiting",done:"waiting",accepted:"needs",nudge:"needs",answer:"needs",check:"needs",talking:"convo",closed:"done"}[cd.k];
+      out.push({j:j,c:focus,cd:cd,others:Math.max(0,(j.contacts||[]).length-1),due:!!cd.due,grp:grp,applied:sentAt(j)||j.addedAt})});
+    return out}
+  function renderReach(){
+    var V=$("reach-view");var a=document.activeElement;if(a&&/^rc-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
+    var rows=reachRows(),md=function(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""};
+    var dago=function(i){var n=Math.floor((Date.now()-new Date(i))/864e5);return n<=0?"today":n===1?"1 day ago":n+" days ago"};
+    var cnt={all:rows.length,needs:0,notyet:0,waiting:0,convo:0,done:0};rows.forEach(function(r){cnt[r.grp]++});
+    S.rcView=S.rcView||(cnt.needs?"needs":"all");
+    var F=[["needs","Needs you"],["notyet","Not reached out"],["waiting","Waiting"],["convo","In conversation"],["done","Done"],["all","All"]];
+    var q=el("input",{id:"rc-q",type:"search",placeholder:"Search company, role or person"});q.value=S.rcq||"";q.addEventListener("input",function(){S.rcq=q.value;draw()});
+    var who=el("select",{id:"rc-who"},[el("option",{value:"",text:"Found by anyone"})].concat(mates().concat(["owner"]).map(function(k){return el("option",{value:k,text:"Found by "+whoName(k).split(" ")[0],selected:S.rcWho===k?true:null})})));
+    who.addEventListener("change",function(){S.rcWho=who.value;draw()});
+    V.appendChild(el("div",{class:"rc-head"},[el("div",{},[el("h2",{text:"Reach out"}),el("p",{class:"muted-line",title:"Note first. Accepted: follow up within a day. No accept in 7 days: email or InMail. After they reply: check in 3 days after your last message until you mark it done.",text:"Every application, from the day it came in to the last follow-up."})])]));
+    var chips=el("div",{class:"pg-chips rc-chips",role:"tablist"},F.map(function(f){return el("button",{type:"button",role:"tab",class:"pg-chip"+(S.rcView===f[0]?" on":"")+(f[0]==="needs"&&cnt.needs?" hot":""),onclick:function(){S.rcView=f[0];renderReach()}},[f[1],el("b",{text:String(cnt[f[0]])})])}));
+    V.appendChild(el("div",{class:"ct-tools pg-tools rc-tools"},[chips,q,who]));
+    var box=el("div");V.appendChild(box);
+    var ORDER={needs:0,notyet:1,waiting:2,convo:3,done:4};
+    var STATUS={noone:["No one to contact",""],"new":["Not reached out",""],waiting:["Waiting on accept","sent"],accepted:["Accepted","acc"],nudge:["No accept in 7 days","acc"],done:["Followed up","sent"],answer:["They replied","ok"],talking:["In conversation","ok"],check:["Check-in due","acc"],closed:["Done",""]};
+    function act(r){var j=r.j,c=r.c,cd=r.cd;
+      var draft=function(mode){return function(e){e.stopPropagation();S.drafting={cid:c.id,mode:mode};openContact(j.id,c.id)}};
+      var patch=function(field,msg){return function(e){e.stopPropagation();var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){toast(msg);refresh()},fail)}};
+      var B=function(t,fn,hot){return el("button",{type:"button",class:"pg-go"+(hot?" hot":""),onclick:fn},[t])};
+      if(cd.k==="noone")return B("Find someone",function(e){e.stopPropagation();openJob(j.id)});
+      if(cd.k==="new")return B("✦ "+(c.draft&&c.draftMode!=="followup"?"Open note":"Write note"),draft("first"));
+      if(cd.k==="waiting")return B("Mark accepted",patch("accepted","Marked accepted. Follow up today."));
+      if(cd.k==="accepted"||cd.k==="nudge")return B("✦ Follow up",draft("followup"),true);
+      if(cd.k==="answer")return B("Reply",function(e){e.stopPropagation();openContact(j.id,c.id)},true);
+      if(cd.k==="check")return B("Check in",function(e){e.stopPropagation();openContact(j.id,c.id)},true);
+      if(cd.k==="talking"||cd.k==="done")return B("Open",function(e){e.stopPropagation();openContact(j.id,c.id)});
+      return null}
+    function fu(r){var cd=r.cd,c=r.c,o=c?outs(c):[];
+      if(cd.k==="waiting")return el("span",{class:"pg-dim",text:"If no accept, "+md(cd.check)});
+      if(cd.k==="accepted")return el("span",{class:"pg-due",text:"Due now (accepted "+md(c.acceptedAt)+")"});
+      if(cd.k==="nudge")return el("span",{class:"pg-due",text:"Overdue, "+cd.days+" days, email or InMail"});
+      if(cd.k==="done")return el("span",{class:"pg-dim",text:"Sent "+md(o[1]&&o[1].at)});
+      if(cd.k==="answer")return el("span",{class:"pg-due",text:"Reply to them"});
+      if(cd.k==="talking")return el("span",{class:"pg-dim",text:"Check in "+md(cd.check)});
+      if(cd.k==="check")return el("span",{class:"pg-due",text:"Check in now ("+cd.days+" days quiet)"});
+      if(cd.k==="closed")return el("span",{class:"pg-dim",text:"Closed "+md(c.closedAt)});
+      return el("span",{class:"pg-dim",text:""})}
+    function draw(){box.textContent="";var t=norm(S.rcq||"");
+      var list=rows.filter(function(r){return (S.rcView==="all"||r.grp===S.rcView)&&(!S.rcWho||r.j.addedBy===S.rcWho)&&(!t||norm(r.j.company+" "+r.j.role+" "+(r.c?r.c.name+" "+(r.c.title||""):"")).indexOf(t)>=0)})
+        .sort(function(a,b){return (ORDER[a.grp]-ORDER[b.grp])||String(a.applied).localeCompare(String(b.applied))});
+      if(!list.length){box.appendChild(el("div",{class:"empty"},[el("h3",{text:S.rcView==="needs"?"Nothing needs you right now":"Nothing here"}),el("p",{text:S.rcView==="needs"?"Notes to send are under Not reached out.":"Try another filter."})]));return}
+      var tb=el("tbody");
+      list.forEach(function(r,i){var j=r.j,c=r.c,o=c?outs(c):[],st=STATUS[r.cd.k]||["",""];
+        tb.appendChild(el("tr",{class:"pg-row rc-row"+(r.due?" due":""),onclick:function(){if(c)openContact(j.id,c.id);else openJob(j.id)}},[
+          el("td",{class:"pg-n",text:String(i+1)}),
+          el("td",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{text:j.company||"Untitled"}),el("span",{text:j.role||""})])]),
+          el("td",{},[el("span",{class:"rc-d"},[el("b",{text:md(r.applied)}),el("span",{text:dago(r.applied)+" · "+whoName(j.addedBy).split(" ")[0]})])]),
+          el("td",{},[c?el("span",{class:"rc-d"},[el("b",{},[c.name,r.others?el("em",{class:"rc-more",title:r.others+" more on this job",text:" +"+r.others}):null]),el("span",{text:c.title||""})]):el("span",{class:"pg-dim",text:"No one yet"})]),
+          el("td",{},[o.length?el("span",{class:"rc-d"},[el("b",{text:md(o[0].at)}),el("span",{text:({"LinkedIn":"Connection note","email":"Email","InMail":"InMail","LinkedIn message":"LinkedIn message"})[o[0].via]||o[0].via})]):el("span",{class:"pg-dim",text:c?"Not yet":""})]),
+          el("td",{},[fu(r)]),
+          el("td",{},[st[0]?el("span",{class:"pg-pill "+st[1],text:st[0]}):null]),
+          el("td",{class:"pg-acts"},[act(r)])]))});
+      box.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Applied"}),el("th",{text:"Person"}),el("th",{text:"Reached out"}),el("th",{text:"Follow-up"}),el("th",{text:"Status"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
+    draw()}
   // ---------- Weekly: the Monday meeting on direction and progress ----------
   function fitOf(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f.replace(/'/g,'"').replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false"))}catch(e){f=null}}return f&&typeof f.score==="number"?f:null}
   function renderWeekly(){
@@ -1646,9 +1725,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
-    ["apps","messages","replies","team","weekly","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
+    if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(!S.isOwner&&S.tab==="reach")S.tab="apps";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
+    ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
-    $("tab-team").textContent=S.isOwner?"Team":"My week";$("tab-contacts").hidden=true;if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
+    $("tab-team").textContent="My week";$("tab-team").hidden=!!S.isOwner;$("tab-reach").hidden=!S.isOwner;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
+    if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
     $("add-btn").hidden=!canAdd;$("reply-btn").hidden=!canAdd;
@@ -1656,6 +1737,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(S.tab==="replies"){renderReplyAdd();renderReplies()}
     if(S.tab==="team")renderTeam();
     if(S.tab==="weekly")renderWeekly();
+    if(S.tab==="reach")renderReach();
     if(S.tab==="brief")renderBrief();
     if(S.tab==="contacts")renderContacts();
     if(S.tab==="messages")renderMessages();
@@ -2349,7 +2431,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   }
 
   // events
-  ["apps","messages","replies","team","weekly","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
+  $("guide-btn").onclick=function(){S.tab="brief";try{localStorage.setItem("ay-tab","brief")}catch(e){}render();window.scrollTo(0,0)};
+  ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
   function paintTheme(){var t=themeNow();$("theme-btn").textContent=t==="dark"?"Dark":"Light";$("theme-btn").title=(t==="dark"?"Dark mode":"Light mode")+". Click to switch."}
@@ -2361,7 +2444,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","reach","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
