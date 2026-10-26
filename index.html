@@ -825,6 +825,22 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-more{font-style:normal;font-size:11.5px;color:var(--faint);font-weight:600}
 .guide-btn{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:16px;padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;height:auto}.guide-btn:hover{color:var(--fg)}
 
+/* Reach out: tasks */
+.rc-today{margin:4px 0 0;font-size:15px;color:var(--fg)}.rc-tl{font-weight:700;font-size:15px}.rc-tl.late{color:#c2410c}
+.rc-tabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;border-bottom:1px solid var(--line)}
+.rc-tab{border:0;background:none;padding:10px 14px;font:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;gap:8px;align-items:center;height:auto}
+.rc-tab b{font-size:11.5px;min-width:20px;padding:1px 7px;border-radius:10px;background:var(--soft2);color:var(--muted)}
+.rc-tab.on{color:var(--fg);border-bottom-color:var(--fg)}.rc-tab.late b{background:#c2410c;color:#fff}.rc-tab.late{color:#c2410c}
+.rc-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.rc-filters input{flex:1;min-width:220px}
+.rc-filters select,.rc-filters input{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--fg)}
+.rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
+.rc-row.late td{background:#fff6f2}
+.rc-do{color:var(--fg);font-weight:600;font-size:12.5px}.rc-what{max-width:300px}.rc-what span{white-space:normal}
+.rc-acts{display:flex;gap:4px;justify-content:flex-end;align-items:center;white-space:nowrap}.rc-wrap td.pg-acts{width:1%}.rc-acts .pg-go{min-width:0}
+.rc-mail{font-size:12px;color:#1d4ed8;text-decoration:none}.rc-guess{font-size:12px;color:var(--faint);font-style:italic}.rc-find{font-size:12px;text-align:left;padding:0}
+.rc-bulk{display:flex;align-items:center;gap:14px;margin:0 0 10px;font-size:14px}
+.rc-li a{font-size:12.5px;color:#1d4ed8;margin-right:10px}
+
 </style>
 
 <div class="wrap">
@@ -1538,72 +1554,103 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       body.appendChild(el("button",{class:"linkish cv-job",type:"button",text:"Open the full job page ›",onclick:function(){close();openJob(j.id)}}))}
     document.body.appendChild(wrap);document.addEventListener("keydown",key);draw()}
 
-  // ---------- Reach out (Ifeanyi only): one row per application, from applied to done ----------
-  function reachRows(){var out=[];
-    S.jobs.forEach(function(j){if(!SENT[j.status]||j.status==="rejected")return;
-      var cs=(j.contacts||[]).slice(),focus=null;
-      // show the person who needs him most; reached-out people before untouched ones
-      var RANK={answer:0,check:1,accepted:2,nudge:3,talking:4,waiting:5,done:6,"new":7,closed:8};
-      focus=cs.sort(function(a,b){var x=RANK[cadence(a).k],y=RANK[cadence(b).k];return x-y||String(a.addedAt||"").localeCompare(String(b.addedAt||""))})[0]||null;
-      var cd=focus?cadence(focus):{k:"noone"};
-      var grp={noone:"notyet","new":"notyet",waiting:"waiting",done:"waiting",accepted:"needs",nudge:"needs",answer:"needs",check:"needs",talking:"convo",closed:"done"}[cd.k];
-      out.push({j:j,c:focus,cd:cd,others:Math.max(0,(j.contacts||[]).length-1),due:!!cd.due,grp:grp,applied:sentAt(j)||j.addedAt})});
+  // ---------- Reach out (Ifeanyi only): what to do today, one task per person ----------
+  function daysSince(i){return i?Math.floor((Date.now()-new Date(i))/864e5):0}
+  function companyKey(c){return String(c||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
+  function companySearch(company){var k=companyKey(company),hit=null;S.jobs.forEach(function(j){if(companyKey(j.company)===k&&j.peopleSearch&&!hit)hit=j.peopleSearch});return hit}
+  function reachTasks(){var out=[];
+    S.jobs.forEach(function(j){if(!SENT[j.status]||j.status==="rejected")return;var applied=sentAt(j)||j.addedAt,cs=j.contacts||[];
+      if(!cs.length){out.push({j:j,c:null,tab:"find",applied:applied});return}
+      cs.forEach(function(c){var cd=cadence(c),o=outs(c),t={j:j,c:c,cd:cd,applied:applied},n;
+        if(cd.k==="new"){t.tab="first";n=daysSince(applied);t.late=n>=5;t.what=t.late?"Send the connection note ("+n+" days since applying)":"Send the connection note"}
+        else if(cd.k==="waiting"){t.tab="waiting";t.what="Waiting on accept, check "+fmtD(cd.check)}
+        else if(cd.k==="accepted"){t.tab="follow";n=daysSince(c.acceptedAt);t.late=n>=2;t.what="Send the full follow-up (accepted "+agoN(n)+")"}
+        else if(cd.k==="nudge"){t.tab="follow";t.late=cd.days>=10;t.what="No accept in "+cd.days+" days: email or InMail the follow-up"}
+        else if(cd.k==="done"){t.tab="waiting";t.what="Followed up "+fmtD(o[1]&&o[1].at)+". Leave it unless they reply"}
+        else if(cd.k==="answer"){t.tab="replies";n=daysSince(c.repliedAt);t.late=n>=2;t.what="They replied "+agoN(n)+". Reply to them"}
+        else if(cd.k==="talking"){t.tab="waiting";t.what="Check in "+fmtD(cd.check)+" if they go quiet"}
+        else if(cd.k==="check"){t.tab="follow";t.late=cd.days>=7;t.what="Quiet "+cd.days+" days since your last note. Check in"}
+        else if(cd.k==="closed"){t.tab="done";t.what="Done "+fmtD(c.closedAt)}
+        if(t.late)t.tab="late";out.push(t)})});
     return out}
+  function fmtD(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""}
+  function agoN(n){return n<=0?"today":n===1?"1 day ago":n+" days ago"}
+  function reachRows(){return reachTasks().filter(function(t){return t.tab==="late"||t.tab==="replies"||t.tab==="follow"}).map(function(t){return {due:true}})}
   function renderReach(){
     var V=$("reach-view");var a=document.activeElement;if(a&&/^rc-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
-    var rows=reachRows(),md=function(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""};
-    var dago=function(i){var n=Math.floor((Date.now()-new Date(i))/864e5);return n<=0?"today":n===1?"1 day ago":n+" days ago"};
-    var cnt={all:rows.length,needs:0,notyet:0,waiting:0,convo:0,done:0};rows.forEach(function(r){cnt[r.grp]++});
-    S.rcView=S.rcView||(cnt.needs?"needs":"all");
-    var F=[["needs","Needs you"],["notyet","Not reached out"],["waiting","Waiting"],["convo","In conversation"],["done","Done"],["all","All"]];
-    var q=el("input",{id:"rc-q",type:"search",placeholder:"Search company, role or person"});q.value=S.rcq||"";q.addEventListener("input",function(){S.rcq=q.value;draw()});
-    var who=el("select",{id:"rc-who"},[el("option",{value:"",text:"Found by anyone"})].concat(mates().concat(["owner"]).map(function(k){return el("option",{value:k,text:"Found by "+whoName(k).split(" ")[0],selected:S.rcWho===k?true:null})})));
-    who.addEventListener("change",function(){S.rcWho=who.value;draw()});
-    V.appendChild(el("div",{class:"rc-head"},[el("div",{},[el("h2",{text:"Reach out"}),el("p",{class:"muted-line",title:"Note first. Accepted: follow up within a day. No accept in 7 days: email or InMail. After they reply: check in 3 days after your last message until you mark it done.",text:"Every application, from the day it came in to the last follow-up."})])]));
-    var chips=el("div",{class:"pg-chips rc-chips",role:"tablist"},F.map(function(f){return el("button",{type:"button",role:"tab",class:"pg-chip"+(S.rcView===f[0]?" on":"")+(f[0]==="needs"&&cnt.needs?" hot":""),onclick:function(){S.rcView=f[0];renderReach()}},[f[1],el("b",{text:String(cnt[f[0]])})])}));
-    V.appendChild(el("div",{class:"ct-tools pg-tools rc-tools"},[chips,q,who]));
-    var box=el("div");V.appendChild(box);
-    var ORDER={needs:0,notyet:1,waiting:2,convo:3,done:4};
-    var STATUS={noone:["No one to contact",""],"new":["Not reached out",""],waiting:["Waiting on accept","sent"],accepted:["Accepted","acc"],nudge:["No accept in 7 days","acc"],done:["Followed up","sent"],answer:["They replied","ok"],talking:["In conversation","ok"],check:["Check-in due","acc"],closed:["Done",""]};
-    function act(r){var j=r.j,c=r.c,cd=r.cd;
-      var draft=function(mode){return function(e){e.stopPropagation();S.drafting={cid:c.id,mode:mode};openContact(j.id,c.id)}};
-      var patch=function(field,msg){return function(e){e.stopPropagation();var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){toast(msg);refresh()},fail)}};
-      var B=function(t,fn,hot){return el("button",{type:"button",class:"pg-go"+(hot?" hot":""),onclick:fn},[t])};
-      if(cd.k==="noone")return B("Find someone",function(e){e.stopPropagation();openJob(j.id)});
-      if(cd.k==="new")return B("✦ "+(c.draft&&c.draftMode!=="followup"?"Open note":"Write note"),draft("first"));
-      if(cd.k==="waiting")return B("Mark accepted",patch("accepted","Marked accepted. Follow up today."));
-      if(cd.k==="accepted"||cd.k==="nudge")return B("✦ Follow up",draft("followup"),true);
-      if(cd.k==="answer")return B("Reply",function(e){e.stopPropagation();openContact(j.id,c.id)},true);
-      if(cd.k==="check")return B("Check in",function(e){e.stopPropagation();openContact(j.id,c.id)},true);
-      if(cd.k==="talking"||cd.k==="done")return B("Open",function(e){e.stopPropagation();openContact(j.id,c.id)});
-      return null}
-    function fu(r){var cd=r.cd,c=r.c,o=c?outs(c):[];
-      if(cd.k==="waiting")return el("span",{class:"pg-dim",text:"If no accept, "+md(cd.check)});
-      if(cd.k==="accepted")return el("span",{class:"pg-due",text:"Due now (accepted "+md(c.acceptedAt)+")"});
-      if(cd.k==="nudge")return el("span",{class:"pg-due",text:"Overdue, "+cd.days+" days, email or InMail"});
-      if(cd.k==="done")return el("span",{class:"pg-dim",text:"Sent "+md(o[1]&&o[1].at)});
-      if(cd.k==="answer")return el("span",{class:"pg-due",text:"Reply to them"});
-      if(cd.k==="talking")return el("span",{class:"pg-dim",text:"Check in "+md(cd.check)});
-      if(cd.k==="check")return el("span",{class:"pg-due",text:"Check in now ("+cd.days+" days quiet)"});
-      if(cd.k==="closed")return el("span",{class:"pg-dim",text:"Closed "+md(c.closedAt)});
-      return el("span",{class:"pg-dim",text:""})}
-    function draw(){box.textContent="";var t=norm(S.rcq||"");
-      var list=rows.filter(function(r){return (S.rcView==="all"||r.grp===S.rcView)&&(!S.rcWho||r.j.addedBy===S.rcWho)&&(!t||norm(r.j.company+" "+r.j.role+" "+(r.c?r.c.name+" "+(r.c.title||""):"")).indexOf(t)>=0)})
-        .sort(function(a,b){return (ORDER[a.grp]-ORDER[b.grp])||String(a.applied).localeCompare(String(b.applied))});
-      if(!list.length){box.appendChild(el("div",{class:"empty"},[el("h3",{text:S.rcView==="needs"?"Nothing needs you right now":"Nothing here"}),el("p",{text:S.rcView==="needs"?"Notes to send are under Not reached out.":"Try another filter."})]));return}
-      var tb=el("tbody");
-      list.forEach(function(r,i){var j=r.j,c=r.c,o=c?outs(c):[],st=STATUS[r.cd.k]||["",""];
-        tb.appendChild(el("tr",{class:"pg-row rc-row"+(r.due?" due":""),onclick:function(){if(c)openContact(j.id,c.id);else openJob(j.id)}},[
-          el("td",{class:"pg-n",text:String(i+1)}),
-          el("td",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{text:j.company||"Untitled"}),el("span",{text:j.role||""})])]),
-          el("td",{},[el("span",{class:"rc-d"},[el("b",{text:md(r.applied)}),el("span",{text:dago(r.applied)+" · "+whoName(j.addedBy).split(" ")[0]})])]),
-          el("td",{},[c?el("span",{class:"rc-d"},[el("b",{},[c.name,r.others?el("em",{class:"rc-more",title:r.others+" more on this job",text:" +"+r.others}):null]),el("span",{text:c.title||""})]):el("span",{class:"pg-dim",text:"No one yet"})]),
-          el("td",{},[o.length?el("span",{class:"rc-d"},[el("b",{text:md(o[0].at)}),el("span",{text:({"LinkedIn":"Connection note","email":"Email","InMail":"InMail","LinkedIn message":"LinkedIn message"})[o[0].via]||o[0].via})]):el("span",{class:"pg-dim",text:c?"Not yet":""})]),
-          el("td",{},[fu(r)]),
-          el("td",{},[st[0]?el("span",{class:"pg-pill "+st[1],text:st[0]}):null]),
-          el("td",{class:"pg-acts"},[act(r)])]))});
-      box.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Applied"}),el("th",{text:"Person"}),el("th",{text:"Reached out"}),el("th",{text:"Follow-up"}),el("th",{text:"Status"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
-    draw()}
+    var all=reachTasks(),F=S.rf=S.rf||{q:"",who:"",applied:"any",email:"any"};
+    var pass=function(t){var j=t.j,c=t.c,n=daysSince(t.applied);
+      if(F.who&&j.addedBy!==F.who)return false;
+      if(F.applied==="week"&&n>7)return false;if(F.applied==="2w"&&n>14)return false;if(F.applied==="older"&&n<=14)return false;
+      if(F.email==="has"&&!(c&&c.email))return false;if(F.email==="none"&&c&&c.email)return false;
+      var q=norm(F.q);if(q&&norm(j.company+" "+j.role+" "+(c?c.name+" "+(c.title||""):"")).indexOf(q)<0)return false;return true};
+    var tasks=all.filter(pass);
+    var TABS=[["late","Late","These slipped past their window. Do them first."],["replies","Replies","They wrote back. Reply, then click I replied."],["follow","Follow up","Accepted: send the full follow-up within a day. No accept in 7 days: email or InMail. Quiet 3+ days after your last note: check in."],["first","First reach out","Open the note, send the connection request on LinkedIn, then click Sent."],["find","Find people","No one to contact yet. Each company is searched once with AI; after that, use the LinkedIn links."],["waiting","Waiting","Nothing to do here. Each one moves back up when it's due."],["done","Done","Conversations you closed."]];
+    var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
+    if(!S.rcTab||!cnt.hasOwnProperty(S.rcTab))S.rcTab=(["late","replies","follow","first","find"].find(function(k){return cnt[k]})||"waiting");
+    // what to do today, in words
+    var bits=[["late",cnt.late,"late"],["replies",cnt.replies,cnt.replies===1?"reply":"replies"],["follow",cnt.follow,cnt.follow===1?"follow-up":"follow-ups"],["first",cnt.first,cnt.first===1?"first note":"first notes"],["find",cnt.find,cnt.find===1?"company needs people":"companies need people"]].filter(function(b){return b[1]});
+    V.appendChild(el("div",{class:"rc-head"},[el("h2",{text:"Reach out"}),el("p",{class:"rc-today"},bits.length?["Today: "].concat(bits.map(function(b,i){return el("span",{},[i?" · ":"",el("button",{type:"button",class:"linkish rc-tl"+(b[0]==="late"?" late":""),text:b[1]+" "+b[2],onclick:function(){S.rcTab=b[0];renderReach()}})])})):["Nothing due today."])]));
+    V.appendChild(el("div",{class:"rc-tabs",role:"tablist"},TABS.map(function(t){return el("button",{type:"button",role:"tab",class:"rc-tab"+(S.rcTab===t[0]?" on":"")+(t[0]==="late"&&cnt.late?" late":""),onclick:function(){S.rcTab=t[0];renderReach()}},[t[1],el("b",{text:String(cnt[t[0]])})])})));
+    var q=el("input",{id:"rc-q",type:"search",placeholder:"Search company, role or person"});q.value=F.q;q.addEventListener("input",function(){F.q=q.value;drawBody()});
+    var sel=function(id,key,opts){var x=el("select",{id:id},opts.map(function(o){return el("option",{value:o[0],text:o[1],selected:F[key]===o[0]?true:null})}));x.addEventListener("change",function(){F[key]=x.value;renderReach()});return x};
+    V.appendChild(el("div",{class:"rc-filters"},[q,
+      sel("rc-who","who",[["","Found by anyone"]].concat(mates().concat(["owner"]).map(function(k){return [k,"Found by "+whoName(k).split(" ")[0]]}))),
+      sel("rc-app","applied",[["any","Applied any time"],["week","Applied this week"],["2w","Applied in 2 weeks"],["older","Applied 2+ weeks ago"]]),
+      sel("rc-em","email",[["any","Email or not"],["has","Has an email"],["none","No email"]])]));
+    var tab=TABS.find(function(t){return t[0]===S.rcTab});
+    V.appendChild(el("p",{class:"rc-how",text:tab[2]}));
+    var body=el("div");V.appendChild(body);
+    function drawBody(){body.textContent="";var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
+      if(S.rcTab==="find"){drawFind(list);return}
+      if(!list.length){body.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here"}),el("p",{text:"Try another tab or clear the filters."})]));return}
+      var tb=el("tbody");list.forEach(function(t,i){tb.appendChild(taskRow(t,i))});
+      body.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Person"}),el("th",{text:"Last touch"}),el("th",{text:"What to do"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
+    function taskRow(t,i){var j=t.j,c=t.c,cd=t.cd,o=outs(c),l=o[o.length-1];
+      var lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
+      var stop=function(fn){return function(e){e.stopPropagation();fn()}};
+      var draft=function(mode){return stop(function(){S.drafting={cid:c.id,mode:mode};openContact(j.id,c.id)})};
+      var patch=function(field,msg){return stop(function(){var b={};b[field]=true;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){toast(msg);refresh()},fail)})};
+      var log=function(via,msg){return stop(function(){logOut(j,c,via,msg)})};
+      var P=function(tx,fn,hot){return el("button",{type:"button",class:"pg-go"+(hot?" hot":""),onclick:fn},[tx])},Q=function(tx,fn,tip){return el("button",{type:"button",class:"pg-act",title:tip||null,onclick:fn,text:tx})};
+      var hot=t.tab==="late"||t.tab==="replies"||t.tab==="follow",acts=[];
+      if(cd.k==="new"){acts.push(P("✦ "+(c.draft&&c.draftMode!=="followup"?"Open note":"Write note"),draft("first"),hot));if(lnk)acts.push(Q("Sent ✓",log("LinkedIn","Logged. Mark them Accepted when they connect."),"Connection request sent"));if(c.email)acts.push(Q("✉ ✓",log("email","Logged."),"Emailed them"))}
+      else if(cd.k==="waiting"){acts.push(P("Accepted",patch("accepted","Marked accepted. Follow up today.")));acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"))}
+      else if(cd.k==="accepted"){acts.push(P("✦ Follow up",draft("followup"),true));if(lnk)acts.push(Q("Sent ✓",log("LinkedIn message","Follow-up logged."),"Follow-up sent on LinkedIn"))}
+      else if(cd.k==="nudge"){acts.push(P("✦ Follow up",draft("followup"),true));if(c.email)acts.push(Q("✉ ✓",log("email","Follow-up logged."),"Follow-up emailed"));acts.push(Q("InMail ✓",log("InMail","Follow-up logged."),"Follow-up sent as InMail"));acts.push(Q("Accepted",patch("accepted","Marked accepted."),"They accepted"))}
+      else if(cd.k==="answer"){acts.push(P("I replied",patch("answered","Logged. Check in after 3 days if they go quiet."),true));acts.push(Q("Open",stop(function(){openContact(j.id,c.id)})))}
+      else if(cd.k==="check"){acts.push(P("Checked in",patch("checkin","Logged. Next check-in in 3 days."),true));acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"));acts.push(Q("Done",patch("closed","Marked done"),"Conversation done"))}
+      else if(cd.k==="talking"||cd.k==="done"){acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"));acts.push(Q("Open",stop(function(){openContact(j.id,c.id)})))}
+      else if(cd.k==="closed")acts.push(Q("Reopen",patch("reopen","Reopened")));
+      var emailBit=c.email?el("a",{href:"mailto:"+c.email,class:"rc-mail",text:c.email,onclick:function(e){e.stopPropagation()}}):c.emailGuess?el("span",{class:"rc-guess",title:"Not confirmed. Based on the company's email format.",text:"likely "+c.emailGuess}):c.emailTried?el("span",{class:"pg-dim",text:"No email found"}):el("button",{type:"button",class:"linkish rc-find",text:"✦ Find email",onclick:stop(function(){var b=this;b.disabled=true;b.textContent="Looking...";api("POST","/api/find-email",{jobId:j.id,contactId:c.id}).then(function(r){toast(r.email?"Found "+r.email:r.emailGuess?"No confirmed email. Likely "+r.emailGuess:"No email found");refresh()},function(e){b.disabled=false;b.textContent="✦ Find email";fail(e)})})});
+      return el("tr",{class:"pg-row rc-row"+(t.tab==="late"?" late":""),onclick:function(){openContact(j.id,c.id)}},[
+        el("td",{class:"pg-n",text:String(i+1)}),
+        el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{text:j.company||"Untitled"}),el("span",{text:j.role+" · applied "+fmtD(t.applied)+" by "+whoName(j.addedBy).split(" ")[0]})])])]),
+        el("td",{},[el("span",{class:"rc-d"},[el("b",{},[c.name,lnk?el("a",{href:lnk,target:"_blank",rel:"noopener",class:"pg-in",text:"in",onclick:function(e){e.stopPropagation()}}):null]),el("span",{text:c.title||""}),emailBit])]),
+        el("td",{},[l?el("span",{class:"rc-d"},[el("b",{text:fmtD(l.at)}),el("span",{text:({"LinkedIn":"Connection note","email":"Email","InMail":"InMail","LinkedIn message":"LinkedIn message"})[l.via]||l.via})]):el("span",{class:"pg-dim",text:"Not yet"})]),
+        el("td",{class:"rc-what"},[el("span",{class:t.tab==="late"?"pg-due":hot?"rc-do":"pg-dim",text:t.what})]),
+        el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},acts)])])}
+    function drawFind(list){
+      var todo=list.filter(function(t){return !companySearch(t.j.company)});
+      var bar=el("div",{class:"rc-bulk"},[el("span",{text:todo.length?todo.length+" of "+list.length+" not searched yet.":"Every company here has been searched once."}),
+        todo.length?el("button",{type:"button",class:"pg-go hot",text:"✦ Search all "+todo.length+" with AI",onclick:function(){var b=this;b.disabled=true;runFind(todo.slice(),b)}}):null]);
+      body.appendChild(bar);
+      if(!list.length){body.appendChild(el("div",{class:"empty"},[el("h3",{text:"Every application has someone to contact"})]));return}
+      var tb=el("tbody");list.forEach(function(t,i){var j=t.j,srch=companySearch(j.company),role0=j.role.replace(/\b(senior|sr\.?|junior|jr\.?|lead|principal|staff)\b/ig,"").trim();
+        var li=function(w,tx){return el("a",{href:"https://www.linkedin.com/search/results/people/?keywords="+encodeURIComponent(w),target:"_blank",rel:"noopener",text:tx,onclick:function(e){e.stopPropagation()}})};
+        tb.appendChild(el("tr",{class:"pg-row",onclick:function(){openJob(j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),
+          el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{text:j.company}),el("span",{text:j.role+" · applied "+fmtD(t.applied)+" by "+whoName(j.addedBy).split(" ")[0]})])])]),
+          el("td",{},[srch?el("span",{class:"pg-dim",text:"Searched "+fmtD(srch.at)+", found "+srch.found+". Not searching again."}):el("span",{class:"rc-do",text:"Not searched yet"})]),
+          el("td",{class:"rc-li"},[li(j.company+" recruiter","Recruiters"),li(j.company+" "+role0+" manager","Manager"),li(j.company+" "+j.role,"Team")]),
+          el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[srch?null:el("button",{type:"button",class:"pg-go hot",text:"✦ Find people",onclick:function(e){e.stopPropagation();var b=this;b.disabled=true;runFind([t],b)}}),el("button",{type:"button",class:"pg-act",text:"Add person",onclick:function(e){e.stopPropagation();S.editContact=j.id+":new";openJob(j.id)}})])])]))});
+      body.appendChild(el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"AI search"}),el("th",{text:"Search LinkedIn"}),el("th",{class:"pg-acts",text:""})])]),tb])]))}
+    function runFind(queue,btn){var done=0,added=0;
+      function next(){if(!queue.length){toast("Searched "+done+(done===1?" company":" companies")+", added "+added+(added===1?" person":" people"));refresh();return}
+        var t=queue.shift();if(btn)btn.textContent="Searching "+t.j.company+"...";
+        api("POST","/api/find-people",{jobId:t.j.id,want:3}).then(function(r){done++;var ps=r.people||[];
+          return ps.reduce(function(p,x){return p.then(function(){added++;return api("POST","/api/jobs/"+t.j.id+"/contacts",{name:x.name,title:x.title,linkedin:x.linkedin||"",email:x.email||"",emailGuess:x.emailGuess||"",source:"AI web search"+(x.location?" ("+x.location+")":"")})})},Promise.resolve())},function(e){done++;if(e&&e.code!==409)fail(e)}).then(next)}
+      next()}
+    drawBody()}
   // ---------- Weekly: the Monday meeting on direction and progress ----------
   function fitOf(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f.replace(/'/g,'"').replace(/\bTrue\b/g,"true").replace(/\bFalse\b/g,"false"))}catch(e){f=null}}return f&&typeof f.score==="number"?f:null}
   function renderWeekly(){
@@ -1934,7 +1981,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var isOpen=S.open===j.id,toggle=function(){S.open=isOpen?null:j.id;renderRows()};
       tb.appendChild(el("tr",{class:"ap-row"+(isOpen?" open":""),tabindex:"0","aria-expanded":isOpen?"true":"false",onclick:toggle,onkeydown:function(e){if(e.key==="Enter"){e.preventDefault();toggle()}}},[
         el("td",{class:"pg-n",text:String(n)}),
-        el("td",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled"]),el("span",{text:j.role||""})])]),
+        el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{},[j.needsIfeanyi?el("span",{class:"flag",title:"Needs Ifeanyi"}):null,j.company||"Untitled"]),el("span",{text:j.role||""})])])]),
         el("td",{class:"ap-st"},[statusSel(j)]),
         el("td",{class:"pg-found",text:nameOf(j.addedBy).replace(" (you)","")}),
         el("td",{class:"pg-found",text:j.status==="saved"?"Not yet":rel(sentAt(j))||rel(j.addedAt)}),
