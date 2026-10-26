@@ -1592,7 +1592,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var pass=function(t){var j=t.j,c=t.c,n=daysSince(t.applied);
       if(F.who&&j.addedBy!==F.who)return false;
       if(F.applied==="week"&&n>7)return false;if(F.applied==="2w"&&n>14)return false;if(F.applied==="older"&&n<=14)return false;
-      if(F.email==="has"&&!(c&&c.email))return false;if(F.email==="none"&&c&&c.email)return false;
+      if(F.email==="has"&&!(c&&(c.email||c.emailGuess)))return false;if(F.email==="confirmed"&&!(c&&c.email))return false;if(F.email==="none"&&c&&(c.email||c.emailGuess))return false;
       var q=norm(F.q);if(q&&norm(j.company+" "+j.role+" "+(c?c.name+" "+(c.title||""):"")).indexOf(q)<0)return false;return true};
     var tasks=all.filter(pass);
     var TABS=[["late","Late","These slipped past their window. Do them first."],["replies","Replies","They wrote back. Reply, then click I replied."],["follow","Follow up","Accepted: send the full follow-up within a day. No accept in 7 days: email or InMail. Quiet 3+ days after your last note: check in."],["first","First reach out","Open the note, send the connection request on LinkedIn, then click Sent."],["find","Find people","No one to contact yet. Each company is searched once with AI; after that, use the LinkedIn links."],["waiting","Waiting","Nothing to do here. Each one moves back up when it's due."],["done","Done","Conversations you closed."]];
@@ -1607,7 +1607,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     V.appendChild(el("div",{class:"rc-filters"},[q,
       sel("rc-who","who",[["","Found by anyone"]].concat(mates().concat(["owner"]).map(function(k){return [k,"Found by "+whoName(k).split(" ")[0]]}))),
       sel("rc-app","applied",[["any","Applied any time"],["week","Applied this week"],["2w","Applied in 2 weeks"],["older","Applied 2+ weeks ago"]]),
-      sel("rc-em","email",[["any","Email or not"],["has","Has an email"],["none","No email"]])]));
+      sel("rc-em","email",[["any","Email or not"],["has","Has an email (incl. likely)"],["confirmed","Confirmed email only"],["none","No email"]])]));
     var tab=TABS.find(function(t){return t[0]===S.rcTab});
     V.appendChild(el("p",{class:"rc-how",text:tab[2]}));
     var body=el("div");V.appendChild(body);
