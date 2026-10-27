@@ -741,6 +741,11 @@ body{background:var(--page)}
 .wk-head h2{margin:0}.wk-nav{display:flex;gap:6px}
 .wk-sec{padding:18px 0;border-top:1px solid var(--line)}.wk-sec:first-of-type{border-top:0}
 .wk-train td{background:#f0fdf4}
+.focus{margin:14px 0 0;padding:16px 18px;border:1.5px solid #15803d;border-radius:14px;background:var(--bg)}.focus-head h3{margin:0}.focus-head p{margin:4px 0 0;font-size:14px}
+.focus-item{margin:14px 0 0}.focus-top{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}.focus-done{color:#15803d;font-weight:700}
+.focus-search{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}.focus-link{font-size:12.5px;padding:3px 9px;border-radius:10px;background:#dcfce7;color:#166534;text-decoration:none}.focus-link:hover{text-decoration:underline}
+.focus-mix{margin:14px 0 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}.focus-best{margin:10px 0 0;font-size:13px;color:var(--muted)}
+.focus-edit{margin-top:12px;max-width:760px}.focus-edit label{font-size:13px;font-weight:600}.focus-note{width:100%;box-sizing:border-box;margin-top:4px}.focus-ctl{display:inline-flex;gap:6px;align-items:center}.focus-target{width:56px}
 .wk-sec .bhead{justify-content:flex-start;gap:12px}
 .wk-wrap{max-height:none}.wk-wrap .pg-table{min-width:720px}
 .wk-who{display:flex;align-items:center;gap:8px}
@@ -991,7 +996,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.focus=d.focus||{items:[],note:""};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -1824,8 +1829,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var rows=Object.keys(by).map(function(k){return by[k]}).sort(function(a,b){return (b.t===TRAIN)-(a.t===TRAIN)||b.sent.length-a.sent.length});
       var cell=function(list,label,r){return el("td",{},[list.length?el("button",{type:"button",class:"linkish",text:String(list.length),onclick:function(){wkList(r.t+": "+label,list.length+(list.length===1?" job":" jobs"),list)}}):el("span",{class:"pg-dim",text:"0"})])};
       var tb=el("tbody");rows.forEach(function(r){var af=r.fit.length?Math.round(r.fit.reduce(function(a,b){return a+b},0)/r.fit.length):null;
-        tb.appendChild(el("tr",{class:r.t===TRAIN?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r)]))});
-      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies"].map(function(h){return el("th",{text:h})}))]),tb])])))})();
+        var fi=(S.focus&&S.focus.items||[]).find(function(x){return x.type===r.t});
+        tb.appendChild(el("tr",{class:fi?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r),
+          el("td",{},[S.isOwner?focusCtl(r.t,fi):fi?el("span",{class:"pg-dim",text:fi.target+" a week"}):null])]))});
+      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
+      var sec=V.lastChild;if(S.isOwner){var note=el("textarea",{id:"tm-focus-note",class:"focus-note",rows:"2",placeholder:"A note to the team about what to look for this week"});note.value=(S.focus&&S.focus.note)||"";
+        note.addEventListener("blur",function(){if(note.value===((S.focus&&S.focus.note)||""))return;saveFocus({note:note.value})});
+        sec.appendChild(el("div",{class:"focus-edit"},[el("label",{for:"tm-focus-note",text:"Note on their home screen"}),note,el("p",{class:"pg-dim",text:"Pick job types to push with the Focus column. Esther and Gilaiza see the target, their progress and ready-made LinkedIn searches at the top of their Applications page."})]))}})();
     // interviews: the most important line of the week, on its own
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
     var ivBox=el("div",{class:"wk-list"});
@@ -1915,13 +1925,20 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     ["Salesforce and CRM admin",/salesforce|crm|hubspot|administrator|\badmin\b/],["Business and systems analyst",/business analyst|business systems?|systems? analyst|\bba\b|process analyst/],["Data and reporting",/data|analytics|reporting|insights|\bbi\b/],
     ["Revenue and sales ops",/revenue|revops|sales op|gtm|go-to-market|operations analyst/],["AI and automation",/\bai\b|automation|llm|machine learning/],["Project and program",/project|program|delivery manager|scrum/],["Support",/support|help ?desk|service desk/]];
   function jobType(role){var r=String(role||"").toLowerCase();for(var i=0;i<JOB_TYPES.length;i++)if(JOB_TYPES[i][1].test(r))return JOB_TYPES[i][0];return "Other"}
+  function saveFocus(patch){var F=Object.assign({items:[],note:""},S.focus||{},patch);return api("PUT","/api/focus",F).then(function(v){S.focus=v;toast("Focus saved. It's on their home screen.");renderWeekly()},fail)}
+  function focusCtl(type,fi){if(!fi)return el("button",{type:"button",class:"pg-act",text:"Push this",onclick:function(){saveFocus({items:(S.focus.items||[]).concat([{type:type,target:5}])})}});
+    var inp=el("input",{id:"tm-focus-"+type.replace(/\W+/g,""),type:"number",min:"1",max:"50",class:"focus-target"});inp.value=fi.target;
+    inp.addEventListener("change",function(){saveFocus({items:S.focus.items.map(function(x){return x.type===type?{type:type,target:+inp.value||5}:x})})});
+    return el("span",{class:"focus-ctl"},[inp,el("span",{class:"pg-dim",text:"a week"}),el("button",{type:"button",class:"linkish",text:"Stop",onclick:function(){saveFocus({items:S.focus.items.filter(function(x){return x.type!==type})})}})])}
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
+    // teammates: Applications, Inbox, Reach out, Weekly. Their week lives on Applications; resumes open from each job.
+    if(S.db&&S.uid&&!S.isOwner&&(S.tab==="team"||(S.tab==="resume"&&!S.editorJob)))S.tab="apps";
     if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
     ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
     renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
-    $("tab-team").textContent="My week";$("tab-team").hidden=!!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
+    $("tab-team").textContent="My week";$("tab-team").hidden=true;$("tab-resume").hidden=!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
     if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
     var canAdd=!!S.db&&!!S.uid;
@@ -1964,7 +1981,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       el("h2",{class:"brand","aria-label":"Apply Yourself",style:"font-size:30px;margin-bottom:6px"},["Apply\u00a0Y",el("img",{class:"o",src:"mark.svg",alt:"o"}),"urself"]),
       el("p",{text:"Sign in with the code Ifeanyi gave you. Your code is how the board knows who you are."}),
       el("form",{onsubmit:function(e){e.preventDefault();msg.textContent="";var c=code.value.trim();if(c.length<4){msg.textContent="Enter your code.";return}
-        api("POST","/api/join",{code:c}).then(function(d){setTok(d.token);S.tab=d.me.owner?"apps":"brief";toast("Welcome, "+String(d.me.name).split(" ")[0]);refresh()},function(err){msg.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't sign in. Check your connection."})}},
+        api("POST","/api/join",{code:c}).then(function(d){setTok(d.token);S.tab="apps";toast("Welcome, "+String(d.me.name).split(" ")[0]);refresh()},function(err){msg.textContent=err.msg&&err.msg!=="failed"?err.msg:"Couldn't sign in. Check your connection."})}},
         [code,el("button",{class:"btn accent",type:"submit",text:"Sign in"})]),
       msg
     ]));
@@ -2040,8 +2057,33 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       ]),
       nudges()
     ]));
+    var fc=focusCard();if(fc)x.appendChild(fc);
     maybeCelebrate(n,g);
   }
+  // titles to search for each job type, as remote LinkedIn job searches from the past month
+  var TYPE_TITLES={"Training and enablement":["Training Specialist","CRM Trainer","Salesforce Trainer","Enablement Specialist","Customer Education Specialist","Learning and Development Specialist"],
+    "Implementation":["Implementation Specialist","Implementation Consultant","Onboarding Specialist"],"Salesforce and CRM admin":["Salesforce Administrator","CRM Administrator","CRM Analyst"],
+    "Business and systems analyst":["Business Analyst","Business Systems Analyst"],"Data and reporting":["Data Analyst","Reporting Analyst","Power BI Analyst"],
+    "Revenue and sales ops":["Revenue Operations Analyst","Sales Operations Analyst"],"AI and automation":["AI Implementation Specialist","Automation Specialist","AI Operations Specialist"],
+    "Solutions and sales engineering":["Solutions Consultant"],"Support":["CRM Support Analyst"],"Project and program":["Project Coordinator"]};
+  function liJobs(t){return "https://www.linkedin.com/jobs/search/?keywords="+encodeURIComponent(t)+"&location=United%20States&f_WT=2&f_TPR=r2592000"}
+  // what Ifeanyi wants more of, how this week is going against it, and where their fits run highest
+  function focusCard(){var F=S.focus||{items:[]},mine=S.jobs.filter(function(j){return j.addedBy===S.uid}),wk=monday(new Date());
+    var sentWk=mine.filter(function(j){return SENT[j.status]&&new Date(sentAt(j))>=wk});
+    var mix={};sentWk.forEach(function(j){var t=jobType(j.role);mix[t]=(mix[t]||0)+1});
+    var fits={};mine.forEach(function(j){var f=fitOf(j);if(!f)return;var t=jobType(j.role);(fits[t]=fits[t]||[]).push(f.score)});
+    var best=Object.keys(fits).filter(function(t){return fits[t].length>=2}).map(function(t){return {t:t,a:Math.round(fits[t].reduce(function(a,b){return a+b},0)/fits[t].length)}}).sort(function(a,b){return b.a-a.a}).slice(0,2);
+    if(!(F.items||[]).length&&!sentWk.length)return null;
+    var box=el("div",{class:"focus"},[el("div",{class:"focus-head"},[el("h3",{text:"This week's focus"}),F.note?el("p",{text:F.note}):null])]);
+    (F.items||[]).forEach(function(it){var n=mix[it.type]||0,pct=Math.min(100,Math.round(100*n/it.target));
+      box.appendChild(el("div",{class:"focus-item"},[
+        el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:n>=it.target?"focus-done":"pg-dim",text:n+" of "+it.target+" this week"})]),
+        el("div",{class:"ats-bar"},[el("i",{class:n>=it.target?"good":"ok",style:"width:"+pct+"%"})]),
+        el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Search LinkedIn (remote, past month): "})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("a",{href:liJobs(t),target:"_blank",rel:"noopener",class:"focus-link",text:t})})))]))});
+    var mixKeys=Object.keys(mix).sort(function(a,b){return mix[b]-mix[a]});
+    box.appendChild(el("div",{class:"focus-mix"},[el("span",{class:"pg-dim",text:"Your applications this week: "})].concat(mixKeys.length?mixKeys.map(function(t){return el("span",{class:"ats-chip",text:t+" "+mix[t]})}):[el("span",{class:"pg-dim",text:"none yet"})])));
+    if(best.length)box.appendChild(el("p",{class:"focus-best",text:"Your best fits so far: "+best.map(function(b){return b.t+" (average "+b.a+")"}).join(" and ")+"."}));
+    return box}
   function nudges(){
     var mine=S.isOwner?S.jobs:S.jobs.filter(function(j){return j.addedBy===S.uid});
     var need=mine.filter(noContacts).length;
@@ -2828,7 +2870,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   }
 
   // events
-  $("guide-btn").onclick=function(){S.tab="brief";try{localStorage.setItem("ay-tab","brief")}catch(e){}render();window.scrollTo(0,0)};
+  $("guide-btn").onclick=function(){S.tab="brief";render();window.scrollTo(0,0)};
   ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
@@ -2842,7 +2884,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   $("f-type").onchange=function(e){S.jtype=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
-  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","reach","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
+  try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","reach","contacts","resume"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
   // boot
