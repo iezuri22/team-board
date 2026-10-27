@@ -1681,7 +1681,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var tasks=all.filter(pass);
     var TABS=!S.isOwner?[["late","Late","These have waited 3+ days. Send them first."],["toemail","Emails to send","Open each email and send it from "+SEND_FROM+", then click Sent. If it bounces, click Bad email."],["emailed","Sent","Ifeanyi sends a LinkedIn note 3 days after each email if there's no reply. Mark Bad email if one bounces back."]]:[["li","LinkedIn",""],["em","Email",""],["replies","Replies","They wrote back. Reply to them, then click I replied."],["track","Follow-ups","Everyone you've reached, step by step: email, LinkedIn note, connection, follow-up, reply. Due steps first."],["waiting","Waiting",""],["done","Done","Conversations you closed, follow-ups stopped by a rejection, and turned-down jobs archived 21 days after the rejection."],["cant","Can't find","No one found, or no way to reach them. Add someone by hand if you find them; otherwise these stay out of the way."]];
     var WGROUPS=[["emailed","Emailed","Sent. If there's no reply, the LinkedIn note shows up under LinkedIn on the date shown."],["them","Waiting on them","Waiting on an accept or a reply. Each moves to LinkedIn, Email or Replies when it's due."],["finding","Finding people and emails","Runs on its own every 20 minutes for new jobs."]];
-    var LIG=[["late","Late","Do these first."],["notes","Connection notes","Open the note, send the request, click Sent."],["fumsg","Follow-up messages","They accepted. Send the full message within a day."],["nudge","No accept after 7 days","Send the follow-up as an InMail."],["check","Check-ins","Quiet 3+ days since your last message. Check in."]];
+    var LIG=[["late","Late","Do these first."],["notes","Connection notes","Open the note, send the request, click Sent."],["fumsg","Follow-up messages","They accepted. Send the full message within a day."],["nudge","No accept after 7 days","Send the follow-up as an InMail."],["check","Check-ins","Quiet 3+ days since your last message. Check in."],["upcoming","Up next","Notes are ready but wait for the email first. Send one early if you want."]];
     var EMG=[["late","Late","Do these first."],["send","Emails to send","Opening one in Gmail marks it yours so the team skips it."],["nudge","Follow-up emails","No LinkedIn accept in 7 days. Email the follow-up."],["check","Check-ins","Quiet 3+ days since your last email. Check in."]];
     var GROUPS=LIG;
     var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
@@ -1703,6 +1703,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(tab[2])V.appendChild(el("p",{class:"rc-how",text:tab[2]}));
     var body=el("div");V.appendChild(body);
     function drawBody(){body.textContent="";var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
+      // email goes first, but every ready LinkedIn note is visible here as "Up next" and can go out early
+      if(S.isOwner&&S.rcTab==="li")list=list.concat(all.filter(pass).filter(function(t){var c=t.c;return c&&c.linkedin&&(t.cd.k==="toEmail"||t.cd.k==="emailed")&&!outs(c).some(function(e){return e.via==="LinkedIn"})})
+        .map(function(t){return Object.assign({},t,{tab:"li",group:"upcoming",what:t.cd.k==="toEmail"?"After the email":"Due "+fmtD(t.cd.check)})}));
       if(S.rcTab==="track"){drawTrack(all.filter(pass).filter(reached));return}
       if(S.rcTab==="cant"){var nobody=list.filter(function(t){return !t.c});list=list.filter(function(t){return t.c});
         if(nobody.length){body.appendChild(el("h4",{class:"rc-sub",text:"No one found ("+nobody.length+")"}));drawFind(nobody)}
@@ -1837,6 +1840,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var cell=function(inner,fn,tip){return fn?el("button",{type:"button",class:"fu-cell",title:tip||null,onclick:fn},[inner]):inner};
       var cEmail=c.emailBad?el("span",{class:"fu-bad",text:"Bounced"}):em?cell(done(em.at),openSent(em),"See what was sent"):cd.k==="toEmail"?cell(due("to send"),openDraft("email"),"Open the email"):none();
       var cNote=li?cell(done(li.at),openSent(li),"See what was sent"):cd.k==="li"||(cd.k==="new"&&c.linkedin)?cell(due("due now"),openDraft("note"),"Open the note"):cd.k==="emailed"&&c.draft?cell(el("span",{class:"pg-dim",text:fmtD(cd.check)}),openDraft("note"),"Preview the note"):cd.k==="emailed"?el("span",{class:"pg-dim",text:fmtD(cd.check)}):none();
+      if(t.group==="upcoming")cNote=c.draft?cell(el("span",{class:"pg-dim",text:"ready"}),openDraft("note"),"Preview the note"):none();
+      if(t.group==="upcoming"){actTd=el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[el("button",{type:"button",class:"pg-act",title:"Log the connection request as sent",onclick:function(e){e.stopPropagation();logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")},text:"Sent \u2713"})])])}
       var cConn=c.acceptedAt?done(c.acceptedAt):li?el("span",{class:"pg-dim",text:"pending"}):none();
       var cFu=fu?cell(done(fu.at),openSent(fu),"See what was sent"):(cd.k==="accepted"||cd.k==="nudge")?cell(due("due now"),openDraft("note"),"Open the follow-up"):none();
       var cRep=c.repliedAt?done(c.repliedAt):none();
