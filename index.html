@@ -2298,13 +2298,15 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     say("Checking the ATS match...");
     atsReqFor(j).then(function(R){return mdFor(j,pick).then(function(md){var s=atsScore(atsText(atsDoc(md)),R);
       // first look at a saved job: tailor it right away so the PDF they download is the 90+ version
-      if(s.total<90&&!j.ats&&!ui.auto&&!ui.err&&!(j.fit&&j.fit.verdict==="skip")){ui.auto=1;return fix()}
+      if(!j.ats&&!ui.auto&&!ui.err&&!(j.fit&&j.fit.verdict==="skip")&&(s.total<90||(j.description||"").length>=300)){ui.auto=1;return fix()}
       show(s,j.ats&&j.ats.cannot,false)})}).catch(function(e){say("Couldn't check the ATS match.");fail(e)});
     return box}
   function stepsCard(j){
     if(j.status!=="saved"||!S.uid)return null;
     var mem=stepState(j),pick=pickedRes(j);
-    var done=[!!(j.tailoredAt||mem.resume),!!(j.cover||mem.cover),false];
+    // with a description, the board makes the resume itself: no versions to pick, just the tailored copy
+    var auto=(j.description||"").length>=300,made=!!j.tailoredAt,skipFit=j.fit&&j.fit.verdict==="skip"&&!made;if(auto&&made)pick="Tailored";
+    var done=[auto?!!mem.resume:!!(j.tailoredAt||mem.resume),!!(j.cover||mem.cover),false];
     var cur=done.indexOf(false);
     var B=function(t,fn,on){return el("button",{class:"btn small "+(on?"accent":"ghost"),type:"button",text:t,onclick:fn})};
     function step(i,title,sub,body,acts){return el("li",{class:"step"+(done[i]?" done":"")+(i===cur?" cur":"")},[
@@ -2315,7 +2317,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var chips=el("div",{class:"res-chips",role:"radiogroup","aria-label":"Resume version"},keys.map(function(k){return el("button",{type:"button",role:"radio","aria-checked":k===pick?"true":"false",class:"res-chip"+(k===pick?" on":""),text:resLabel(k),onclick:function(){S.pickRes[j.id]=k;if(k!=="Tailored"&&k!==j.resume){j.resume=k;api("PATCH","/api/jobs/"+j.id,{resume:k}).catch(function(){})}renderRows()}})}));
     var suggested=VARIANTS[j.resume]&&!j.tailoredAt&&!(S.pickRes&&S.pickRes[j.id])?" Suggested: "+resLabel(j.resume)+".":"";
     var list=el("ol",{class:"step-list"},[
-      step(0,"Resume","Pick a version, preview it, then download."+suggested,el("div",{},[chips,atsStep(j,pick)]),[
+      auto?step(0,"Resume",made?"Tailored for this posting. Download it and use it for this application.":skipFit?"No resume was tailored, because the fit check says skip.":"Tailoring your resume for this posting. About a minute.",skipFit?null:atsStep(j,pick),
+        made?[B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
+          B("Download PDF",function(){mdFor(j,"Tailored").then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===0),
+          B("Edit",function(){openEditor(j)})]
+        :skipFit?[aiBtn("Tailor anyway",function(){return atsTailor(j,pick).then(function(r){toast("Resume tailored: ATS match "+r.score)})})]:[])
+      :step(0,"Resume","Pick a version, preview it, then download."+suggested,el("div",{},[chips,atsStep(j,pick)]),[
         B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
         B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===0),
         B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
