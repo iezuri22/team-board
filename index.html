@@ -741,6 +741,12 @@ body{background:var(--page)}
 .wk-head h2{margin:0}.wk-nav{display:flex;gap:6px}
 .wk-sec{padding:18px 0;border-top:1px solid var(--line)}.wk-sec:first-of-type{border-top:0}
 .wk-train td{background:#f0fdf4}.wk-ease td{background:#fffbeb}
+.focus-cols{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:12px}.focus-col{padding:12px 14px;border-radius:12px}.focus-col.more{background:#f0fdf4}.focus-col.less{background:#fffbeb}
+.focus-label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}.focus-col .focus-item{margin-top:10px}.focus-sub{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.focus-types{margin-top:14px}.focus-types summary{cursor:pointer;font-size:13.5px;font-weight:600}.focus-table{width:100%;max-width:640px;margin-top:8px;border-collapse:collapse;font-size:13.5px}
+.focus-table th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}.focus-table td{padding:6px 8px;border-bottom:1px solid var(--line)}
+.focus-tname{margin-right:8px}.focus-tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:9px}.focus-tag.more{background:#dcfce7;color:#166534}.focus-tag.less{background:#fef3c7;color:#92400e}
+@media(max-width:760px){.focus-cols{grid-template-columns:1fr}}
 .focus-ease{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:14px}.focus-lim{display:flex;justify-content:space-between;gap:10px;margin-top:6px;font-size:13.5px}
 .focus{margin:14px 0 0;padding:16px 18px;border:1.5px solid #15803d;border-radius:14px;background:var(--bg)}.focus-head h3{margin:0}.focus-head p{margin:4px 0 0;font-size:14px}
 .focus-item{margin:14px 0 0}.focus-top{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}.focus-done{color:#15803d;font-weight:700}
@@ -2071,23 +2077,28 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function liJobs(t){return "https://www.linkedin.com/jobs/search/?keywords="+encodeURIComponent(t)+"&location=United%20States&f_WT=2&f_TPR=r2592000"}
   // what Ifeanyi wants more of, how this week is going against it, and where their fits run highest
   function focusCard(){var F=S.focus||{items:[]},mine=S.jobs.filter(function(j){return j.addedBy===S.uid}),wk=monday(new Date());
-    var sentWk=mine.filter(function(j){return SENT[j.status]&&new Date(sentAt(j))>=wk});
-    var mix={};sentWk.forEach(function(j){var t=jobType(j.role);mix[t]=(mix[t]||0)+1});
-    var fits={};mine.forEach(function(j){var f=fitOf(j);if(!f)return;var t=jobType(j.role);(fits[t]=fits[t]||[]).push(f.score)});
-    var best=Object.keys(fits).filter(function(t){return fits[t].length>=2}).map(function(t){return {t:t,a:Math.round(fits[t].reduce(function(a,b){return a+b},0)/fits[t].length)}}).sort(function(a,b){return b.a-a.a}).slice(0,2);
-    if(!(F.items||[]).length&&!sentWk.length)return null;
+    var stat={},row=function(t){return stat[t]=stat[t]||{t:t,wk:0,all:0,fit:[]}};
+    mine.forEach(function(j){var r=row(jobType(j.role));if(SENT[j.status]){r.all++;if(new Date(sentAt(j))>=wk)r.wk++}var f=fitOf(j);if(f)r.fit.push(f.score)});
+    var push=(F.items||[]).filter(function(it){return it.limit==null}),ease=(F.items||[]).filter(function(it){return it.limit!=null});
+    if(!push.length&&!ease.length&&!mine.length)return null;
     var box=el("div",{class:"focus"},[el("div",{class:"focus-head"},[el("h3",{text:"This week's focus"}),F.note?el("p",{text:F.note}):null])]);
-    var limits=(F.items||[]).filter(function(it){return it.limit!=null});
-    (F.items||[]).filter(function(it){return it.limit==null}).forEach(function(it){var n=mix[it.type]||0,pct=Math.min(100,Math.round(100*n/it.target));
-      box.appendChild(el("div",{class:"focus-item"},[
+    var cols=el("div",{class:"focus-cols"});
+    if(push.length)cols.appendChild(el("div",{class:"focus-col more"},[el("div",{class:"focus-label",text:"Look more into"})].concat(push.map(function(it){var n=row(it.type).wk,pct=Math.min(100,Math.round(100*n/it.target));
+      return el("div",{class:"focus-item"},[
         el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:n>=it.target?"focus-done":"pg-dim",text:n+" of "+it.target+" this week"})]),
-        el("div",{class:"ats-bar"},[el("i",{class:n>=it.target?"good":"ok",style:"width:"+pct+"%"})]),
-        el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Search LinkedIn (remote, past month): "})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("a",{href:liJobs(t),target:"_blank",rel:"noopener",class:"focus-link",text:t})})))]))});
-    if(limits.length)box.appendChild(el("div",{class:"focus-ease"},[el("b",{text:"Ease off"})].concat(limits.map(function(it){var n=mix[it.type]||0,over=n>it.limit;
-      return el("div",{class:"focus-lim"},[el("span",{text:it.type}),el("span",{class:over?"pg-due":"pg-dim",text:n+" this week, "+(it.limit?"keep it to "+it.limit+" or fewer":"skip these for now")+(over?". Over the limit.":"")})])}))));
-    var mixKeys=Object.keys(mix).sort(function(a,b){return mix[b]-mix[a]});
-    box.appendChild(el("div",{class:"focus-mix"},[el("span",{class:"pg-dim",text:"Your applications this week: "})].concat(mixKeys.length?mixKeys.map(function(t){return el("span",{class:"ats-chip",text:t+" "+mix[t]})}):[el("span",{class:"pg-dim",text:"none yet"})])));
-    if(best.length)box.appendChild(el("p",{class:"focus-best",text:"Your best fits so far: "+best.map(function(b){return b.t+" (average "+b.a+")"}).join(" and ")+"."}));
+        el("div",{class:"ats-bar"},[el("i",{class:"good",style:"width:"+pct+"%"})]),
+        el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Search remote jobs on LinkedIn:"})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("a",{href:liJobs(t),target:"_blank",rel:"noopener",class:"focus-link",text:t})})))])}))));
+    if(ease.length)cols.appendChild(el("div",{class:"focus-col less"},[el("div",{class:"focus-label",text:"Ease off"})].concat(ease.map(function(it){var n=row(it.type).wk,over=n>it.limit;
+      return el("div",{class:"focus-item"},[el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:over?"pg-due":"pg-dim",text:n+" of "+it.limit+" max this week"})]),
+        el("p",{class:"focus-sub",text:over?"Over the limit. Pick other job types for the rest of the week.":it.limit?"Keep these to "+it.limit+" or fewer a week.":"Skip these for now."})])}))));
+    box.appendChild(cols);
+    // their own applications by job type, with the focus types tagged
+    var tag=function(t){var p=push.find(function(x){return x.type===t}),e=ease.find(function(x){return x.type===t});return p?el("span",{class:"focus-tag more",text:"Look more into"}):e?el("span",{class:"focus-tag less",text:"Ease off"}):null};
+    var types=JOB_TYPES.map(function(x){return x[0]}).concat(["Other"]).filter(function(t){return stat[t]||push.some(function(x){return x.type===t})||ease.some(function(x){return x.type===t})});
+    var tb=el("tbody");types.forEach(function(t){var r=row(t),af=r.fit.length?Math.round(r.fit.reduce(function(a,b){return a+b},0)/r.fit.length):null;
+      tb.appendChild(el("tr",{},[el("td",{},[el("span",{class:"focus-tname",text:t}),tag(t)]),el("td",{text:String(r.wk)}),el("td",{text:String(r.all)}),el("td",{class:af==null?"pg-dim":af>=70?"focus-done":af<60?"pg-due":null,text:af==null?"-":String(af)})]))});
+    box.appendChild(el("details",{class:"focus-types",open:true},[el("summary",{text:"Your applications by job type"}),
+      el("table",{class:"focus-table"},[el("thead",{},[el("tr",{},["Job type","This week","All time","Avg fit"].map(function(h){return el("th",{text:h})}))]),tb])]));
     return box}
   function nudges(){
     var mine=S.isOwner?S.jobs:S.jobs.filter(function(j){return j.addedBy===S.uid});
