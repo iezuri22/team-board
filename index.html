@@ -875,6 +875,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
 .fu-table .rc-acts .pg-go{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}.fu-table .rc-acts .pg-go:hover{opacity:.85}
 .fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
+.gm-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:13.5px}.gm-clear{font-size:12.5px;color:var(--muted)}.fu-sched{color:#1d4ed8;font-size:13px;white-space:nowrap}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
 .rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
 .rc-grp td{background:var(--bg);padding:22px 12px 8px!important;border-bottom:1px solid var(--line)}.rc-grp:first-child td{padding-top:12px!important}
@@ -1643,6 +1644,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         if((cd.k==="new"||cd.k==="li")&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. The 7am daily run does this; no email means the LinkedIn note goes right away.";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin){if(!S.isOwner)return;t.tab="cant";t.what=c.emailBad?"Email bounced and no LinkedIn":"No email and no LinkedIn";out.push(t);return}
         if(cd.k==="toEmail"){t.tab="toemail";n=daysSince(String(applied)>"2026-10-26"?applied:"2026-10-26T12:00:00Z");var mineC=claimed(c);t.tg=mineC?"ifeanyi":"mine";
+          if(c.sendAt){t.tg="sched";t.what="Sends "+fmtWhen(c.sendAt)}else if(c.sendError)t.what="Didn't send: "+c.sendError;else
           t.what=S.isOwner?(mineC?"You're sending":mates().indexOf(j.addedBy)>=0?whoName(j.addedBy).split(" ")[0]+"'s list":"Yours"):mineC?"Ifeanyi is sending this one. Skip it":"Send the email";if(mineC)n=0;if(!S.isOwner&&n>=3){t.late=true;t.what="Send the email (waiting "+n+" days)"}}
         else if(cd.k==="emailed"){t.tab=S.isOwner?"waiting":"emailed";t.wg="emailed";var eb=(o.find(function(e){return e.via==="email"})||{}).by;t.what=S.isOwner?"Emailed "+fmtD(cd.at)+(eb&&eb!=="owner"?" by "+whoName(eb).split(" ")[0]:"")+". LinkedIn note "+fmtD(cd.check)+" if no reply":"Emailed "+fmtD(cd.at)+(eb==="owner"?" by Ifeanyi":"")+". Ifeanyi follows up on LinkedIn "+fmtD(cd.check)+" if no reply"}
         else if(cd.k==="li"){t.tab=S.isOwner?"first":"emailed";n=daysSince(cd.at);t.late=S.isOwner&&n>=(cd.bounced?2:6);t.what=S.isOwner?(cd.bounced?"Email bounced":"No email reply in "+cd.days+" days"):(cd.bounced?"Bad email. Ifeanyi is reaching out on LinkedIn":"No reply. Ifeanyi is reaching out on LinkedIn")}
@@ -1658,13 +1660,28 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         if(t.late)t.tab=S.isOwner||t.tab==="toemail"?"late":t.tab;if(!S.isOwner&&!/^(toemail|emailed|late)$/.test(t.tab))return;
         // Ifeanyi's to-dos split by channel: LinkedIn, Email, Replies. Late ones stay in their channel, on top.
         if(S.isOwner&&/^(late|replies|follow|first|toemail)$/.test(t.tab)){var lateT=t.tab==="late",lv=(o[o.length-1]||{}).via,hasEm=(c.email||c.emailGuess)&&!c.emailBad;
-          var gk=cd.k==="answer"?"replies":cd.k==="toEmail"?"send":cd.k==="accepted"?"fumsg":cd.k==="nudge"?"nudge":cd.k==="check"?"check":"notes";
+          var gk=cd.k==="answer"?"replies":cd.k==="toEmail"?(c.sendAt?"sched":"send"):cd.k==="accepted"?"fumsg":cd.k==="nudge"?"nudge":cd.k==="check"?"check":"notes";
           t.tab=cd.k==="answer"?"replies":cd.k==="toEmail"?"em":cd.k==="nudge"?(hasEm?"em":"li"):cd.k==="check"?(lv==="email"?"em":"li"):"li";t.group=lateT&&t.tab!=="replies"?"late":gk}if(t.tab==="waiting"&&!t.wg)t.wg="them";out.push(t)})});
     return out}
   var SEND_FROM="ifeanyi.builds@gmail.com";
   // Ifeanyi marks an email as his when he opens it in Gmail or copies it; the team skips it for 2 days
   function claimed(c){return c&&c.claimedBy==="owner"&&c.claimedAt&&daysSince(c.claimedAt)<2}
   function claimIt(j,c){if(!S.isOwner||claimed(c))return;c.claimedBy="owner";c.claimedAt=new Date().toISOString();api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{claim:true}).catch(function(){})}
+  function fmtWhen(iso){return iso?new Date(iso).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"}):""}
+  // the board sends from the job-search Gmail once it's connected; status is checked once a minute at most
+  function gmailStatus(){var now0=Date.now();if(S.gmailAt&&now0-S.gmailAt<60000)return Promise.resolve(S.gmail);S.gmailAt=now0;return api("GET","/api/gmail/status").then(function(g){S.gmail=g;return g},function(){return S.gmail})}
+  function schedule(j,c,now,then){api("POST","/api/schedule",{jobId:j.id,contactId:c.id,now:!!now}).then(function(r){toast(now?"Sending in the next few minutes.":"Scheduled for "+fmtWhen(r.first)+".");if(then)then();refresh()},fail)}
+  function unschedule(j,c){api("POST","/api/unschedule",{jobId:j.id,contactId:c.id}).then(function(){toast("Unscheduled");refresh()},fail)}
+  function gmailBanner(rerender){var g=S.gmail,box=el("div",{class:"gm-bar"});
+    if(!g){gmailStatus().then(function(x){if(x)rerender()});return box}
+    var tasksN=function(){var n=0;S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){if(c.sendAt)n++})});return n};
+    if(!g.connected){if(!S.isOwner){box.appendChild(el("span",{text:"Scheduled sending isn't on yet. Send these from Gmail for now."}));return box}
+      box.appendChild(el("span",{text:g.ready?"Connect the job-search Gmail and the board sends these for you, one every 15 minutes, 7am to 5pm on weekdays.":"Scheduled sending needs a Google sign-in set up first."}));
+      if(g.ready)box.appendChild(el("a",{class:"btn small accent",href:API+"/api/gmail/connect?t="+encodeURIComponent(getTok()),text:"Connect Gmail"}));return box}
+    box.appendChild(el("span",{},["Sending from ",el("b",{text:g.email||"Gmail"}),", one every 15 minutes, 7am to 5pm on weekdays. ",el("b",{text:String(tasksN())})," scheduled."]));
+    box.appendChild(el("button",{type:"button",class:"btn small accent",text:"Schedule all ready emails",onclick:function(){var b=this;b.disabled=true;api("POST","/api/schedule",{all:true}).then(function(r){toast(r.scheduled?"Scheduled "+r.scheduled+", from "+fmtWhen(r.first)+" to "+fmtWhen(r.last)+".":"Nothing ready to schedule.");refresh()},function(e){b.disabled=false;fail(e)})}}));
+    if(S.isOwner&&tasksN())box.appendChild(el("button",{type:"button",class:"linkish gm-clear",text:"Clear the queue",onclick:function(){if(window.confirm("Unschedule every queued email?"))api("POST","/api/unschedule",{all:true}).then(function(r){toast("Cleared "+r.cleared);refresh()},fail)}}));
+    return box}
   function shortCo(c){return String(c||"").replace(/,\s*(an?|the)\s.*$/i,"").replace(/,?\s*(inc\.?|llc|ltd\.?|corp\.?)$/i,"").trim()}
   function rejAt(j){return j.rejectedAt||((j.history||[]).filter(function(h){return /rejected|rejection/i.test(h.text||"")}).slice(-1)[0]||{}).at||j.lastReplyAt||j.updatedAt}
   function fmtD(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""}
@@ -1682,7 +1699,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var TABS=!S.isOwner?[["late","Late","These have waited 3+ days. Send them first."],["toemail","Emails to send","Open each email and send it from "+SEND_FROM+", then click Sent. If it bounces, click Bad email."],["emailed","Sent","Ifeanyi sends a LinkedIn note 3 days after each email if there's no reply. Mark Bad email if one bounces back."]]:[["li","LinkedIn",""],["em","Email",""],["replies","Replies","They wrote back. Reply to them, then click I replied."],["track","Follow-ups","Everyone you've reached, step by step: email, LinkedIn note, connection, follow-up, reply. Due steps first."],["waiting","Waiting",""],["done","Done","Conversations you closed, follow-ups stopped by a rejection, and turned-down jobs archived 21 days after the rejection."],["cant","Can't find","No one found, or no way to reach them. Add someone by hand if you find them; otherwise these stay out of the way."]];
     var WGROUPS=[["emailed","Emailed","Sent. If there's no reply, the LinkedIn note shows up under LinkedIn on the date shown."],["them","Waiting on them","Waiting on an accept or a reply. Each moves to LinkedIn, Email or Replies when it's due."],["finding","Finding people and emails","The 7am daily run finds people and emails. Anyone with no email goes straight to LinkedIn."]];
     var LIG=[["late","Late","Do these first."],["notes","Connection notes","Open the note, send the request, click Sent."],["fumsg","Follow-up messages","They accepted. Send the full message within a day."],["nudge","No accept after 7 days","Send the follow-up as an InMail."],["check","Check-ins","Quiet 3+ days since your last message. Check in."],["upcoming","Up next","Notes are ready but wait for the email first. Send one early if you want."]];
-    var EMG=[["late","Late","Do these first."],["send","Emails to send","Opening one in Gmail marks it yours so the team skips it."],["nudge","Follow-up emails","No LinkedIn accept in 7 days. Email the follow-up."],["check","Check-ins","Quiet 3+ days since your last email. Check in."]];
+    var EMG=[["late","Late","Do these first."],["send","Emails to send","Schedule them, or open one in Gmail to send it yourself (that marks it yours so the team skips it)."],["sched","Scheduled","These send on their own from the job-search Gmail, one every 15 minutes."],["nudge","Follow-up emails","No LinkedIn accept in 7 days. Email the follow-up."],["check","Check-ins","Quiet 3+ days since your last email. Check in."]];
     var GROUPS=LIG;
     var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
     var lateN=S.isOwner?tasks.filter(function(x){return x.group==="late"}).length:0;
@@ -1715,7 +1732,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var tb=el("tbody"),row=function(t,i){if(!t.c){tb.appendChild(el("tr",{class:"pg-row",onclick:function(){openJob(t.j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(t.j.company),text:initials(t.j.company)}),el("span",{class:"ap-jt"},[el("b",{text:t.j.company}),el("span",{text:t.j.role})])])]),el("td",{class:"pg-dim",text:"No one yet"}),el("td"),el("td",{class:"rc-what"},[el("span",{class:"pg-dim",text:t.what})]),el("td"),el("td")]));return}
         if(wide){tb.appendChild(trackRow(t,i));trackExtra(t).forEach(function(r){tb.appendChild(r)});return}
         tb.appendChild(taskRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t))};
-      var TGROUPS=[["mine","Yours to send",""],["ifeanyi","Ifeanyi is sending these","He's handling these himself. Skip them so nobody gets two emails."]];
+      var TGROUPS=[["sched","Scheduled","These send on their own from the job-search Gmail. Nothing to do."],["mine","Yours to send",""],["ifeanyi","Ifeanyi is sending these","He's handling these himself. Skip them so nobody gets two emails."]];
+      if((S.isOwner&&S.rcTab==="em")||(!S.isOwner&&S.rcTab==="toemail"))body.appendChild(gmailBanner(drawBody));
       // LinkedIn and Email have their own tabs: Due now (everything due, grouped), then one per group
       if(S.isOwner&&(S.rcTab==="li"||S.rcTab==="em")){S.rcSub=S.rcSub||{};var SG=S.rcTab==="li"?LIG:EMG,sub=S.rcSub[S.rcTab]||"due";
         var subs=[["due","Due now",list.filter(function(t){return t.group!=="upcoming"}).length]].concat(SG.map(function(g){return [g[0],g[1],list.filter(function(t){return t.group===g[0]}).length]}).filter(function(x){return x[2]}));
@@ -1756,12 +1774,19 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       // authuser opens Ifeanyi's Gmail even when the teammate's own account is the browser's first one
       var gmail=function(){return "https://mail.google.com/mail/?authuser="+encodeURIComponent(SEND_FROM)+"&view=cm&fs=1&to="+encodeURIComponent(addr)+"&su="+encodeURIComponent(subj?subj.value:"")+"&body="+encodeURIComponent(ta.value)};
       var mailto=function(){return "mailto:"+addr+"?subject="+encodeURIComponent(subj?subj.value:"")+"&body="+encodeURIComponent(ta.value)};
-      var acts=isEmail?[
+      // save any edits first, then queue it
+      var saveDraft=function(){var b={};if(ta.value!==(c.emailDraft||""))b.emailDraft=ta.value;if(subj&&subj.value!==(c.emailSubject||""))b.emailSubject=subj.value;
+        return Object.keys(b).length?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,b).then(function(){Object.assign(c,b)}):Promise.resolve()};
+      var gmOn=S.gmail&&S.gmail.connected&&isEmail&&!(c.outreach||[]).length;
+      var schedBtns=!gmOn?[]:c.sendAt?[el("span",{class:"fu-sched",text:"Sends "+fmtWhen(c.sendAt)}),el("button",{type:"button",class:"pg-act",text:"Unschedule",onclick:function(e){e.stopPropagation();unschedule(j,c)}})]
+        :[el("button",{type:"button",class:"pg-go",text:"Schedule",title:"Next free slot, one every 15 minutes, 7am to 5pm on weekdays",onclick:function(e){e.stopPropagation();saveDraft().then(function(){schedule(j,c,false,function(){S.rcMsg[c.id]=false})},fail)}}),
+          el("button",{type:"button",class:"pg-act",text:"Send now",onclick:function(e){e.stopPropagation();if(window.confirm("Send this to "+addr+" in the next few minutes?"))saveDraft().then(function(){schedule(j,c,true,function(){S.rcMsg[c.id]=false})},fail)}})];
+      var acts=isEmail?schedBtns.concat([
           el("button",{type:"button",class:"pg-go hot",text:"Copy email",onclick:function(e){e.stopPropagation();claimIt(j,c);copyText(ta.value)}}),
           el("button",{type:"button",class:"pg-act",text:"Copy subject",onclick:function(e){e.stopPropagation();copyText(subj.value)}}),
           el("a",{class:"pg-act rc-mailto",target:"_blank",rel:"noopener",href:gmail(),onclick:function(e){e.stopPropagation();claimIt(j,c);this.href=gmail()},text:"Open in Gmail"}),
           S.isOwner?el("a",{class:"pg-act rc-mailto",href:mailto(),onclick:function(e){e.stopPropagation();this.href=mailto()},text:"Mail app"}):null,gen,el("span",{class:"sp"}),
-          el("button",{type:"button",class:"pg-act",text:"Sent by email ✓",title:"Log it as sent by email, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,"email","Logged as emailed.",(subj&&subj.value?"Subject: "+subj.value+"\n\n":"")+ta.value);S.rcMsg[c.id]=false}})]
+          el("button",{type:"button",class:"pg-act",text:"Sent by email ✓",title:"Log it as sent by email, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,"email","Logged as emailed.",(subj&&subj.value?"Subject: "+subj.value+"\n\n":"")+ta.value);S.rcMsg[c.id]=false}})])
         :[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
           lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",onclick:function(e){e.stopPropagation();copyText(ta.value,function(){window.open(lnk,"_blank","noopener")})}}):null,
           gen,el("span",{class:"sp"}),
@@ -1782,6 +1807,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(t.tab==="cant"||/7am daily run/.test(t.what||"")){acts.push(Q("Open",stop(function(){openContact(j.id,c.id)})))}
       var bad=el("button",{type:"button",class:"linkish rc-bad",title:"The email bounced or isn't a real address",onclick:patch("emailBad","Marked as a bad email. It goes to LinkedIn.")},["Bad email"]);
       if(acts.length){}
+      else if(cd.k==="toEmail"&&c.sendAt){acts.push(Q("Unschedule",stop(function(){unschedule(j,c)}),"Take it out of the queue"))}
       else if(cd.k==="toEmail"&&!S.isOwner&&claimed(c)){}
       else if(cd.k==="toEmail"){acts.push(P("Sent \u2713",log("email",S.isOwner?"Logged. If there's no reply in 3 days, it comes back as a LinkedIn note.":"Logged. Ifeanyi follows up on LinkedIn in 3 days if there's no reply."),!S.isOwner));acts.push(bad)}
       else if(cd.k==="emailed"){acts.push(bad);acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"))}
@@ -1845,7 +1871,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var openDraft=function(ch){return function(e){e.stopPropagation();S.rcMsg=S.rcMsg||{};S.rcCh=S.rcCh||{};S.rcSent=S.rcSent||{};var on=S.rcMsg[c.id]&&S.rcCh[c.id]===ch;delete S.rcSent[c.id];S.rcMsg[c.id]=!on;S.rcCh[c.id]=ch;drawBody()}};
       var openSent=function(entry){return function(e){e.stopPropagation();S.rcSent=S.rcSent||{};S.rcMsg=S.rcMsg||{};var ix=o.indexOf(entry),on=S.rcSent[c.id]===ix;S.rcMsg[c.id]=false;if(on)delete S.rcSent[c.id];else S.rcSent[c.id]=ix;drawBody()}};
       var cell=function(inner,fn,tip){return fn?el("button",{type:"button",class:"fu-cell",title:tip||null,onclick:fn},[inner]):inner};
-      var cEmail=c.emailBad?el("span",{class:"fu-bad",text:"Bounced"}):em?cell(done(em.at),openSent(em),"See what was sent"):cd.k==="toEmail"?cell(due("to send"),openDraft("email"),"Open the email"):none();
+      var cEmail=c.emailBad?el("span",{class:"fu-bad",text:"Bounced"}):em?cell(done(em.at),openSent(em),"See what was sent"):cd.k==="toEmail"&&c.sendAt?cell(el("span",{class:"fu-sched",text:"\u23f1 "+fmtWhen(c.sendAt)}),openDraft("email"),"Open the email"):cd.k==="toEmail"?cell(due("to send"),openDraft("email"),"Open the email"):none();
       var cNote=li?cell(done(li.at),openSent(li),"See what was sent"):cd.k==="li"||(cd.k==="new"&&c.linkedin)?cell(due("due now"),openDraft("note"),"Open the note"):cd.k==="emailed"&&c.draft?cell(el("span",{class:"pg-dim",text:fmtD(cd.check)}),openDraft("note"),"Preview the note"):cd.k==="emailed"?el("span",{class:"pg-dim",text:fmtD(cd.check)}):none();
       if(t.group==="upcoming")cNote=c.draft?cell(el("span",{class:"pg-dim",text:"ready"}),openDraft("note"),"Preview the note"):none();
       if(t.group==="upcoming"){actTd=el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[el("button",{type:"button",class:"pg-act",title:"Log the connection request as sent",onclick:function(e){e.stopPropagation();logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")},text:"Sent \u2713"})])])}
@@ -2983,6 +3009,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
   $("f-type").onchange=function(e){S.jtype=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
+  // back from Google sign-in
+  try{var gq=new URLSearchParams(location.search).get("gmail");if(gq){history.replaceState(null,"",location.pathname);S.gmailAt=0;setTimeout(function(){toast(gq==="connected"?"Gmail connected. Scheduled sending is on.":gq==="cancelled"?"Gmail wasn't connected.":"Gmail didn't connect. Try again.")},800);if(gq==="connected"){localStorage.setItem("ay-tab","reach");S.rcTab="em"}}}catch(e){}
   try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","reach","contacts","resume"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
 
