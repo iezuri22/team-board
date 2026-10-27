@@ -833,6 +833,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-tab.on{color:var(--fg);border-bottom-color:var(--fg)}.rc-tab.late b{background:#c2410c;color:#fff}.rc-tab.late{color:#c2410c}
 .rc-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.rc-filters input{flex:1;min-width:220px}
 .rc-filters select,.rc-filters input{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--fg)}
+.desc-panel{margin:14px 0 4px;padding:14px 16px;border:1.5px solid var(--fg);border-radius:12px;background:var(--bg)}.desc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.desc-head label{font-size:15px;font-weight:700}
+.desc-why{margin:4px 0 10px;font-size:13px;color:var(--muted)}.desc-panel textarea{width:100%;min-height:200px;font-size:13.5px;line-height:1.5;box-sizing:border-box}
+.desc-stat{font-size:12.5px;font-weight:600}.desc-stat.ok{color:#15803d}.desc-stat.warn{color:#b45309}.desc-stat.bad{color:#b91c1c}.shot-alt{font-size:12.5px;color:var(--muted)}
+.post-chip{font:inherit;font-size:12px;font-weight:600;padding:3px 9px;border-radius:10px;border:0;cursor:pointer}.post-chip.ok{background:#dcfce7;color:#166534}.post-chip.warn{background:#fef3c7;color:#92400e}.post-chip.bad{background:#fde8e8;color:#991b1b}.post-chip:hover{filter:brightness(.95)}
+.pv-ov{position:fixed;inset:0;background:rgba(15,23,42,.35);display:grid;place-items:center;z-index:200;padding:16px}.pv{background:var(--bg);border-radius:14px;width:min(860px,100%);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.pv-head{display:flex;justify-content:space-between;gap:12px;padding:18px 20px 8px}.pv-head h3{margin:0 0 2px}.pv-tabs{display:flex;gap:4px;padding:0 20px}.pv-tab{border:0;background:none;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 10px;border-bottom:2px solid transparent;cursor:pointer}.pv-tab.on{color:var(--fg);border-bottom-color:var(--fg)}
+.pv-body{overflow:auto;padding:12px 20px 20px;border-top:1px solid var(--line)}.pv-text{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.55;margin:0}
 .ats-step{margin:10px 0 2px}.ats-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px}
 .ats-score{display:inline-grid;place-items:center;min-width:38px;height:28px;padding:0 8px;border-radius:8px;font-size:15px;font-weight:800;color:#fff}.ats-score.good{background:#15803d}.ats-score.ok{background:#b45309}.ats-score.low{background:#b91c1c}
 .ats-what{color:var(--muted)}.ats-busy{color:var(--muted);font-style:italic}.ats-more{font-size:13px}
@@ -2104,15 +2111,31 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         el("td",{class:"pg-found",text:nameOf(j.addedBy).replace(" (you)","")}),
         el("td",{class:"pg-found",text:j.status==="saved"?"Not yet":rel(sentAt(j))||rel(j.addedAt)}),
         el("td",{class:"pg-found",text:np?np+(np===1?" person":" people"):""}),
+        el("td",{},[postChip(j)]),
         el("td",{class:"ap-iv"},[j.status==="rejected"||j.status==="skipped"?null:ivPicker(j,renderRows)]),
         el("td",{},[nx.t?(nx.tab?el("button",{type:"button",class:"linkish ap-next"+(nx.hot?" hot":""),title:"Open in Reach out",text:nx.t,onclick:goReach(j,nx.tab)}):el("span",{class:nx.hot?"pg-due":"pg-dim",text:nx.t})):null]),
         el("td",{class:"pg-acts"},[el("button",{class:"pg-go"+(isOpen?" on":""),type:"button",onclick:function(e){e.stopPropagation();toggle()}},[isOpen?"Close":"Open"])])]));
-      if(isOpen)tb.appendChild(el("tr",{class:"ap-detail"},[el("td",{colspan:"9"},[detail(j)])]));
+      if(isOpen)tb.appendChild(el("tr",{class:"ap-detail"},[el("td",{colspan:"10"},[detail(j)])]));
     });
     R.appendChild(el("div",{class:"pg-wrap ap-wrap"},[el("table",{class:"pg-table ap-table"},[
-      el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Status"}),el("th",{text:"Found by"}),el("th",{text:"Sent"}),el("th",{text:"People"}),el("th",{text:"Interview"}),el("th",{text:"Next"}),el("th",{class:"pg-acts",text:""})])]),tb])]));
+      el("thead",{},[el("tr",{},[el("th",{class:"pg-n",text:"#"}),el("th",{text:"Company and role"}),el("th",{text:"Status"}),el("th",{text:"Found by"}),el("th",{text:"Sent"}),el("th",{text:"People"}),el("th",{text:"Posting"}),el("th",{text:"Interview"}),el("th",{text:"Next"}),el("th",{class:"pg-acts",text:""})])]),tb])]));
     if(rows.length>S.limit)R.appendChild(el("div",{style:"padding:14px 6px"},[el("button",{class:"btn ghost small",type:"button",text:"Show more",onclick:function(){S.limit+=150;renderRows()}})]));
   }
+  // what's in each job's description, and where it came from, one click away
+  function postChip(j){var n=(j.description||"").length,f=j.descFrom;
+    var t=!n?"Missing":n<300?"Too short":f==="paste"?"Pasted":f==="screenshots"?"Screenshots":f==="typed"?"Typed":"Saved",c=!n||n<300?"bad":f==="screenshots"?"warn":"ok";
+    return el("button",{type:"button",class:"post-chip "+c,title:n?"Read the description":"No description yet",text:t,onclick:function(e){e.stopPropagation();showPosting(j)}})}
+  function showPosting(j){var raw=!!(j.pasted&&j.pasted.length),view="desc";
+    var body=el("div",{class:"pv-body"}),tabs=el("div",{class:"pv-tabs"});
+    var draw=function(){body.textContent="";tabs.textContent="";
+      if(raw)[["desc","Saved description"],["raw","What they pasted"]].forEach(function(x){tabs.appendChild(el("button",{type:"button",class:"pv-tab"+(view===x[0]?" on":""),text:x[1],onclick:function(){view=x[0];draw()}}))});
+      var tx=view==="raw"?j.pasted:(j.description||"");body.appendChild(tx?el("pre",{class:"pv-text",text:tx}):el("p",{class:"muted-line",text:"No description saved for this job."}))};
+    var who=nameOf(j.addedBy).replace(" (you)",""),f=j.descFrom,n=(j.description||"").length;
+    var ov=el("div",{class:"pv-ov",onclick:function(e){if(e.target===ov)close()}},[el("div",{class:"pv",role:"dialog","aria-modal":"true","aria-label":"Job description"},[
+      el("div",{class:"pv-head"},[el("div",{},[el("h3",{text:j.company+", "+j.role}),el("p",{class:"muted-line",text:"Logged by "+who+" "+rel(j.addedAt)+". "+(n?n.toLocaleString()+" characters, "+(f==="paste"?"from the pasted page":f==="screenshots"?"read from screenshots":f==="typed"?"typed or pasted straight in":"source not recorded")+".":"No description.")})]),el("button",{type:"button",class:"btn ghost small",text:"Close",onclick:function(){close()}})]),
+      tabs,body])]);
+    var key=function(e){if(e.key==="Escape")close()},close=function(){ov.remove();document.removeEventListener("keydown",key)};
+    document.addEventListener("keydown",key);draw();document.body.appendChild(ov)}
   function bhead(title,acts){return el("div",{class:"bhead"},[el("h3",{text:title}),acts&&acts.length?el("div",{class:"bhead-acts"},acts):null])}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
@@ -2245,6 +2268,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       S.isOwner?el("span",{text:"Click any you really have, then run it again:"}):el("span",{text:"Ask Ifeanyi if he has any of these."}),
       el("div",{class:"ats-miss"},cannot.map(function(c){return S.isOwner?el("button",{type:"button",class:"ats-chip have",title:c.why,text:"+ "+c.term,onclick:function(){haveSkill(c.term,this)}}):el("span",{class:"ats-chip",title:c.why,text:c.term})}))]));
     return box}
+  // Tailor a 90+ copy for a job and save it. Runs in the background after logging, or from the Resume step.
+  function atsTailor(j,pick){S.atsUi=S.atsUi||{};var ui=S.atsUi[j.id]=S.atsUi[j.id]||{};if(ui.run)return ui.run;
+    var busy=function(t){ui.busy=t;if(ui.say)ui.say(t)},root;pick=pick||pickedRes(j);busy("Tailoring the resume for this posting...");
+    return ui.run=atsReqFor(j).then(function(){return mdFor(j,pick)}).then(function(md){root=atsDoc(md);return atsRun(j,root,function(n){busy(n===1?"Adding the keywords the resume backs up...":"One more pass...")})})
+      .then(function(r){return api("PUT","/api/resume/job/"+j.id,{md:HTML_MARK+cleanHTML(root),ats:r}).then(function(){S.pickRes=S.pickRes||{};S.pickRes[j.id]="Tailored";ui.busy=null;ui.run=null;return refresh().then(function(){return r})})})
+      .catch(function(e){ui.err=1;ui.busy=null;ui.run=null;if(ui.say)ui.say("Couldn't tailor it.");throw e})}
   // The Resume step: check the picked version, and if it's under 90, make the tailored copy on its own
   function atsStep(j,pick){var box=el("div",{class:"ats-step"});S.atsUi=S.atsUi||{};var ui=S.atsUi[j.id]=S.atsUi[j.id]||{};
     if(!j.description){box.appendChild(el("span",{class:"pg-dim",text:"Add the job description to check the ATS match."}));return box}
@@ -2255,17 +2284,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       line.appendChild(el("button",{type:"button",class:"linkish ats-more",text:ui.open?"Hide details":"Details",onclick:function(){ui.open=!ui.open;show(s,cannot,saved)}}));
       if(s.total<90)line.appendChild(aiBtn(saved?"Run again":"Get it to 90+",function(){ui.err=0;return fix()},true));
       det.textContent="";if(ui.open)det.appendChild(atsReport(s,cannot))};
-    var busy=function(t){ui.busy=t;(ui.say||say)(t)};
-    var fix=function(){var root;busy("Tailoring the resume for this posting...");
-      return atsReqFor(j).then(function(){return mdFor(j,pick)}).then(function(md){root=atsDoc(md);return atsRun(j,root,function(n){busy(n===1?"Adding the keywords the resume backs up...":"One more pass...")})})
-        .then(function(r){var md2=HTML_MARK+cleanHTML(root);return api("PUT","/api/resume/job/"+j.id,{md:md2,ats:r}).then(function(){S.pickRes=S.pickRes||{};S.pickRes[j.id]="Tailored";toast("Resume tailored: ATS match "+(r.before<r.score?r.before+" to ":"")+r.score);ui.busy=null;return refresh()})})
-        .catch(function(e){ui.err=1;ui.busy=null;say("Couldn't tailor it.");fail(e)})};
+    var fix=function(){return atsTailor(j,pick).then(function(r){toast("Resume tailored: ATS match "+(r.before<r.score?r.before+" to ":"")+r.score)},fail)};
     if(ui.busy){say(ui.busy);return box}
     if(j.ats&&pick==="Tailored"){say("Checking...");mdFor(j,"Tailored").then(function(md){return atsReqFor(j).then(function(R){show(atsScore(atsText(atsDoc(md)),R),j.ats.cannot,true)})}).catch(function(){line.textContent="";line.appendChild(atsBadge(j.ats.score))});return box}
     say("Checking the ATS match...");
     atsReqFor(j).then(function(R){return mdFor(j,pick).then(function(md){var s=atsScore(atsText(atsDoc(md)),R);
       // first look at a saved job: tailor it right away so the PDF they download is the 90+ version
-      if(s.total<90&&!j.ats&&!ui.auto&&!ui.err){ui.auto=1;return fix()}
+      if(s.total<90&&!j.ats&&!ui.auto&&!ui.err&&!(j.fit&&j.fit.verdict==="skip")){ui.auto=1;return fix()}
       show(s,j.ats&&j.ats.cannot,false)})}).catch(function(e){say("Couldn't check the ATS match.");fail(e)});
     return box}
   function stepsCard(j){
@@ -2474,6 +2499,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(adding)wrap.appendChild(contactForm(j,null));
     return wrap;
   }
+  // right after logging: fit check, then the 90+ resume for saved jobs, in the background
+  function afterLog(made){api("POST","/api/ai/fit",{jobId:made.id}).then(function(f){return refresh().then(function(){var j=S.jobs.find(function(x){return x.id===made.id});
+    if(j&&j.status==="saved"&&f.verdict!=="skip")return atsTailor(j)})}).catch(function(){})}
   function field(id,label,cls,input){return el("div",{class:"f "+cls},[el("label",{for:id,text:label}),input])}
   var form_paste=null;
   document.addEventListener("paste",function(e){if(S.adding&&form_paste&&$("add-slot").firstChild)form_paste(e)});
@@ -2495,20 +2523,23 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var to=null;if(S.isOwner&&mates.length){to=el("select",{id:"a-to"});to.appendChild(el("option",{value:"",text:"No one, I'm logging it"}));mates.forEach(function(k){to.appendChild(el("option",{value:k,text:S.people[k].name}))});
       to.addEventListener("change",function(){st.disabled=!!to.value;if(to.value)st.value=""})}
     var notes=el("textarea",{id:"a-notes",rows:"1",placeholder:"Anything worth knowing"});
-    var desc=el("textarea",{id:"a-desc",rows:"3",placeholder:"Paste the full job description. Postings come down, this keeps a copy."});
+    var desc=el("textarea",{id:"a-desc",rows:"10",placeholder:"The job description shows up here after you paste the posting above. You can also paste just the description straight in here."});
+    var rawPaste="",descFrom="",descStat=el("span",{class:"desc-stat"});
+    var descState=function(){var n=desc.value.trim().length;descStat.className="desc-stat "+(n>=300?"ok":n?"warn":"bad");descStat.textContent=n>=300?"\u2713 "+n.toLocaleString()+" characters"+(descFrom==="screenshots"?", read from screenshots":descFrom==="paste"?", from the pasted page":""):n?"Looks too short. Paste the full description.":"Missing. The fit check and the ATS resume need it."};
+    desc.addEventListener("input",function(){if(!descFrom||descFrom==="paste"&&!rawPaste)descFrom="typed";descState()});descState();
     var warn=el("div"),msg=el("span",{class:"msg"}),force=false,coOk=false;
     // screenshots -> AI fills the form
     var shots=[],thumbs=el("div",{class:"shots"}),picker=el("input",{type:"file",accept:"image/*",multiple:true,hidden:true,onchange:function(){addFiles(picker.files);picker.value=""}});
     function fill(r){
         if(r.url&&!url.value.trim())url.value=r.url;if(r.company)co.value=r.company;if(r.role)ro.value=r.role;if(r.pay)pay.value=r.pay;
-        if(r.source&&[].some.call(src.options,function(o){return o.text===r.source}))src.value=r.source;if(r.resume)res.value=r.resume;if(r.description)desc.value=r.description;
+        if(r.source&&[].some.call(src.options,function(o){return o.text===r.source}))src.value=r.source;if(r.resume)res.value=r.resume;if(r.description){desc.value=r.description;descState()}
         var d=check();toast(d.ex.length?"Heads up: this one is already logged":"Filled in. Check it, apply with the "+(r.resume==="Default"?"Base":r.resume==="Health"?"Healthcare":r.resume)+" resume, then Save.")}
     var readBtn=aiBtn("Fill in from screenshots",function(){if(!shots.length){toast("Add a screenshot first");return}
       var parts=[];shots.forEach(function(x){parts=parts.concat(x.parts)});
-      return api("POST","/api/ai/extract",{images:parts.slice(0,8)}).then(fill)});
+      return api("POST","/api/ai/extract",{images:parts.slice(0,8)}).then(function(r){descFrom="screenshots";rawPaste="";fill(r)})});
     var pasteBox=el("textarea",{id:"a-paste",class:"paste-box",rows:"2","aria-label":"Paste the whole job posting",placeholder:"Paste the whole posting here. On the job page press Cmd+A, then Cmd+C. Click here and press Cmd+V."});
     var pasteMsg=el("span",{class:"paste-msg"});
-    function readText(t){pasteBox.value="";pasteBox.disabled=true;pasteMsg.textContent="Reading the posting...";pasteMsg.className="paste-msg busy";
+    function readText(t){rawPaste=t;descFrom="paste";pasteBox.value="";pasteBox.disabled=true;pasteMsg.textContent="Reading the posting...";pasteMsg.className="paste-msg busy";
       api("POST","/api/ai/extract",{text:t}).then(function(r){fill(r);pasteMsg.textContent="Done. Check the details below.";pasteMsg.className="paste-msg ok"},function(e){fail(e);pasteMsg.textContent="";pasteMsg.className="paste-msg"}).then(function(){pasteBox.disabled=false})}
     pasteBox.addEventListener("paste",function(e){var cd=e.clipboardData;if(!cd)return;var fs=[].slice.call(cd.files||[]).filter(function(f){return /^image\//.test(f.type)});
       if(fs.length){e.preventDefault();addFiles(fs);return}
@@ -2524,17 +2555,18 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function addFiles(list){[].slice.call(list||[]).filter(function(f){return /^image\//.test(f.type)}).slice(0,8-shots.length).forEach(function(f){var u=URL.createObjectURL(f),img=new Image();img.onload=function(){shots.push({thumb:u,parts:slice(img)});drawShots()};img.onerror=function(){toast("Couldn't read that image")};img.src=u})}
     var drop=el("div",{class:"drop",
       ondragover:function(e){e.preventDefault();drop.classList.add("over")},ondragleave:function(){drop.classList.remove("over")},ondrop:function(e){e.preventDefault();drop.classList.remove("over");addFiles(e.dataTransfer.files)}},
-      [pasteBox,el("div",{class:"drop-foot"},[pasteMsg,el("span",{},["Screenshots work too: paste or drop them here, or ",el("button",{type:"button",class:"linkish",text:"choose files",onclick:function(){picker.click()}}),"."]),picker])]);
+      [pasteBox,el("div",{class:"drop-foot"},[pasteMsg,el("span",{class:"shot-alt"},["Page won't copy? Use screenshots instead: drop them here or ",el("button",{type:"button",class:"linkish",text:"choose files",onclick:function(){picker.click()}}),"."]),picker])]);
     form_paste=function(e){if(e.defaultPrevented)return;var fs=[].slice.call((e.clipboardData&&e.clipboardData.files)||[]).filter(function(f){return /^image\//.test(f.type)});if(fs.length){e.preventDefault();addFiles(fs)}};
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:j.taken?"Already on the team's list: "+j.company+", "+j.role+". Don't apply again.":"You already logged this: "+j.company+", "+j.role+" ("+L[j.status]+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});co.addEventListener("input",function(){coOk=false});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
     var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}
       if(!S.isOwner&&!coOk){var prior=(S.taken||[]).filter(function(t){return t.ifeanyi&&norm(t.company)===norm(co.value)});
-        if(prior.length){var sub=e.submitter;modal("Ifeanyi already applied to "+prior[0].company,"He applied for "+prior.map(function(t){return t.role}).slice(0,3).join(", ")+(prior[0].at?" in "+new Date(prior[0].at).toLocaleDateString(undefined,{month:"long"}):"")+". You can still log this one, but it won't count toward your weekly goal.","Log it anyway","Cancel").then(function(go){if(go){coOk=true;form.requestSubmit(sub)}});return}}var t=now(),tl=!!(e.submitter&&e.submitter.dataset.tailor),send=to&&to.value,k=tl||send?"saved":st.value;if(!k){msg.textContent="Pick a status, or press Save and start applying.";st.focus();return}var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value==="__add"?src._last:src.value,resume:res.value,status:k,assignTo:send||undefined,notes:notes.value.trim(),description:desc.value.trim(),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(made){coOk=false;if(made&&made.noCredit)setTimeout(function(){toast("Logged. It won't count toward your weekly goal.")},2300);if(send){toast("Sent to "+S.people[send].name+". It's on their board now.");form.reset();st.disabled=false;st.value="";to.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";refresh();return}if(tl){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application";S.open=made.id;if(S.status!=="all"&&S.status!=="open"){S.status="open";$("f-status").value="open"}refresh().then(function(){var r=document.querySelector(".steps");if(r)r.scrollIntoView({behavior:"smooth",block:"center"})});return}refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
-      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Copy the whole posting page and paste it below. AI fills in the details and checks for repeats. Then press Save and start applying, and the board walks you through the resume, cover letter and applying."}),
+        if(prior.length){var sub=e.submitter;modal("Ifeanyi already applied to "+prior[0].company,"He applied for "+prior.map(function(t){return t.role}).slice(0,3).join(", ")+(prior[0].at?" in "+new Date(prior[0].at).toLocaleDateString(undefined,{month:"long"}):"")+". You can still log this one, but it won't count toward your weekly goal.","Log it anyway","Cancel").then(function(go){if(go){coOk=true;form.requestSubmit(sub)}});return}}if(desc.value.trim().length<300&&!S.isOwner){msg.textContent="Paste the job description first. The fit check and the ATS resume need it.";desc.focus();return}var t=now(),tl=!!(e.submitter&&e.submitter.dataset.tailor),send=to&&to.value,k=tl||send?"saved":st.value;if(!k){msg.textContent="Pick a status, or press Save and start applying.";st.focus();return}var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value==="__add"?src._last:src.value,resume:res.value,status:k,assignTo:send||undefined,notes:notes.value.trim(),description:desc.value.trim(),pasted:descFrom==="paste"?rawPaste:"",descFrom:descFrom||(desc.value.trim()?"typed":undefined),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(made){coOk=false;if(made&&doc.description.length>=300)afterLog(made);rawPaste="";descFrom="";if(made&&made.noCredit)setTimeout(function(){toast("Logged. It won't count toward your weekly goal.")},2300);if(send){toast("Sent to "+S.people[send].name+". It's on their board now.");form.reset();st.disabled=false;st.value="";to.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";refresh();return}if(tl){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application";S.open=made.id;if(S.status!=="all"&&S.status!=="open"){S.status="open";$("f-status").value="open"}refresh().then(function(){var r=document.querySelector(".steps");if(r)r.scrollIntoView({behavior:"smooth",block:"center"})});return}refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
+      el("h2",{text:"Log an application"}),el("p",{class:"help",text:"On the job page press Cmd+A, then Cmd+C, and paste it below. AI pulls out the description and fills in the details. Then press Save and start applying: the fit check runs and the resume gets tailored for this posting."}),
       drop,el("div",{class:"shots-row"},[thumbs,readBtn]),
-      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",srcWrap),field("a-res","Resume sent","c2",res),field("a-st","Status (only for Just log it)","c2",st),to?field("a-to","Send to someone to apply","c2",to):null,field("a-notes","Notes",to?"c2":"c4",notes),field("a-desc","Job description","c6",desc)]),
+      el("div",{class:"desc-panel"},[el("div",{class:"desc-head"},[el("label",{for:"a-desc",text:"Job description"}),descStat]),el("p",{class:"desc-why",text:"The most important part. It drives the fit check and the 90+ ATS resume. Check it's the whole description, not the menu or other jobs."}),desc]),
+      el("div",{class:"grid"},[field("a-url","Job link","c6",url),field("a-co","Company","c3",co),field("a-ro","Role","c3",ro),field("a-pay","Pay","c2",pay),field("a-src","Found on","c2",srcWrap),field("a-res","Resume sent","c2",res),field("a-st","Status (only for Just log it)","c2",st),to?field("a-to","Send to someone to apply","c2",to):null,field("a-notes","Notes",to?"c2":"c4",notes)]),
       warn,el("div",{class:"foot"},[msg,el("button",{class:"btn ghost",type:"button",text:"Close",onclick:function(){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application"}}),el("button",{class:"btn ghost",type:"submit",text:"Just log it"}),el("button",{class:"btn accent",type:"submit","data-tailor":"1",text:"Save and start applying"})])]);
     slot.appendChild(form);url.focus();
   }
