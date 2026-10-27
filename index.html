@@ -740,7 +740,8 @@ body{background:var(--page)}
 .wk-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:18px 0 6px;flex-wrap:wrap}
 .wk-head h2{margin:0}.wk-nav{display:flex;gap:6px}
 .wk-sec{padding:18px 0;border-top:1px solid var(--line)}.wk-sec:first-of-type{border-top:0}
-.wk-train td{background:#f0fdf4}
+.wk-train td{background:#f0fdf4}.wk-ease td{background:#fffbeb}
+.focus-ease{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:14px}.focus-lim{display:flex;justify-content:space-between;gap:10px;margin-top:6px;font-size:13.5px}
 .focus{margin:14px 0 0;padding:16px 18px;border:1.5px solid #15803d;border-radius:14px;background:var(--bg)}.focus-head h3{margin:0}.focus-head p{margin:4px 0 0;font-size:14px}
 .focus-item{margin:14px 0 0}.focus-top{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px}.focus-done{color:#15803d;font-weight:700}
 .focus-search{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}.focus-link{font-size:12.5px;padding:3px 9px;border-radius:10px;background:#dcfce7;color:#166534;text-decoration:none}.focus-link:hover{text-decoration:underline}
@@ -1830,8 +1831,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var cell=function(list,label,r){return el("td",{},[list.length?el("button",{type:"button",class:"linkish",text:String(list.length),onclick:function(){wkList(r.t+": "+label,list.length+(list.length===1?" job":" jobs"),list)}}):el("span",{class:"pg-dim",text:"0"})])};
       var tb=el("tbody");rows.forEach(function(r){var af=r.fit.length?Math.round(r.fit.reduce(function(a,b){return a+b},0)/r.fit.length):null;
         var fi=(S.focus&&S.focus.items||[]).find(function(x){return x.type===r.t});
-        tb.appendChild(el("tr",{class:fi?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r),
-          el("td",{},[S.isOwner?focusCtl(r.t,fi):fi?el("span",{class:"pg-dim",text:fi.target+" a week"}):null])]))});
+        tb.appendChild(el("tr",{class:fi?(fi.limit!=null?"wk-ease":"wk-train"):null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r),
+          el("td",{},[S.isOwner?focusCtl(r.t,fi):fi?el("span",{class:"pg-dim",text:fi.limit!=null?"at most "+fi.limit+" a week":"aim for "+fi.target+" a week"}):null])]))});
       V.appendChild(wkSection("What we're applying to","Tech training and documentation is a focus: software training, user guides and manuals",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
       var sec=V.lastChild;if(S.isOwner){var note=el("textarea",{id:"tm-focus-note",class:"focus-note",rows:"2",placeholder:"A note to the team about what to look for this week"});note.value=(S.focus&&S.focus.note)||"";
         note.addEventListener("blur",function(){if(note.value===((S.focus&&S.focus.note)||""))return;saveFocus({note:note.value})});
@@ -1926,10 +1927,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     ["Revenue and sales ops",/revenue|revops|sales op|gtm|go-to-market|operations analyst/],["AI and automation",/\bai\b|automation|llm|machine learning/],["Project and program",/project|program|delivery manager|scrum/],["Support",/support|help ?desk|service desk/]];
   function jobType(role){var r=String(role||"").toLowerCase();for(var i=0;i<JOB_TYPES.length;i++)if(JOB_TYPES[i][1].test(r))return JOB_TYPES[i][0];return "Other"}
   function saveFocus(patch){var F=Object.assign({items:[],note:""},S.focus||{},patch);return api("PUT","/api/focus",F).then(function(v){S.focus=v;toast("Focus saved. It's on their home screen.");renderWeekly()},fail)}
-  function focusCtl(type,fi){if(!fi)return el("button",{type:"button",class:"pg-act",text:"Push this",onclick:function(){saveFocus({items:(S.focus.items||[]).concat([{type:type,target:5}])})}});
-    var inp=el("input",{id:"tm-focus-"+type.replace(/\W+/g,""),type:"number",min:"1",max:"50",class:"focus-target"});inp.value=fi.target;
-    inp.addEventListener("change",function(){saveFocus({items:S.focus.items.map(function(x){return x.type===type?{type:type,target:+inp.value||5}:x})})});
-    return el("span",{class:"focus-ctl"},[inp,el("span",{class:"pg-dim",text:"a week"}),el("button",{type:"button",class:"linkish",text:"Stop",onclick:function(){saveFocus({items:S.focus.items.filter(function(x){return x.type!==type})})}})])}
+  function focusCtl(type,fi){var add=function(it){saveFocus({items:(S.focus.items||[]).concat([it])})};
+    if(!fi)return el("span",{class:"focus-ctl"},[el("button",{type:"button",class:"pg-act",text:"Push this",onclick:function(){add({type:type,target:5})}}),el("button",{type:"button",class:"pg-act",text:"Less of this",onclick:function(){add({type:type,limit:3})}})]);
+    var lim=fi.limit!=null,inp=el("input",{id:"tm-focus-"+type.replace(/\W+/g,""),type:"number",min:lim?"0":"1",max:"50",class:"focus-target"});inp.value=lim?fi.limit:fi.target;
+    inp.addEventListener("change",function(){saveFocus({items:S.focus.items.map(function(x){return x.type!==type?x:lim?{type:type,limit:Math.max(0,+inp.value||0)}:{type:type,target:+inp.value||5}})})});
+    return el("span",{class:"focus-ctl"},[el("span",{class:"pg-dim",text:lim?"at most":"aim for"}),inp,el("span",{class:"pg-dim",text:"a week"}),el("button",{type:"button",class:"linkish",text:"Stop",onclick:function(){saveFocus({items:S.focus.items.filter(function(x){return x.type!==type})})}})])}
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
@@ -2075,11 +2077,14 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var best=Object.keys(fits).filter(function(t){return fits[t].length>=2}).map(function(t){return {t:t,a:Math.round(fits[t].reduce(function(a,b){return a+b},0)/fits[t].length)}}).sort(function(a,b){return b.a-a.a}).slice(0,2);
     if(!(F.items||[]).length&&!sentWk.length)return null;
     var box=el("div",{class:"focus"},[el("div",{class:"focus-head"},[el("h3",{text:"This week's focus"}),F.note?el("p",{text:F.note}):null])]);
-    (F.items||[]).forEach(function(it){var n=mix[it.type]||0,pct=Math.min(100,Math.round(100*n/it.target));
+    var limits=(F.items||[]).filter(function(it){return it.limit!=null});
+    (F.items||[]).filter(function(it){return it.limit==null}).forEach(function(it){var n=mix[it.type]||0,pct=Math.min(100,Math.round(100*n/it.target));
       box.appendChild(el("div",{class:"focus-item"},[
         el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:n>=it.target?"focus-done":"pg-dim",text:n+" of "+it.target+" this week"})]),
         el("div",{class:"ats-bar"},[el("i",{class:n>=it.target?"good":"ok",style:"width:"+pct+"%"})]),
         el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Search LinkedIn (remote, past month): "})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("a",{href:liJobs(t),target:"_blank",rel:"noopener",class:"focus-link",text:t})})))]))});
+    if(limits.length)box.appendChild(el("div",{class:"focus-ease"},[el("b",{text:"Ease off"})].concat(limits.map(function(it){var n=mix[it.type]||0,over=n>it.limit;
+      return el("div",{class:"focus-lim"},[el("span",{text:it.type}),el("span",{class:over?"pg-due":"pg-dim",text:n+" this week, "+(it.limit?"keep it to "+it.limit+" or fewer":"skip these for now")+(over?". Over the limit.":"")})])}))));
     var mixKeys=Object.keys(mix).sort(function(a,b){return mix[b]-mix[a]});
     box.appendChild(el("div",{class:"focus-mix"},[el("span",{class:"pg-dim",text:"Your applications this week: "})].concat(mixKeys.length?mixKeys.map(function(t){return el("span",{class:"ats-chip",text:t+" "+mix[t]})}):[el("span",{class:"pg-dim",text:"none yet"})])));
     if(best.length)box.appendChild(el("p",{class:"focus-best",text:"Your best fits so far: "+best.map(function(b){return b.t+" (average "+b.a+")"}).join(" and ")+"."}));
