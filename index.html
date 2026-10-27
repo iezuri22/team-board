@@ -869,7 +869,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .am-note{font-size:12.5px;color:var(--muted);margin:6px 0 10px}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}
 .fu-done{color:#15803d;font-size:13px;white-space:nowrap}.fu-due{color:#c2410c;font-weight:600;font-size:13px;white-space:nowrap}.fu-bad{color:#b91c1c;font-weight:600;font-size:13px}.fu-rej{margin-left:6px;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;background:#fde8e8;color:#991b1b}
-.fu-table td{vertical-align:middle}.fu-table .rc-d>span{max-width:340px}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
+.fu-table td{vertical-align:middle}
+.fu-cell{border:0;background:none;padding:4px 6px;margin:-4px -6px;border-radius:8px;font:inherit;cursor:pointer}.fu-cell:hover{background:var(--soft2)}.fu-cell:hover span{text-decoration:underline}
+.fu-sent{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.55;margin:6px 0 10px;padding:12px 14px;background:var(--soft2);border-radius:10px}
+.fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
+.fu-table .rc-acts .pg-go{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}.fu-table .rc-acts .pg-go:hover{opacity:.85}
+.fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
 .rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
 .rc-grp td{background:var(--bg);padding:22px 12px 8px!important;border-bottom:1px solid var(--line)}.rc-grp:first-child td{padding-top:12px!important}
@@ -1705,7 +1710,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(!list.length){if(S.rcTab!=="cant")body.appendChild(el("div",{class:"empty"},[el("h3",{text:/^(li|em|replies)$/.test(S.rcTab)?"All caught up":"Nothing here"}),el("p",{text:/^(li|em|replies)$/.test(S.rcTab)?"Nothing needs you here right now.":"Try another tab or clear the filters."})]));return}
       var wide=S.isOwner&&S.rcTab!=="cant";
       var tb=el("tbody"),row=function(t,i){if(!t.c){tb.appendChild(el("tr",{class:"pg-row",onclick:function(){openJob(t.j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(t.j.company),text:initials(t.j.company)}),el("span",{class:"ap-jt"},[el("b",{text:t.j.company}),el("span",{text:t.j.role})])])]),el("td",{class:"pg-dim",text:"No one yet"}),el("td"),el("td",{class:"rc-what"},[el("span",{class:"pg-dim",text:t.what})]),el("td"),el("td")]));return}
-        if(wide){tb.appendChild(trackRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t,9));return}
+        if(wide){tb.appendChild(trackRow(t,i));trackExtra(t).forEach(function(r){tb.appendChild(r)});return}
         tb.appendChild(taskRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t))};
       var TGROUPS=[["mine","Yours to send",""],["ifeanyi","Ifeanyi is sending these","He's handling these himself. Skip them so nobody gets two emails."]];
       var GS=S.isOwner&&S.rcTab==="li"?LIG:S.isOwner&&S.rcTab==="em"?EMG:S.rcTab==="waiting"&&S.isOwner?WGROUPS:!S.isOwner&&S.rcTab==="toemail"?TGROUPS:null,gk=S.rcTab==="li"||S.rcTab==="em"?"group":S.rcTab==="toemail"?"tg":"wg";
@@ -1802,7 +1807,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var rank={due:0,replied:1,waiting:2,done:3};rows.sort(function(a,b){return rank[kind(a)]-rank[kind(b)]||((b.group==="late")-(a.group==="late"))||String(a.cd.check||a.cd.at||"").localeCompare(String(b.cd.check||b.cd.at||""))});
       if(!rows.length){body.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing here"}),el("p",{text:"Try another filter."})]));return}
       var done=function(at,lab){return el("span",{class:"fu-done",title:lab||null,text:"\u2713 "+fmtD(at)})},due=function(tx){return el("span",{class:"fu-due",text:tx})},none=function(){return el("span",{class:"pg-dim",text:"\u2013"})};
-      var tb=el("tbody");rows.forEach(function(t,i){tb.appendChild(trackRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t,9))});
+      var tb=el("tbody");rows.forEach(function(t,i){tb.appendChild(trackRow(t,i));trackExtra(t).forEach(function(r){tb.appendChild(r)})});
       body.appendChild(trackTable(tb))}
     var TRACK_COLS=["Person","Email","LinkedIn note","Connected","Follow-up","Reply","Next step",""];
     // step columns with nothing in them anywhere in the list are left out, so the table only shows what matters
@@ -1813,16 +1818,27 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var heads=["#"].concat(TRACK_COLS).filter(function(h,ix){return hide.indexOf(ix)<0});
       return el("div",{class:"pg-wrap rc-wrap"},[el("table",{class:"pg-table fu-table"},[el("thead",{},[el("tr",{},heads.map(function(h,ix){return el("th",{class:ix===0?"pg-n":null,text:h})}))]),tb])])}
     // one person, step by step: email, LinkedIn note, connected, follow-up, reply, then what's next and the buttons
+    function trackExtra(t){var c=t.c,out=[];if(S.rcMsg&&S.rcMsg[c.id])out.push(msgRow(t,9));var ix=S.rcSent&&S.rcSent[c.id];if(ix!=null&&outs(c)[ix])out.push(sentRow(t,outs(c)[ix]));return out}
+    function sentRow(t,e){var c=t.c,tx=e.text||"",V2={"email":"Email","LinkedIn":"LinkedIn note","LinkedIn message":"LinkedIn message","InMail":"InMail"};
+      var close=function(ev){ev.stopPropagation();delete S.rcSent[c.id];drawBody()};
+      return el("tr",{class:"rc-msgrow",onclick:function(ev){ev.stopPropagation()}},[el("td"),el("td",{colspan:"8"},[el("div",{class:"rc-msg"},[
+        el("div",{class:"rc-msgh"},[el("b",{text:(V2[e.via]||e.via)+" to "+c.name.split(" ")[0]+", sent "+fmtD(e.at)+(e.by&&e.by!=="owner"?" by "+whoName(e.by).split(" ")[0]:"")})]),
+        tx?el("pre",{class:"fu-sent",text:tx}):el("p",{class:"pg-dim",text:"Logged before the board kept the text of sent messages."}),
+        el("div",{class:"rc-msga"},[tx?el("button",{type:"button",class:"pg-go",text:"Copy",onclick:function(ev){ev.stopPropagation();try{navigator.clipboard.writeText(tx).then(function(){toast("Copied")})}catch(x){toast("Select the text and copy it")}}}):null,el("button",{type:"button",class:"pg-act",text:"Close",onclick:close})])])])])}
     function trackRow(t,i){var j=t.j,c=t.c,cd=t.cd,o=outs(c),due0=/^(li|em|replies)$/.test(t.tab);
       var base=taskRow(t,i),cells=base.children,pd=cells[2].querySelector(".rc-d"),nameB=pd&&pd.firstChild,emailBit=pd&&pd.lastChild,actTd=cells[cells.length-1];
-      // rows whose buttons already open the draft (notes, follow-ups) don't need a second opener
-      var mc=/^(li|new|accepted|nudge)$/.test(cd.k)&&S.isOwner?null:msgCell(t),ac=actTd.querySelector(".rc-acts");if(mc&&ac)ac.insertBefore(mc,ac.firstChild);
+      // the buttons that only opened the draft go; the step cells open it instead
+      var ac=actTd.querySelector(".rc-acts");if(ac)[].slice.call(ac.querySelectorAll("button")).forEach(function(b){if(/^\u2726|^Open$/.test(b.textContent.trim()))b.remove()});
       var done=function(at){return el("span",{class:"fu-done",text:"\u2713 "+fmtD(at)})},due=function(tx){return el("span",{class:"fu-due",text:tx})},none=function(){return el("span",{class:"pg-dim",text:"\u2013"})};
       var em=o.find(function(e){return e.via==="email"}),li=o.find(function(e){return e.via==="LinkedIn"}),fu=o.filter(function(e){return e!==em&&e!==li})[0];
-      var cEmail=c.emailBad?el("span",{class:"fu-bad",text:"Bounced"}):em?done(em.at):cd.k==="toEmail"?due("to send"):none();
-      var cNote=li?done(li.at):cd.k==="li"||(cd.k==="new"&&c.linkedin)?due("due now"):cd.k==="emailed"?el("span",{class:"pg-dim",text:fmtD(cd.check)}):none();
+      // a step cell opens its message: the sent text if it went out, otherwise the draft, ready to copy
+      var openDraft=function(ch){return function(e){e.stopPropagation();S.rcMsg=S.rcMsg||{};S.rcCh=S.rcCh||{};S.rcSent=S.rcSent||{};var on=S.rcMsg[c.id]&&S.rcCh[c.id]===ch;delete S.rcSent[c.id];S.rcMsg[c.id]=!on;S.rcCh[c.id]=ch;drawBody()}};
+      var openSent=function(entry){return function(e){e.stopPropagation();S.rcSent=S.rcSent||{};S.rcMsg=S.rcMsg||{};var ix=o.indexOf(entry),on=S.rcSent[c.id]===ix;S.rcMsg[c.id]=false;if(on)delete S.rcSent[c.id];else S.rcSent[c.id]=ix;drawBody()}};
+      var cell=function(inner,fn,tip){return fn?el("button",{type:"button",class:"fu-cell",title:tip||null,onclick:fn},[inner]):inner};
+      var cEmail=c.emailBad?el("span",{class:"fu-bad",text:"Bounced"}):em?cell(done(em.at),openSent(em),"See what was sent"):cd.k==="toEmail"?cell(due("to send"),openDraft("email"),"Open the email"):none();
+      var cNote=li?cell(done(li.at),openSent(li),"See what was sent"):cd.k==="li"||(cd.k==="new"&&c.linkedin)?cell(due("due now"),openDraft("note"),"Open the note"):cd.k==="emailed"&&c.draft?cell(el("span",{class:"pg-dim",text:fmtD(cd.check)}),openDraft("note"),"Preview the note"):cd.k==="emailed"?el("span",{class:"pg-dim",text:fmtD(cd.check)}):none();
       var cConn=c.acceptedAt?done(c.acceptedAt):li?el("span",{class:"pg-dim",text:"pending"}):none();
-      var cFu=fu?done(fu.at):(cd.k==="accepted"||cd.k==="nudge")?due("due now"):none();
+      var cFu=fu?cell(done(fu.at),openSent(fu),"See what was sent"):(cd.k==="accepted"||cd.k==="nudge")?cell(due("due now"),openDraft("note"),"Open the follow-up"):none();
       var cRep=c.repliedAt?done(c.repliedAt):none();
       return el("tr",{class:"pg-row fu-row"+(t.group==="late"?" late":""),onclick:function(){openContact(j.id,c.id)}},[
         el("td",{class:"pg-n",text:String(i+1)}),
