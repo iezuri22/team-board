@@ -875,6 +875,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
 .fu-table .rc-acts .pg-go{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}.fu-table .rc-acts .pg-go:hover{opacity:.85}
 .fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
+.gm-q{font-weight:700;font-size:inherit}.gm-qrow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.gm-qsub{font-size:12.5px;color:var(--muted);margin-top:2px}.gm-qwhen{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
 .gm-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:13.5px}.gm-clear{font-size:12.5px;color:var(--muted)}.fu-sched{color:#1d4ed8;font-size:13px;white-space:nowrap}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
 .rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
@@ -1672,13 +1673,21 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function gmailStatus(){var now0=Date.now();if(S.gmailAt&&now0-S.gmailAt<60000)return Promise.resolve(S.gmail);S.gmailAt=now0;return api("GET","/api/gmail/status").then(function(g){S.gmail=g;return g},function(){return S.gmail})}
   function schedule(j,c,now,then){api("POST","/api/schedule",{jobId:j.id,contactId:c.id,now:!!now}).then(function(r){toast(now?"Sending in the next few minutes.":"Scheduled for "+fmtWhen(r.first)+".");if(then)then();refresh()},fail)}
   function unschedule(j,c){api("POST","/api/unschedule",{jobId:j.id,contactId:c.id}).then(function(){toast("Unscheduled");refresh()},fail)}
+  // the whole send queue, whatever tab or job status each email sits under
+  function showQueue(){var q=[];S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){if(c.sendAt)q.push({j:j,c:c})})});q.sort(function(a,b){return String(a.c.sendAt).localeCompare(String(b.c.sendAt))});
+    var close=function(){ov.remove();document.removeEventListener("keydown",key)},key=function(e){if(e.key==="Escape")close()};
+    var list=el("div",{class:"pv-body"},q.length?q.map(function(x){var c=x.c,j=x.j;return el("div",{class:"gm-qrow"},[el("div",{},[el("b",{text:c.name}),el("div",{class:"pg-dim",text:shortCo(j.company)+" \u00b7 "+(c.email||c.emailGuess||"")}),el("div",{class:"gm-qsub",text:c.emailSubject||""})]),
+      el("div",{class:"gm-qwhen"},[el("span",{class:"fu-sched",text:"\u23f1 "+fmtWhen(c.sendAt)}),el("button",{type:"button",class:"linkish",text:"Unschedule",onclick:function(){api("POST","/api/unschedule",{jobId:j.id,contactId:c.id}).then(function(){toast("Unscheduled");close();refresh()},fail)}})])])}):[el("p",{class:"muted-line",text:"Nothing scheduled."})]);
+    var ov=el("div",{class:"pv-ov",onclick:function(e){if(e.target===ov)close()}},[el("div",{class:"pv",role:"dialog","aria-modal":"true","aria-label":"Scheduled emails"},[el("div",{class:"pv-head"},[el("div",{},[el("h3",{text:"Scheduled emails ("+q.length+")"}),el("p",{class:"muted-line",text:"In send order. Each goes out from the job-search Gmail at its time."})]),el("button",{type:"button",class:"btn ghost small",text:"Close",onclick:close})]),list])]);
+    document.addEventListener("keydown",key);document.body.appendChild(ov)}
   function gmailBanner(rerender){var g=S.gmail,box=el("div",{class:"gm-bar"});
     if(!g){gmailStatus().then(function(x){if(x)rerender()});return box}
     var tasksN=function(){var n=0;S.jobs.forEach(function(j){(j.contacts||[]).forEach(function(c){if(c.sendAt)n++})});return n};
     if(!g.connected){if(!S.isOwner){box.appendChild(el("span",{text:"Scheduled sending isn't on yet. Send these from Gmail for now."}));return box}
       box.appendChild(el("span",{text:g.ready?"Connect the job-search Gmail and the board sends these for you, one every 15 minutes, 7am to 5pm on weekdays.":"Scheduled sending needs a Google sign-in set up first."}));
       if(g.ready)box.appendChild(el("a",{class:"btn small accent",href:API+"/api/gmail/connect?t="+encodeURIComponent(getTok()),text:"Connect Gmail"}));return box}
-    box.appendChild(el("span",{},["Sending from ",el("b",{text:g.email||"Gmail"}),", one every 15 minutes, 7am to 5pm on weekdays. ",el("b",{text:String(tasksN())})," scheduled."]));
+    var nq=tasksN();
+    box.appendChild(el("span",{},["Sending from ",el("b",{text:g.email||"Gmail"}),", one every 15 minutes, 7am to 5pm on weekdays. ",nq?el("button",{type:"button",class:"linkish gm-q",text:nq+" scheduled",onclick:function(){showQueue()}}):el("b",{text:"0 scheduled"}),"."]));
     box.appendChild(el("button",{type:"button",class:"btn small accent",text:"Schedule all ready emails",onclick:function(){var b=this;b.disabled=true;api("POST","/api/schedule",{all:true}).then(function(r){toast(r.scheduled?"Scheduled "+r.scheduled+", from "+fmtWhen(r.first)+" to "+fmtWhen(r.last)+".":"Nothing ready to schedule.");refresh()},function(e){b.disabled=false;fail(e)})}}));
     if(S.isOwner&&tasksN())box.appendChild(el("button",{type:"button",class:"linkish gm-clear",text:"Clear the queue",onclick:function(){if(window.confirm("Unschedule every queued email?"))api("POST","/api/unschedule",{all:true}).then(function(r){toast("Cleared "+r.cleared);refresh()},fail)}}));
     return box}
