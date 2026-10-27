@@ -1832,7 +1832,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         var fi=(S.focus&&S.focus.items||[]).find(function(x){return x.type===r.t});
         tb.appendChild(el("tr",{class:fi?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r),
           el("td",{},[S.isOwner?focusCtl(r.t,fi):fi?el("span",{class:"pg-dim",text:fi.target+" a week"}):null])]))});
-      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
+      V.appendChild(wkSection("What we're applying to","Tech training and documentation is a focus: software training, user guides and manuals",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
       var sec=V.lastChild;if(S.isOwner){var note=el("textarea",{id:"tm-focus-note",class:"focus-note",rows:"2",placeholder:"A note to the team about what to look for this week"});note.value=(S.focus&&S.focus.note)||"";
         note.addEventListener("blur",function(){if(note.value===((S.focus&&S.focus.note)||""))return;saveFocus({note:note.value})});
         sec.appendChild(el("div",{class:"focus-edit"},[el("label",{for:"tm-focus-note",text:"Note on their home screen"}),note,el("p",{class:"pg-dim",text:"Pick job types to push with the Focus column. Esther and Gilaiza see the target, their progress and ready-made LinkedIn searches at the top of their Applications page."})]))}})();
@@ -1920,8 +1920,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     box.appendChild(body);document.body.appendChild(wrap);document.addEventListener("keydown",key)}
   function wkCell(n,cls,onclick){return n?el("button",{type:"button",class:"wk-cell "+(cls||""),onclick:onclick},[String(n)]):el("span",{class:"pg-dim",text:"0"})}
   // what kind of job it is, from the title (first match wins)
-  var TRAIN="Training and enablement";
-  var JOB_TYPES=[[TRAIN,/train|enablement|learning|instruct|education|adoption/],["Implementation",/implement|deploy|onboarding|go-live/],["Solutions and sales engineering",/solution|sales engineer|pre-?sales|forward deployed|technical account|technical consultant|professional services/],
+  var TRAIN="Tech training and documentation";
+  var JOB_TYPES=[[TRAIN,/train|technical writ|documentation|user guide|instructional|enablement|learning|education|adoption/],["Implementation",/implement|deploy|onboarding|go-live/],["Solutions and sales engineering",/solution|sales engineer|pre-?sales|forward deployed|technical account|technical consultant|professional services/],
     ["Salesforce and CRM admin",/salesforce|crm|hubspot|administrator|\badmin\b/],["Business and systems analyst",/business analyst|business systems?|systems? analyst|\bba\b|process analyst/],["Data and reporting",/data|analytics|reporting|insights|\bbi\b/],
     ["Revenue and sales ops",/revenue|revops|sales op|gtm|go-to-market|operations analyst/],["AI and automation",/\bai\b|automation|llm|machine learning/],["Project and program",/project|program|delivery manager|scrum/],["Support",/support|help ?desk|service desk/]];
   function jobType(role){var r=String(role||"").toLowerCase();for(var i=0;i<JOB_TYPES.length;i++)if(JOB_TYPES[i][1].test(r))return JOB_TYPES[i][0];return "Other"}
@@ -2061,7 +2061,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     maybeCelebrate(n,g);
   }
   // titles to search for each job type, as remote LinkedIn job searches from the past month
-  var TYPE_TITLES={"Training and enablement":["Training Specialist","CRM Trainer","Salesforce Trainer","Enablement Specialist","Customer Education Specialist","Learning and Development Specialist"],
+  var TYPE_TITLES={"Tech training and documentation":["Technical Trainer","Software Trainer","End User Training Specialist","Training and Documentation Specialist","Technical Writer","Instructional Designer"],
     "Implementation":["Implementation Specialist","Implementation Consultant","Onboarding Specialist"],"Salesforce and CRM admin":["Salesforce Administrator","CRM Administrator","CRM Analyst"],
     "Business and systems analyst":["Business Analyst","Business Systems Analyst"],"Data and reporting":["Data Analyst","Reporting Analyst","Power BI Analyst"],
     "Revenue and sales ops":["Revenue Operations Analyst","Sales Operations Analyst"],"AI and automation":["AI Implementation Specialist","Automation Specialist","AI Operations Specialist"],
