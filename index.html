@@ -2087,7 +2087,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       return el("div",{class:"focus-item"},[
         el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:n>=it.target?"focus-done":"pg-dim",text:n+" of "+it.target+" this week"})]),
         el("div",{class:"ats-bar"},[el("i",{class:"good",style:"width:"+pct+"%"})]),
-        el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Search remote jobs on LinkedIn:"})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("a",{href:liJobs(t),target:"_blank",rel:"noopener",class:"focus-link",text:t})})))])}))));
+        el("div",{class:"focus-search"},[el("span",{class:"pg-dim",text:"Titles to look for:"})].concat((TYPE_TITLES[it.type]||[it.type]).map(function(t){return el("span",{class:"focus-link",text:t})})))])}))));
     if(ease.length)cols.appendChild(el("div",{class:"focus-col less"},[el("div",{class:"focus-label",text:"Ease off"})].concat(ease.map(function(it){var n=row(it.type).wk,over=n>it.limit;
       return el("div",{class:"focus-item"},[el("div",{class:"focus-top"},[el("b",{text:it.type}),el("span",{class:over?"pg-due":"pg-dim",text:n+" of "+it.limit+" max this week"})]),
         el("p",{class:"focus-sub",text:over?"Over the limit. Pick other job types for the rest of the week.":it.limit?"Keep these to "+it.limit+" or fewer a week.":"Skip these for now."})])}))));
