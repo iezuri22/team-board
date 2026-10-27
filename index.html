@@ -833,6 +833,15 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-tab.on{color:var(--fg);border-bottom-color:var(--fg)}.rc-tab.late b{background:#c2410c;color:#fff}.rc-tab.late{color:#c2410c}
 .rc-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.rc-filters input{flex:1;min-width:220px}
 .rc-filters select,.rc-filters input{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--fg)}
+.ats-step{margin:10px 0 2px}.ats-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px}
+.ats-score{display:inline-grid;place-items:center;min-width:38px;height:28px;padding:0 8px;border-radius:8px;font-size:15px;font-weight:800;color:#fff}.ats-score.good{background:#15803d}.ats-score.ok{background:#b45309}.ats-score.low{background:#b91c1c}
+.ats-what{color:var(--muted)}.ats-busy{color:var(--muted);font-style:italic}.ats-more{font-size:13px}
+.ats-rep{margin:10px 0 4px;display:grid;gap:9px;max-width:760px}.ats-row{display:grid;grid-template-columns:200px 1fr 64px;align-items:center;gap:10px;font-size:13px}
+.ats-l{font-weight:600}.ats-bar{height:6px;border-radius:4px;background:var(--soft2);overflow:hidden}.ats-bar i{display:block;height:100%;border-radius:4px}.ats-bar i.good{background:#15803d}.ats-bar i.ok{background:#b45309}.ats-bar i.low{background:#b91c1c}
+.ats-n{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.ats-miss{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;margin-top:-3px}
+.ats-chip{font-size:12px;padding:2px 8px;border-radius:10px;background:var(--soft2);color:var(--fg)}.ats-chip.req{background:#fde8e8;color:#991b1b}.ats-chip.warn{background:#fef3c7;color:#92400e}
+.ats-cant{font-size:12.5px;color:var(--muted);margin:4px 0 0}.ats-cant .ats-miss{margin-top:6px}.ats-chip.have{border:1px dashed var(--line);background:none;cursor:pointer;font:inherit;font-size:12px}.ats-chip.have:hover{border-color:var(--fg)}.ats-chip.have.on{border-style:solid;background:#dcfce7;color:#166534}.ats-ed{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+@media(max-width:640px){.ats-row{grid-template-columns:1fr 54px}.ats-bar{grid-column:1/-1;order:3}}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
 .rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
 .rc-grp td{background:var(--bg);padding:22px 12px 8px!important;border-bottom:1px solid var(--line)}.rc-grp:first-child td{padding-top:12px!important}
@@ -1140,9 +1149,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(editing){
         var current=function(){return HTML_MARK+cleanHTML(box._doc().body.cloneNode(true))};
         var saveBtn=el("button",{class:"btn accent small",type:"button",text:fresh?"Save this copy":"Saved",disabled:fresh?null:true,onclick:function(){saveBtn.disabled=true;var v=current();
-          api("PUT",url,{md:v}).then(function(){saveBtn.textContent="Saved";if(tplEdit){tplEdit.md=v}else if(!j){S.baseMd=v}toast(j?"Resume saved for "+j.company:tplEdit?"Template saved":"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
-        var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save"};
-        var sugBox=el("div",{class:"sug"});
+          api("PUT",url,j&&atsCur?{md:v,ats:atsCur}:{md:v}).then(function(){saveBtn.textContent="Saved";if(tplEdit){tplEdit.md=v}else if(!j){S.baseMd=v}toast(j?"Resume saved for "+j.company:tplEdit?"Template saved":"Base resume saved");refresh()},function(e){saveBtn.disabled=false;fail(e)})}});
+        var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save";if(typeof atsDraw==="function"){clearTimeout(atsT);atsT=setTimeout(atsDraw,700)}};
+        var sugBox=el("div",{class:"sug"}),atsBox=el("div",{class:"ats-ed"}),atsT=null,atsCur=null;
+        var atsDraw=function(){if(!j||!j.description)return;atsReqFor(j).then(function(R){var s=atsScore(atsText(box._doc().body),R);atsCur={score:s.total,before:j.ats&&j.ats.before||s.total,cannot:j.ats&&j.ats.cannot||[]};
+          atsBox.textContent="";atsBox.appendChild(el("div",{class:"ats-line"},[atsBadge(s.total),el("span",{class:"ats-what",text:"ATS match for "+j.company+". Updates as you edit."}),s.total<90?aiBtn("Get it to 90+",function(){return atsRun(j,box._doc().body,function(){}).then(function(r){atsCur.cannot=r.cannot;j.ats=Object.assign({},j.ats||{},{cannot:r.cannot});edited();atsDraw();toast("ATS match "+r.score+". Check the changes, then Save.")})},true):null]));
+          atsBox.appendChild(atsReport(s,atsCur.cannot))}).catch(function(){})};
         if(j)actions.appendChild(aiBtn("Tailor with AI",function(){if(!j.description){toast("Paste the job description on the job first");return}return api("POST","/api/ai/tailor",{jobId:j.id}).then(function(r){showSuggestions(sugBox,r,box,edited)})}));
         actions.appendChild(saveBtn);
         actions.appendChild(el("button",{class:"btn ghost small",type:"button",text:"Download PDF",onclick:function(){printResume(current(),j?fileTitle(j):"Ifeanyi_Ezurike_Resume"+(tplEdit?"_"+tplEdit.name.replace(/[^A-Za-z0-9]+/g,"_"):""))}}));
@@ -1152,8 +1164,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         head.querySelector(".muted-line").textContent=(j?j.role+". ":tplEdit?"Your template. Changes here apply to new copies, not ones already saved for a job. ":"")+"Click anywhere on the page to edit. Only add skills and results Ifeanyi really has.";
         var col=el("div",{class:"ed-col"});body.appendChild(col);
         col.appendChild(toolbar(box,edited,function(){previewInto(box,j?keyMd(j.resume,base):tplEdit?keyMd("Default",base):base,true,edited);edited()}));
-        col.appendChild(sugBox);col.appendChild(box);
-        previewInto(box,md,true,edited);
+        col.appendChild(atsBox);col.appendChild(sugBox);col.appendChild(box);
+        previewInto(box,md,true,edited);if(j)setTimeout(atsDraw,100);
         return;
       }
       var vk=S.resumeView||"Default",vt=vk.indexOf("t:")===0?tplById(vk.slice(2)):null,vv=VARIANTS[vk];
@@ -2171,6 +2183,91 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function mdFor(j,k){if(k==="Tailored")return api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return keyMd(j.resume,b)})});return baseMd().then(function(b){return keyMd(k,b)})}
   function pickedRes(j){S.pickRes=S.pickRes||{};return S.pickRes[j.id]||(j.tailoredAt?"Tailored":(VARIANTS[j.resume]||(j.resume&&j.resume.indexOf("t:")===0&&tplById(j.resume.slice(2)))?j.resume:"Default"))}
   function resLabel(k){if(k==="Tailored")return "Edited copy";if(k&&k.indexOf("t:")===0){var t=tplById(k.slice(2));return t?t.name:"Saved template"}return VARIANTS[k]?VARIANTS[k].label:(k||"Base")}
+  // ---------- ATS match: a Jobscan-style report. The AI reads the posting once (j.atsReq);
+  // the scoring is plain code, so the same resume always gets the same score. ----------
+  function atsNorm(t){return " "+String(t||"").toLowerCase().replace(/&/g," and ").replace(/[’']/g,"").replace(/[^a-z0-9+#]+/g," ").replace(/\s+/g," ").trim()+" "}
+  function atsHas(T,k){return [k.term].concat(k.alts||[]).some(function(v){var n=atsNorm(v).trim();if(n.length<2)return false;
+    return T.indexOf(" "+n+" ")>=0||T.indexOf(" "+n+"s ")>=0||T.indexOf(" "+n+"es ")>=0||(/s$/.test(n)&&T.indexOf(" "+n.slice(0,-1)+" ")>=0)})}
+  function atsCore(t){var c=atsNorm(String(t||"").replace(/\([^)]*\)/g," ").split(/\s[-–—|]\s|,/)[0]),re=/ (senior|sr|junior|jr|lead|principal|staff|i|ii|iii|iv|1|2|3) /g;return c.replace(re," ").replace(re," ").trim()}
+  function atsDoc(md){var d=document.createElement("div");d.innerHTML=bodyOf(md);return d}
+  function atsText(root){return [].map.call(root.querySelectorAll("h1,h2,h3,h4,p,li,.role"),function(n){return (n.tagName==="LI"?"- ":/^H\d$/.test(n.tagName)?"# ":"")+n.textContent.replace(/\s+/g," ").trim()}).join("\n")}
+  function atsScore(text,R){var T=atsNorm(text),raw=String(text||""),lines=raw.split("\n");
+    var hw=0,hg=0,hm=[];(R.hard||[]).forEach(function(k){var w=k.need==="required"?3:1;hw+=w;if(atsHas(T,k))hg+=w;else hm.push(k)});
+    var soft=R.soft||[],sm=soft.filter(function(k){return !atsHas(T,k)});
+    var core=atsCore(R.title),tw=core.split(" ").filter(function(w){return w.length>2}),tHit=!core||T.indexOf(" "+core+" ")>=0,tPart=tw.length?tw.filter(function(w){return T.indexOf(" "+w+" ")>=0}).length/tw.length:1;
+    var LV={none:0,associate:1,bachelor:2,master:3,phd:4},have=/\b(ph\.?d|doctorate)\b/i.test(raw)?4:/\b(master of|master's|masters|mba|m\.s\.)/i.test(raw)?3:/\b(bachelor|b\.s\.|b\.a\.)/i.test(raw)?2:/\bassociate'?s? degree/i.test(raw)?1:0;
+    var dg=R.degree||{},need=LV[dg.level]||0,eduOk=!need||have>=need;
+    var creq=(R.certs||[]).filter(function(c){return c.need==="required"}),cm=(R.certs||[]).filter(function(c){return !atsHas(T,c)});
+    var secs=[["Summary",/^# (professional )?(summary|profile)/i],["Experience",/^# (work |professional )?experience/i],["Education",/^# education/i],["Skills",/^# (technical |core )?skills/i]].filter(function(x){return !lines.some(function(l){return x[1].test(l)})}).map(function(x){return x[0]+" heading"});
+    var contact=[["Email",/[\w.+-]+@[\w-]+\.[\w.]+/],["Phone",/\(?\d{3}\)?[\s.-]?\d{3}[\s.-]\d{4}/],["LinkedIn URL",/linkedin\.com\/in\//i],["City, State",/\b[A-Z][a-zA-Z .]+,\s?[A-Z]{2}\b/]].filter(function(x){return !x[1].test(raw)}).map(function(x){return x[0]});
+    var dated=/(19|20)\d{2}\s*[-–—]\s*(present|current|[a-z]*\.?\s*(19|20)\d{2})/i.test(raw);
+    var words=raw.replace(/^[#-] /gm,"").split(/\s+/).filter(Boolean).length,nums=lines.filter(function(l){return /^- /.test(l)&&/\d/.test(l)}).length;
+    var parts=[
+      {k:"hard",label:"Hard skills",max:40,pts:hw?40*hg/hw:40,miss:hm},
+      {k:"title",label:"Job title",max:10,pts:tHit?10:tPart>=.67?5:0,miss:tHit?[]:[{term:R.title}]},
+      {k:"soft",label:"Soft skills",max:10,pts:soft.length?10*(soft.length-sm.length)/soft.length:10,miss:sm},
+      {k:"edu",label:"Education and certifications",max:10,pts:(eduOk?6:0)+(creq.length?4*creq.filter(function(c){return atsHas(T,c)}).length/creq.length:4),miss:cm,note:eduOk?"":"Asks for a "+dg.level+"'s degree"},
+      {k:"search",label:"Searchability",max:20,pts:2*(4-secs.length)+1.5*(4-contact.length)+(dated?3:0)+(words>=350&&words<=1100?3:1),miss:secs.concat(contact,dated?[]:["Dates on each role"],words>=350&&words<=1100?[]:[words<350?"Too short":"Too long"]).map(function(x){return {term:x}})},
+      {k:"impact",label:"Measurable results",max:10,pts:Math.min(10,nums*2),miss:nums>=5?[]:[{term:(5-nums)+" more bullets with numbers"}]}];
+    return {total:Math.round(parts.reduce(function(a,p){return a+p.pts},0)),parts:parts,words:words}}
+  // one request per job, even when the page redraws while it's in flight
+  function atsReqFor(j){if(j.atsReq)return Promise.resolve(j.atsReq);S.atsReqP=S.atsReqP||{};
+    return S.atsReqP[j.id]=S.atsReqP[j.id]||api("POST","/api/ai/ats-req",{jobId:j.id}).then(function(r){j.atsReq=r;return r},function(e){delete S.atsReqP[j.id];throw e})}
+  // skills Ifeanyi confirms he has that aren't on the resume yet
+  function haveSkill(term,btn){btn.disabled=true;api("GET","/api/skills-bank").then(function(b){var l=(b.list||[]);if(l.indexOf(term)<0)l.push(term);return api("PUT","/api/skills-bank",{list:l})}).then(function(){btn.textContent="\u2713 "+term;btn.classList.add("on");toast("Saved. Get it to 90+ again to add it.")},function(e){btn.disabled=false;fail(e)})}
+  // Work in the AI's edits: headline, summary, bullet rewrites (keeping bold numbers) and skills
+  function atsApply(root,r){var n=0,D=root.ownerDocument,nm=function(t){return String(t).replace(/\s+/g," ").trim()},nodes=function(){return [].slice.call(root.querySelectorAll("li,p"))};
+    if(r.headline){var tg=root.querySelector(".tagline");if(tg){tg.textContent=r.headline;n++}}
+    if(r.summary){var h=[].slice.call(root.querySelectorAll("h2")).find(function(x){return /summary|profile/i.test(x.textContent)}),p=h&&h.nextElementSibling;while(p&&p.tagName!=="P")p=p.nextElementSibling;if(p){p.textContent=r.summary;n++}}
+    (r.edits||[]).forEach(function(e){var w=nm(e.find),hit=nodes().find(function(x){return nm(x.textContent)===w})||nodes().find(function(x){return w.length>40&&nm(x.textContent).indexOf(w.slice(0,60))===0});if(!hit||!e.replace)return;
+      var html=esc(e.replace);[].map.call(hit.querySelectorAll("b,strong"),function(b){return b.textContent}).filter(function(b){return b.length>1}).forEach(function(b){var eb=esc(b);if(html.indexOf(eb)>=0)html=html.replace(eb,"<b>"+eb+"</b>")});hit.innerHTML=html;n++});
+    (r.skills||[]).forEach(function(x){var add=(x.add||[]).filter(Boolean);if(!add.length)return;var lab=nm(x.label).toLowerCase().replace(/:$/,""),sk=[].slice.call(root.querySelectorAll("p.sk"));
+      var line=sk.find(function(p){return nm(p.textContent).toLowerCase().indexOf(lab+":")===0});
+      if(line){line.appendChild(D.createTextNode(", "+add.join(", ")));n++}
+      else if(sk.length){var np=D.createElement("p");np.className="sk";np.innerHTML="<b>"+esc(nm(x.label).replace(/:$/,""))+":</b> "+esc(add.join(", "));sk[sk.length-1].after(np);n++}});
+    return n}
+  // Up to two rounds: score, ask for the missing terms he really has, work them in, score again
+  function atsRun(j,root,onStep){var R=j.atsReq,cannot=[],s0=atsScore(atsText(root),R),round=0;
+    function done(s){return Promise.resolve({before:s0.total,score:s.total,cannot:cannot})}
+    function next(){var s=atsScore(atsText(root),R);if(s.total>=90||round>=2)return done(s);
+      var skip=cannot.map(function(c){return atsNorm(c.term).trim()}),keep=function(k){return skip.indexOf(atsNorm(k.term).trim())<0},P=function(k){return s.parts.find(function(p){return p.k===k})};
+      var hard=P("hard").miss.filter(keep),soft=P("soft").miss.filter(keep),title=P("title").miss.length&&keep(P("title").miss[0])?R.title:"";
+      if(!hard.length&&!soft.length&&!title)return done(s);
+      round++;if(onStep)onStep(round);
+      return api("POST","/api/ai/ats-fix",{jobId:j.id,resume:atsText(root),missing:{hard:hard,soft:soft,title:title}}).then(function(r){
+        (r.cannot||[]).forEach(function(c){if(!cannot.some(function(x){return x.term===c.term}))cannot.push(c)});atsApply(root,r);return next()})}
+    return next()}
+  function atsBadge(n){return el("b",{class:"ats-score "+(n>=90?"good":n>=75?"ok":"low"),text:String(n)})}
+  function atsReport(s,cannot){var box=el("div",{class:"ats-rep"});
+    s.parts.forEach(function(p){var pct=Math.round(100*p.pts/p.max);box.appendChild(el("div",{class:"ats-row"},[el("span",{class:"ats-l",text:p.label}),el("span",{class:"ats-bar"},[el("i",{class:pct>=90?"good":pct>=60?"ok":"low",style:"width:"+pct+"%"})]),el("span",{class:"ats-n",text:Math.round(p.pts)+" / "+p.max}),
+      p.miss.length||p.note?el("div",{class:"ats-miss"},(p.note?[el("span",{class:"ats-chip warn",text:p.note})]:[]).concat(p.miss.slice(0,16).map(function(k){return el("span",{class:"ats-chip"+(k.need==="required"?" req":""),title:k.need==="required"?"Required in the posting":k.need==="preferred"?"Nice to have":"",text:k.term})}))):null]))});
+    if(cannot&&cannot.length)box.appendChild(el("div",{class:"ats-cant"},[el("b",{text:"Left out because the resume doesn't show them. "}),
+      S.isOwner?el("span",{text:"Click any you really have, then run it again:"}):el("span",{text:"Ask Ifeanyi if he has any of these."}),
+      el("div",{class:"ats-miss"},cannot.map(function(c){return S.isOwner?el("button",{type:"button",class:"ats-chip have",title:c.why,text:"+ "+c.term,onclick:function(){haveSkill(c.term,this)}}):el("span",{class:"ats-chip",title:c.why,text:c.term})}))]));
+    return box}
+  // The Resume step: check the picked version, and if it's under 90, make the tailored copy on its own
+  function atsStep(j,pick){var box=el("div",{class:"ats-step"});S.atsUi=S.atsUi||{};var ui=S.atsUi[j.id]=S.atsUi[j.id]||{};
+    if(!j.description){box.appendChild(el("span",{class:"pg-dim",text:"Add the job description to check the ATS match."}));return box}
+    var line=el("div",{class:"ats-line"}),det=el("div");box.appendChild(line);box.appendChild(det);
+    var say=function(t){line.textContent="";line.appendChild(el("span",{class:"ats-busy",text:t}))};ui.say=say;
+    var show=function(s,cannot,saved){if(ui.busy){say(ui.busy);return}line.textContent="";S.atsLast=S.atsLast||{};S.atsLast[j.id]={s:s,cannot:cannot};
+      line.appendChild(atsBadge(s.total));line.appendChild(el("span",{class:"ats-what",text:s.total>=90?"ATS match for this posting. Ready to download.":"ATS match for this posting. 90+ is the goal."}));
+      line.appendChild(el("button",{type:"button",class:"linkish ats-more",text:ui.open?"Hide details":"Details",onclick:function(){ui.open=!ui.open;show(s,cannot,saved)}}));
+      if(s.total<90)line.appendChild(aiBtn(saved?"Run again":"Get it to 90+",function(){ui.err=0;return fix()},true));
+      det.textContent="";if(ui.open)det.appendChild(atsReport(s,cannot))};
+    var busy=function(t){ui.busy=t;(ui.say||say)(t)};
+    var fix=function(){var root;busy("Tailoring the resume for this posting...");
+      return atsReqFor(j).then(function(){return mdFor(j,pick)}).then(function(md){root=atsDoc(md);return atsRun(j,root,function(n){busy(n===1?"Adding the keywords the resume backs up...":"One more pass...")})})
+        .then(function(r){var md2=HTML_MARK+cleanHTML(root);return api("PUT","/api/resume/job/"+j.id,{md:md2,ats:r}).then(function(){S.pickRes=S.pickRes||{};S.pickRes[j.id]="Tailored";toast("Resume tailored: ATS match "+(r.before<r.score?r.before+" to ":"")+r.score);ui.busy=null;return refresh()})})
+        .catch(function(e){ui.err=1;ui.busy=null;say("Couldn't tailor it.");fail(e)})};
+    if(ui.busy){say(ui.busy);return box}
+    if(j.ats&&pick==="Tailored"){say("Checking...");mdFor(j,"Tailored").then(function(md){return atsReqFor(j).then(function(R){show(atsScore(atsText(atsDoc(md)),R),j.ats.cannot,true)})}).catch(function(){line.textContent="";line.appendChild(atsBadge(j.ats.score))});return box}
+    say("Checking the ATS match...");
+    atsReqFor(j).then(function(R){return mdFor(j,pick).then(function(md){var s=atsScore(atsText(atsDoc(md)),R);
+      // first look at a saved job: tailor it right away so the PDF they download is the 90+ version
+      if(s.total<90&&!j.ats&&!ui.auto&&!ui.err){ui.auto=1;return fix()}
+      show(s,j.ats&&j.ats.cannot,false)})}).catch(function(e){say("Couldn't check the ATS match.");fail(e)});
+    return box}
   function stepsCard(j){
     if(j.status!=="saved"||!S.uid)return null;
     var mem=stepState(j),pick=pickedRes(j);
@@ -2185,7 +2282,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var chips=el("div",{class:"res-chips",role:"radiogroup","aria-label":"Resume version"},keys.map(function(k){return el("button",{type:"button",role:"radio","aria-checked":k===pick?"true":"false",class:"res-chip"+(k===pick?" on":""),text:resLabel(k),onclick:function(){S.pickRes[j.id]=k;if(k!=="Tailored"&&k!==j.resume){j.resume=k;api("PATCH","/api/jobs/"+j.id,{resume:k}).catch(function(){})}renderRows()}})}));
     var suggested=VARIANTS[j.resume]&&!j.tailoredAt&&!(S.pickRes&&S.pickRes[j.id])?" Suggested: "+resLabel(j.resume)+".":"";
     var list=el("ol",{class:"step-list"},[
-      step(0,"Resume","Pick a version, preview it, then download."+suggested,chips,[
+      step(0,"Resume","Pick a version, preview it, then download."+suggested,el("div",{},[chips,atsStep(j,pick)]),[
         B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
         B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)},cur===0),
         B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
