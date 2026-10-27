@@ -874,7 +874,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .fu-sent{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.55;margin:6px 0 10px;padding:12px 14px;background:var(--soft2);border-radius:10px}
 .fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
 .fu-table .rc-acts .pg-go{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}.fu-table .rc-acts .pg-go:hover{opacity:.85}
-.fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
+.fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-name{cursor:pointer}.fu-name:hover{text-decoration:underline}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
 .gm-q{font-weight:700;font-size:inherit}.gm-qrow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.gm-qsub{font-size:12.5px;color:var(--muted);margin-top:2px}.gm-qwhen{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
 .gm-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);font-size:13.5px}.gm-clear{font-size:12.5px;color:var(--muted)}.fu-sched{color:#1d4ed8;font-size:13px;white-space:nowrap}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
@@ -1884,6 +1884,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var cNote=li?cell(done(li.at),openSent(li),"See what was sent"):cd.k==="li"||(cd.k==="new"&&c.linkedin)?cell(due("due now"),openDraft("note"),"Open the note"):cd.k==="emailed"&&c.draft?cell(el("span",{class:"pg-dim",text:fmtD(cd.check)}),openDraft("note"),"Preview the note"):cd.k==="emailed"?el("span",{class:"pg-dim",text:fmtD(cd.check)}):none();
       if(t.group==="upcoming")cNote=c.draft?cell(el("span",{class:"pg-dim",text:"ready"}),openDraft("note"),"Preview the note"):none();
       if(t.group==="upcoming"){actTd=el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[el("button",{type:"button",class:"pg-act",title:"Log the connection request as sent",onclick:function(e){e.stopPropagation();logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")},text:"Sent \u2713"})])])}
+      // the name opens this tab's message: the note on LinkedIn, the email on Email, whatever's next elsewhere
+      var nameCh=t.tab==="em"||(t.tab!=="li"&&t.group!=="upcoming"&&cd.k==="toEmail")?"email":"note";
+      if(nameB){nameB.classList.add("fu-name");nameB.title=nameCh==="email"?"Open the email":"Open the message";nameB.onclick=openDraft(nameCh)}
       var cConn=c.acceptedAt?done(c.acceptedAt):li?el("span",{class:"pg-dim",text:"pending"}):none();
       var cFu=fu?cell(done(fu.at),openSent(fu),"See what was sent"):(cd.k==="accepted"||cd.k==="nudge")?cell(due("due now"),openDraft("note"),"Open the follow-up"):none();
       var cRep=c.repliedAt?done(c.repliedAt):none();
