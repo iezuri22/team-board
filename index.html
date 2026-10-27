@@ -1816,7 +1816,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[["Who"],["Sent","Applications sent this week"],["Avg fit","Average fit score of what was sent"],["Low fits","Sent with a fit score under 60"],["Screened out","Looked at and not applied to (marked Not a fit). Not part of Sent."],["Replies"],["Interviews"],["Asks"]].map(function(h){return el("th",{text:h[0],title:h[1]||null})}))]),tb])])));
     // what kinds of jobs the team goes after, and how each kind is doing
     (function(){var by={},mk=function(t){return {t:t,wkSent:[],sent:[],skip:[],pos:[],fit:[]}};
-      S.jobs.forEach(function(j){var r=by[jobType(j.role)]=by[jobType(j.role)]||mk(jobType(j.role));
+      // Ifeanyi's own older logs are left out; this is about what the team is applying to now
+      S.jobs.forEach(function(j){if((j.addedBy||"owner")==="owner"&&String(j.addedAt)<"2026-10-27")return;var r=by[jobType(j.role)]=by[jobType(j.role)]||mk(jobType(j.role));
         if(SENT[j.status]){r.sent.push(j);if(inWk(sentAt(j)))r.wkSent.push(j)}if(j.status==="skipped")r.skip.push(j);
         if(j.status==="heard"||j.status==="interview"||j.status==="offer")r.pos.push(j);var f=fitOf(j);if(f)r.fit.push(f.score)});
       if(!by[TRAIN])by[TRAIN]=mk(TRAIN);
@@ -1824,7 +1825,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var cell=function(list,label,r){return el("td",{},[list.length?el("button",{type:"button",class:"linkish",text:String(list.length),onclick:function(){wkList(r.t+": "+label,list.length+(list.length===1?" job":" jobs"),list)}}):el("span",{class:"pg-dim",text:"0"})])};
       var tb=el("tbody");rows.forEach(function(r){var af=r.fit.length?Math.round(r.fit.reduce(function(a,b){return a+b},0)/r.fit.length):null;
         tb.appendChild(el("tr",{class:r.t===TRAIN?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r)]))});
-      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies"].map(function(h){return el("th",{text:h})}))]),tb])])))})();
+      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too. Ifeanyi's older logs aren't counted.",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies"].map(function(h){return el("th",{text:h})}))]),tb])])))})();
     // interviews: the most important line of the week, on its own
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
     var ivBox=el("div",{class:"wk-list"});
