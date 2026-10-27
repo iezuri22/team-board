@@ -1605,11 +1605,14 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function companyKey(c){return String(c||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim()}
   function companySearch(company){var k=companyKey(company),hit=null;S.jobs.forEach(function(j){if(companyKey(j.company)===k&&j.peopleSearch&&!hit)hit=j.peopleSearch});return hit}
   function reachTasks(){var out=[],coPeople={};S.jobs.forEach(function(j){if((j.contacts||[]).length)coPeople[companyKey(j.company)]=1});
-    S.jobs.forEach(function(j){if(!SENT[j.status]||j.status==="rejected")return;var applied=sentAt(j)||j.addedAt,cs=j.contacts||[];
-      var recent=daysSince(applied)<30;
-      if(!cs.length){if(!S.isOwner||coPeople[companyKey(j.company)])return;var srch=j.peopleSearch||companySearch(j.company);
+    S.jobs.forEach(function(j){if(!SENT[j.status])return;var applied=sentAt(j)||j.addedAt,cs=j.contacts||[];
+      var recent=daysSince(applied)<30,rej=j.status==="rejected",rejD=rej?rejAt(j):null,archived=rej&&daysSince(rejD)>=21;
+      if(!cs.length){if(!S.isOwner||rej||coPeople[companyKey(j.company)])return;var srch=j.peopleSearch||companySearch(j.company);
         out.push(!srch&&recent?{j:j,c:null,tab:"waiting",wg:"finding",applied:applied,what:"Finding people. This runs on its own."}:{j:j,c:null,tab:"cant",applied:applied});return}
       cs.forEach(function(c){var cd=cadence(c),o=outs(c),t={j:j,c:c,cd:cd,applied:applied},n;
+        // Turned down: anyone not reached yet still gets a note (for future roles); follow-ups to earlier notes stop; 21 days on, it's archived
+        if(rej&&!/^(answer|talking|check)$/.test(cd.k)){var before=o.length&&String(o[0].at)<String(rejD);
+          if(archived||before||cd.k==="closed"){if(!S.isOwner)return;t.tab="done";t.what=archived?"Archived. Turned down "+fmtD(rejD):"Turned down "+fmtD(rejD)+". Follow-ups stopped";out.push(t);return}}
         if((cd.k==="new"||cd.k==="li")&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. This runs on its own.";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin){if(!S.isOwner)return;t.tab="cant";t.what=c.emailBad?"Email bounced and no LinkedIn":"No email and no LinkedIn";out.push(t);return}
         if(cd.k==="toEmail"){t.tab="toemail";n=daysSince(String(applied)>"2026-10-26"?applied:"2026-10-26T12:00:00Z");t.what=S.isOwner?(mates().indexOf(j.addedBy)>=0?"Send it, or leave it for "+whoName(j.addedBy).split(" ")[0]:"Send the email. You logged this one, so only you see it"):"Send the email";if(!S.isOwner&&n>=3){t.late=true;t.what="Send the email (waiting "+n+" days)"}}
@@ -1628,6 +1631,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         if(S.isOwner&&/^(late|replies|follow|first|toemail)$/.test(t.tab)){t.group=t.tab;t.tab="todo"}if(t.tab==="waiting"&&!t.wg)t.wg="them";out.push(t)})});
     return out}
   var SEND_FROM="iezuri22@gmail.com";
+  function rejAt(j){return j.rejectedAt||((j.history||[]).filter(function(h){return /rejected|rejection/i.test(h.text||"")}).slice(-1)[0]||{}).at||j.lastReplyAt||j.updatedAt}
   function fmtD(i){return i?new Date(i).toLocaleDateString(undefined,{month:"short",day:"numeric"}):""}
   function agoN(n){return n<=0?"today":n===1?"1 day ago":n+" days ago"}
   function reachRows(){return reachTasks().filter(function(t){return t.tab==="late"||t.tab==="replies"||t.tab==="follow"}).map(function(t){return {due:true}})}
@@ -1640,7 +1644,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(F.email==="has"&&!(c&&(c.email||c.emailGuess)))return false;if(F.email==="confirmed"&&!(c&&c.email))return false;if(F.email==="none"&&c&&(c.email||c.emailGuess))return false;
       var q=norm(F.q);if(q&&norm(j.company+" "+j.role+" "+(c?c.name+" "+(c.title||""):"")).indexOf(q)<0)return false;return true};
     var tasks=all.filter(pass);
-    var TABS=!S.isOwner?[["late","Late","These have waited 3+ days. Send them first."],["toemail","Emails to send","Open each email, click Open in Gmail (it opens Ifeanyi's account, "+SEND_FROM+"), send it, then click Sent. If it bounces, click Bad email."],["emailed","Sent","Ifeanyi sends a LinkedIn note 3 days after each email if there's no reply. Mark Bad email if one bounces back."]]:[["todo","To do",""],["waiting","Waiting",""],["done","Done","Conversations you closed."],["cant","Can't find","No one found, or no way to reach them. Add someone by hand if you find them; otherwise these stay out of the way."]];
+    var TABS=!S.isOwner?[["late","Late","These have waited 3+ days. Send them first."],["toemail","Emails to send","Open each email, click Open in Gmail (it opens Ifeanyi's account, "+SEND_FROM+"), send it, then click Sent. If it bounces, click Bad email."],["emailed","Sent","Ifeanyi sends a LinkedIn note 3 days after each email if there's no reply. Mark Bad email if one bounces back."]]:[["todo","To do",""],["waiting","Waiting",""],["done","Done","Conversations you closed, follow-ups stopped by a rejection, and turned-down jobs archived 21 days after the rejection."],["cant","Can't find","No one found, or no way to reach them. Add someone by hand if you find them; otherwise these stay out of the way."]];
     var WGROUPS=[["emailed","Emailed","Sent. If there's no reply, the LinkedIn note lands in your To do on the date shown."],["them","Waiting on them","Waiting on an accept or a reply. Each moves to To do when it's due."],["finding","Finding people and emails","Runs on its own every 20 minutes for new jobs."]];
     var GROUPS=[["late","Late","Past their window. Do these first."],["replies","Replies","They wrote back. Reply, then click I replied."],["follow","Follow-ups","Accepted: send the full follow-up within a day. No accept in 7 days: email or InMail. Quiet 3+ days: check in."],["first","LinkedIn notes","The email got no reply in 3 days, it bounced, or there's no email. Open the note, send the connection request, click Sent."],["toemail","Emails to send","Esther and Gilaiza each send the ones for jobs they logged. The ones for jobs you logged are yours. Send any yourself: open the email, send it from Gmail, click Sent. No reply in 3 days and it comes back as a LinkedIn note."]];
     var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
@@ -1738,6 +1742,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       else if(cd.k==="talking"||cd.k==="done"){acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"));acts.push(Q("Open",stop(function(){openContact(j.id,c.id)})))}
       else if(cd.k==="closed")acts.push(Q("Reopen",patch("reopen","Reopened")));
       var emailBit=c.email?el("a",{href:"mailto:"+c.email,class:"rc-mail",text:c.email,onclick:function(e){e.stopPropagation()}}):c.emailGuess?el("span",{class:"rc-guess",title:"Not confirmed. Based on the company's email format.",text:"likely "+c.emailGuess}):c.emailTried?el("span",{class:"pg-dim",text:"No email found"}):el("button",{type:"button",class:"linkish rc-find",text:"✦ Find email",onclick:stop(function(){var b=this;b.disabled=true;b.textContent="Looking...";api("POST","/api/find-email",{jobId:j.id,contactId:c.id}).then(function(r){toast(r.email?"Found "+r.email:r.emailGuess?"No confirmed email. Likely "+r.emailGuess:"No email found");refresh()},function(e){b.disabled=false;b.textContent="✦ Find email";fail(e)})})});
+      if(j.status==="rejected"&&t.tab!=="done"&&/^(toEmail|li|new)$/.test(cd.k))t.what="Turned down, still worth connecting. "+t.what;
       return el("tr",{class:"pg-row rc-row"+(lt?" late":""),onclick:function(){openContact(j.id,c.id)}},[
         el("td",{class:"pg-n",text:String(i+1)}),
         el("td",{},[el("div",{class:"ap-job"},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{class:"ap-jt"},[el("b",{text:j.company||"Untitled"}),el("span",{text:j.role+" · applied "+fmtD(t.applied)+" by "+whoName(j.addedBy).split(" ")[0]})])])]),
@@ -2100,7 +2105,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       var nx=ask||j.needsIfeanyi?{t:S.isOwner?"Question waiting on you":"Waiting on Ifeanyi",hot:S.isOwner}
         :j.status==="interview"&&j.interviewAt?{t:"Interview "+rel(j.interviewAt),hot:true}
         :j.status==="saved"?{t:"Apply: resume, letter, submit"}
-        :j.status==="rejected"||j.status==="skipped"?{t:""}
+        :j.status==="skipped"?{t:""}
+        :j.status==="rejected"?(daysSince(rejAt(j))>=21?{t:"Archived"}:S.isOwner?reachNext(j):{t:""})
         :!S.isOwner?(cds.some(function(k){return k.k==="toEmail"})?{t:"Email "+cds.filter(function(k){return k.k==="toEmail"}).length+" "+(cds.filter(function(k){return k.k==="toEmail"}).length===1?"person":"people"),hot:true,tab:"toemail"}:cds.some(function(k){return k.k==="emailed"})?{t:"Emailed, Ifeanyi on LinkedIn next",tab:"emailed"}:fresh?{t:"Ifeanyi to reach out"}:due?{t:"Ifeanyi following up"}:waiting?{t:"Waiting on "+waiting+" to accept"}:reached?{t:"Waiting to hear back"}:{t:""})
         :reachNext(j);
       var isOpen=S.open===j.id,toggle=function(){S.open=isOpen?null:j.id;renderRows()};
@@ -2507,7 +2513,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   document.addEventListener("paste",function(e){if(S.adding&&form_paste&&$("add-slot").firstChild)form_paste(e)});
   function renderAdd(){
     var slot=$("add-slot");if(!S.adding){slot.textContent="";return}if(slot.firstChild)return;
-    var url=el("input",{id:"a-url",type:"url",placeholder:"Paste the job posting link"}),co=el("input",{id:"a-co",required:true}),ro=el("input",{id:"a-ro",required:true}),pay=el("input",{id:"a-pay",placeholder:"$95k to $110k, or $70/hr"});
+    var url=el("input",{id:"a-url",type:"url",placeholder:"Paste the job posting link"}),co=el("input",{id:"a-co"}),ro=el("input",{id:"a-ro"}),pay=el("input",{id:"a-pay",placeholder:"$95k to $110k, or $70/hr"});
     var src=el("select",{id:"a-src"}),srcWrap=el("div",{class:"src-wrap"},[src]);
     function fillSrc(sel){src.textContent="";["LinkedIn","Indeed","Company site"].concat(S.sources||[]).forEach(function(x){src.appendChild(el("option",{text:x}))});src.appendChild(el("option",{value:"__add",text:"+ Add another site"}));src.value=sel||"LinkedIn";src._last=src.value}
     fillSrc();
@@ -2528,8 +2534,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var descState=function(){var n=desc.value.trim().length;descStat.className="desc-stat "+(n>=300?"ok":n?"warn":"bad");descStat.textContent=n>=300?"\u2713 "+n.toLocaleString()+" characters"+(descFrom==="screenshots"?", read from screenshots":descFrom==="paste"?", pasted":""):n?"Looks too short. Paste the full description.":"Missing. The fit check and the ATS resume need it."};
     desc.addEventListener("input",function(){if(!descFrom)descFrom="typed";descState()});descState();
     // pasting the description fills in the rest of the form; the description stays exactly as pasted
-    var readFor="";desc.addEventListener("paste",function(){descFrom="paste";setTimeout(function(){var t=desc.value.trim();if(t.length<300||t===readFor)return;readFor=t;
-      descStat.className="desc-stat";descStat.textContent="Reading it...";api("POST","/api/ai/extract",{text:t}).then(function(r){fill(r);descState()},function(e){descState();fail(e)})},0)});
+    var readFor="",reading=null,readT=null;
+    function runExtract(){var t=desc.value.trim();if(t.length<300)return Promise.resolve();if(t===readFor)return reading||Promise.resolve();readFor=t;
+      descStat.className="desc-stat";descStat.textContent="Reading it...";
+      return reading=api("POST","/api/ai/extract",{text:t}).then(function(r){reading=null;fill(r);descState()},function(e){reading=null;descState();fail(e)})}
+    desc.addEventListener("paste",function(){descFrom="paste";setTimeout(runExtract,0)});
+    desc.addEventListener("input",function(){clearTimeout(readT);readT=setTimeout(runExtract,1200)});
     var warn=el("div"),msg=el("span",{class:"msg"}),force=false,coOk=false;
     // screenshots -> AI fills the form
     var shots=[],thumbs=el("div",{class:"shots"}),picker=el("input",{type:"file",accept:"image/*",multiple:true,hidden:true,onchange:function(){addFiles(picker.files);picker.value=""}});
@@ -2563,7 +2573,10 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function check(){force=false;warn.textContent="";var r=dupes(co.value,ro.value,url.value);if(r.ex.length){var j=r.ex[0];warn.appendChild(el("div",{class:"warn stop",text:j.taken?"Already on the team's list: "+j.company+", "+j.role+". Don't apply again.":"You already logged this: "+j.company+", "+j.role+" ("+L[j.status]+"). Don't apply again."}))}else if(r.co.length){warn.appendChild(el("div",{class:"warn",text:r.co.length+" other role"+(r.co.length>1?"s":"")+" at this company already: "+r.co.slice(0,4).map(function(j){return j.role}).join(", ")+(r.co.length>=3?". That's the limit of 3.":".")}))}return r}
     [url,co,ro].forEach(function(i){i.addEventListener("input",check)});co.addEventListener("input",function(){coOk=false});
     url.addEventListener("change",function(){if(co.value.trim())return;try{var x=new URL(url.value),h=x.hostname;if(/greenhouse|lever|ashbyhq|workable|myworkdayjobs/.test(h)){var seg=/myworkdayjobs/.test(h)?h.split(".")[0]:x.pathname.split("/").filter(Boolean)[0];if(seg&&seg!=="embed"){co.value=seg.replace(/[-_]/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()});check()}}}catch(e){}});
-    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();if(!co.value.trim()||!ro.value.trim()){msg.textContent="Company and role are required.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}
+    var form=el("form",{class:"panel",autocomplete:"off",onsubmit:function(e){e.preventDefault();var sub0=e.submitter;
+      // the description fills these in; if they're still empty, read it now and then save
+      if((!co.value.trim()||!ro.value.trim())&&desc.value.trim().length>=300){msg.textContent="Reading the description...";var t0=desc.value.trim(),again=t0!==readFor||reading;runExtract().then(function(){msg.textContent="";if(co.value.trim()&&ro.value.trim()&&again)form.requestSubmit(sub0);else if(!co.value.trim()||!ro.value.trim())msg.textContent="Add the company and role."});return}
+      if(!co.value.trim()||!ro.value.trim()){msg.textContent=desc.value.trim()?"Add the company and role.":"Paste the job description first.";return}var r=check();if(r.ex.length&&!force){msg.textContent="Looks like a repeat. Press Save again only if you're sure.";force=true;return}
       if(!S.isOwner&&!coOk){var prior=(S.taken||[]).filter(function(t){return t.ifeanyi&&norm(t.company)===norm(co.value)});
         if(prior.length){var sub=e.submitter;modal("Ifeanyi already applied to "+prior[0].company,"He applied for "+prior.map(function(t){return t.role}).slice(0,3).join(", ")+(prior[0].at?" in "+new Date(prior[0].at).toLocaleDateString(undefined,{month:"long"}):"")+". You can still log this one, but it won't count toward your weekly goal.","Log it anyway","Cancel").then(function(go){if(go){coOk=true;form.requestSubmit(sub)}});return}}if(desc.value.trim().length<300&&!S.isOwner){msg.textContent="Paste the job description first. The fit check and the ATS resume need it.";desc.focus();return}var t=now(),tl=!!(e.submitter&&e.submitter.dataset.tailor),send=to&&to.value,k=tl||send?"saved":st.value;if(!k){msg.textContent="Pick a status, or press Save and start applying.";st.focus();return}var doc={company:co.value.trim(),role:ro.value.trim(),url:url.value.trim(),pay:pay.value.trim(),source:src.value==="__add"?src._last:src.value,resume:res.value,status:k,assignTo:send||undefined,notes:notes.value.trim(),description:desc.value.trim(),descFrom:descFrom||(desc.value.trim()?"typed":undefined),note:"Logged as "+L[k]};api("POST","/api/jobs",doc).then(function(made){coOk=false;if(made&&doc.description.length>=300)afterLog(made);rawPaste="";descFrom="";readFor="";setTimeout(descState,0);if(made&&made.noCredit)setTimeout(function(){toast("Logged. It won't count toward your weekly goal.")},2300);if(send){toast("Sent to "+S.people[send].name+". It's on their board now.");form.reset();st.disabled=false;st.value="";to.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";refresh();return}if(tl){S.adding=false;slot.textContent="";$("add-btn").textContent="Log an application";S.open=made.id;if(S.status!=="all"&&S.status!=="open"){S.status="open";$("f-status").value="open"}refresh().then(function(){var r=document.querySelector(".steps");if(r)r.scrollIntoView({behavior:"smooth",block:"center"})});return}refresh();var n0=weekCounts(activity()[S.uid],"app")+1,left0=goalOf(S.uid)-n0;toast(left0>0?"Logged "+doc.company+". "+left0+" to go this week.":"Logged "+doc.company+".");form.reset();st.value="";shots=[];drawShots();pasteMsg.textContent="";warn.textContent="";msg.textContent="";url.focus()},fail)}},[
       el("h2",{text:"Log an application"}),el("p",{class:"help",text:"Paste the job description below and AI fills in the details. Then press Save and start applying: the fit check runs and the resume gets tailored for this posting."}),
