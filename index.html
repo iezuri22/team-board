@@ -740,6 +740,7 @@ body{background:var(--page)}
 .wk-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:18px 0 6px;flex-wrap:wrap}
 .wk-head h2{margin:0}.wk-nav{display:flex;gap:6px}
 .wk-sec{padding:18px 0;border-top:1px solid var(--line)}.wk-sec:first-of-type{border-top:0}
+.wk-train td{background:#f0fdf4}
 .wk-sec .bhead{justify-content:flex-start;gap:12px}
 .wk-wrap{max-height:none}.wk-wrap .pg-table{min-width:720px}
 .wk-who{display:flex;align-items:center;gap:8px}
@@ -915,6 +916,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     <div class="scope" id="scope" role="tablist" aria-label="Whose applications" hidden></div>
     <div class="filters">
       <select id="f-who" aria-label="Whose applications"></select>
+      <select id="f-type" aria-label="Job type"></select>
       <select id="f-status" aria-label="Status">
         <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
       </select>
@@ -1812,6 +1814,17 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         el("td",{},[ivJ.length?el("button",{type:"button",class:"wk-cell wk-iv",onclick:function(){wkList(nm+"'s interviews",null,ivJ.map(function(j){return {j:j,badge:el("span",{class:"wk-ivdate",text:j.interviewAt?new Date(j.interviewAt).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):"Date not set"})}}),{why:false})}},[String(ivJ.length)]):el("span",{class:"pg-dim",text:"0"})]),
         el("td",{},[wkCell(askM.length,"",function(){S.tab="messages";S.mThread=pid;S.mView="talk";render();window.scrollTo(0,0)})])]))});
     V.appendChild(wkSection("Team at a glance",null,el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},[["Who"],["Sent","Applications sent this week"],["Avg fit","Average fit score of what was sent"],["Low fits","Sent with a fit score under 60"],["Screened out","Looked at and not applied to (marked Not a fit). Not part of Sent."],["Replies"],["Interviews"],["Asks"]].map(function(h){return el("th",{text:h[0],title:h[1]||null})}))]),tb])])));
+    // what kinds of jobs the team goes after, and how each kind is doing
+    (function(){var by={},mk=function(t){return {t:t,wkSent:[],sent:[],skip:[],pos:[],fit:[]}};
+      S.jobs.forEach(function(j){var r=by[jobType(j.role)]=by[jobType(j.role)]||mk(jobType(j.role));
+        if(SENT[j.status]){r.sent.push(j);if(inWk(sentAt(j)))r.wkSent.push(j)}if(j.status==="skipped")r.skip.push(j);
+        if(j.status==="heard"||j.status==="interview"||j.status==="offer")r.pos.push(j);var f=fitOf(j);if(f)r.fit.push(f.score)});
+      if(!by[TRAIN])by[TRAIN]=mk(TRAIN);
+      var rows=Object.keys(by).map(function(k){return by[k]}).sort(function(a,b){return (b.t===TRAIN)-(a.t===TRAIN)||b.sent.length-a.sent.length});
+      var cell=function(list,label,r){return el("td",{},[list.length?el("button",{type:"button",class:"linkish",text:String(list.length),onclick:function(){wkList(r.t+": "+label,list.length+(list.length===1?" job":" jobs"),list)}}):el("span",{class:"pg-dim",text:"0"})])};
+      var tb=el("tbody");rows.forEach(function(r){var af=r.fit.length?Math.round(r.fit.reduce(function(a,b){return a+b},0)/r.fit.length):null;
+        tb.appendChild(el("tr",{class:r.t===TRAIN?"wk-train":null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r)]))});
+      V.appendChild(wkSection("What we're applying to","Training and enablement is a focus: Ifeanyi trains teams too",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies"].map(function(h){return el("th",{text:h})}))]),tb])])))})();
     // interviews: the most important line of the week, on its own
     var ivJobs=S.jobs.filter(function(j){return (j.status==="interview"||j.status==="offer")&&(inWk(j.updatedAt)||inWk(j.interviewAt))}).sort(function(a,b){return String(a.interviewAt||"9").localeCompare(String(b.interviewAt||"9"))});
     var ivBox=el("div",{class:"wk-list"});
@@ -1895,6 +1908,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     box.appendChild(el("div",{class:"qa-top"},[el("div",{},[el("h3",{text:title}),sub?el("p",{text:sub}):null]),el("button",{class:"qa-x",type:"button","aria-label":"Close",text:"\u00d7",onclick:close})]));
     box.appendChild(body);document.body.appendChild(wrap);document.addEventListener("keydown",key)}
   function wkCell(n,cls,onclick){return n?el("button",{type:"button",class:"wk-cell "+(cls||""),onclick:onclick},[String(n)]):el("span",{class:"pg-dim",text:"0"})}
+  // what kind of job it is, from the title (first match wins)
+  var TRAIN="Training and enablement";
+  var JOB_TYPES=[[TRAIN,/train|enablement|learning|instruct|education|adoption/],["Implementation",/implement|deploy|onboarding|go-live/],["Solutions and sales engineering",/solution|sales engineer|pre-?sales|forward deployed|technical account|technical consultant|professional services/],
+    ["Salesforce and CRM admin",/salesforce|crm|hubspot|administrator|\badmin\b/],["Business and systems analyst",/business analyst|business systems?|systems? analyst|\bba\b|process analyst/],["Data and reporting",/data|analytics|reporting|insights|\bbi\b/],
+    ["Revenue and sales ops",/revenue|revops|sales op|gtm|go-to-market|operations analyst/],["AI and automation",/\bai\b|automation|llm|machine learning/],["Project and program",/project|program|delivery manager|scrum/],["Support",/support|help ?desk|service desk/]];
+  function jobType(role){var r=String(role||"").toLowerCase();for(var i=0;i<JOB_TYPES.length;i++)if(JOB_TYPES[i][1].test(r))return JOB_TYPES[i][0];return "Other"}
   function wkSection(title,meta,body){return el("section",{class:"wk-sec"},[el("div",{class:"bhead"},[el("h3",{text:title}),meta?el("span",{class:"pg-dim",text:meta}):null]),body])}
   // ---------- render ----------
   function render(){
@@ -2053,6 +2072,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   }
   function renderWho(){
     var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;
+    var ft=$("f-type");if(ft&&!ft.options.length){ft.appendChild(el("option",{value:"",text:"Any job type"}));JOB_TYPES.map(function(x){return x[0]}).concat(["Other"]).forEach(function(t){ft.appendChild(el("option",{value:t,text:t}))})}
     var s=$("f-who"),cur=S.who;s.textContent="";s.hidden=!S.isOwner;if(!S.isOwner){S.who="all";return}
     var ids={};S.jobs.forEach(function(j){var k=j.addedBy||"owner";ids[k]=(ids[k]||0)+1});
     s.appendChild(el("option",{value:"all",text:"Everyone ("+S.jobs.length+")"}));
@@ -2060,7 +2080,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(S.jtype&&jobType(j.role)!==S.jtype)return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
@@ -2819,6 +2839,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
+  $("f-type").onchange=function(e){S.jtype=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
   try{var sv=localStorage.getItem("ay-tab");if(["apps","messages","team","weekly","reach","contacts","resume","brief"].indexOf(sv)>=0)S.tab=sv}catch(e){}
   render();
