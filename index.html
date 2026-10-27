@@ -851,6 +851,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .ats-chip{font-size:12px;padding:2px 8px;border-radius:10px;background:var(--soft2);color:var(--fg)}.ats-chip.req{background:#fde8e8;color:#991b1b}.ats-chip.warn{background:#fef3c7;color:#92400e}
 .ats-cant{font-size:12.5px;color:var(--muted);margin:4px 0 0}.ats-cant .ats-miss{margin-top:6px}.ats-chip.have{border:1px dashed var(--line);background:none;cursor:pointer;font:inherit;font-size:12px}.ats-chip.have:hover{border-color:var(--fg)}.ats-chip.have.on{border-style:solid;background:#dcfce7;color:#166534}.ats-ed{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
 @media(max-width:640px){.ats-row{grid-template-columns:1fr 54px}.ats-bar{grid-column:1/-1;order:3}}
+.am{margin:14px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.am-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}.am-head b{font-size:15px}
+.am-to-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}.am-to-row label{font-size:13px;font-weight:600;color:var(--muted)}.am-to{flex:1}.am .rc-subj{width:100%;margin-bottom:8px;box-sizing:border-box}.am .rc-ta{width:100%;box-sizing:border-box}
+.am-note{font-size:12.5px;color:var(--muted);margin:6px 0 10px}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .rc-from{margin:-2px 0 10px;font-size:13px;color:var(--muted)}.rc-from b{color:var(--fg)}
 .rc-how{margin:12px 0 10px;font-size:13.5px;color:var(--muted)}
 .rc-grp td{background:var(--bg);padding:22px 12px 8px!important;border-bottom:1px solid var(--line)}.rc-grp:first-child td{padding-top:12px!important}
@@ -986,7 +989,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(){return api("GET","/api/state").then(function(d){S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -1162,7 +1165,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         var edited=function(){saveBtn.disabled=false;saveBtn.textContent="Save";if(typeof atsDraw==="function"){clearTimeout(atsT);atsT=setTimeout(atsDraw,700)}};
         var sugBox=el("div",{class:"sug"}),atsBox=el("div",{class:"ats-ed"}),atsT=null,atsCur=null;
         var atsDraw=function(){if(!j||!j.description)return;atsReqFor(j).then(function(R){var s=atsScore(atsText(box._doc().body),R);atsCur={score:s.total,before:j.ats&&j.ats.before||s.total,cannot:j.ats&&j.ats.cannot||[]};
-          atsBox.textContent="";atsBox.appendChild(el("div",{class:"ats-line"},[atsBadge(s.total),el("span",{class:"ats-what",text:"ATS match for "+j.company+". Updates as you edit."}),s.total<90?aiBtn("Get it to 90+",function(){return atsRun(j,box._doc().body,function(){}).then(function(r){atsCur.cannot=r.cannot;j.ats=Object.assign({},j.ats||{},{cannot:r.cannot});edited();atsDraw();toast("ATS match "+r.score+". Check the changes, then Save.")})},true):null]));
+          atsBox.textContent="";atsBox.appendChild(el("div",{class:"ats-line"},[atsBadge(s.total),el("span",{class:"ats-what",text:"ATS match for "+j.company+". Updates as you edit."}),s.total<90?aiBtn("Improve it",function(){return atsRun(j,box._doc().body,function(){}).then(function(r){atsCur.cannot=r.cannot;j.ats=Object.assign({},j.ats||{},{cannot:r.cannot});edited();atsDraw();toast("ATS match "+r.score+". Check the changes, then Save.")})},true):null]));
           atsBox.appendChild(atsReport(s,atsCur.cannot))}).catch(function(){})};
         if(j)actions.appendChild(aiBtn("Tailor with AI",function(){if(!j.description){toast("Paste the job description on the job first");return}return api("POST","/api/ai/tailor",{jobId:j.id}).then(function(r){showSuggestions(sugBox,r,box,edited)})}));
         actions.appendChild(saveBtn);
@@ -2211,7 +2214,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function stepState(j){var m={};try{m=JSON.parse(localStorage.getItem("ay-steps")||"{}")[j.id]||{}}catch(e){}return m}
   function markStep(j,k){try{var all=JSON.parse(localStorage.getItem("ay-steps")||"{}");all[j.id]=all[j.id]||{};all[j.id][k]=1;localStorage.setItem("ay-steps",JSON.stringify(all))}catch(e){}renderRows()}
   function baseMd(){return S.baseMd?Promise.resolve(S.baseMd):api("GET","/api/resume/base").then(function(b){S.baseMd=(b&&b.md)||"";return S.baseMd})}
-  function mdFor(j,k){if(k==="Tailored")return api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return keyMd(j.resume,b)})});return baseMd().then(function(b){return keyMd(k,b)})}
+  function mdFor(j,k){if(k==="Tailored"){S.mdc=S.mdc||{};var ck=j.id+"|"+(j.tailoredAt||"");if(S.mdc[ck])return S.mdc[ck];
+      return S.mdc[ck]=api("GET","/api/resume/job/"+j.id).then(function(r){return (r&&r.md)||baseMd().then(function(b){return keyMd(j.resume,b)})},function(e){delete S.mdc[ck];throw e})}
+    return baseMd().then(function(b){return keyMd(k,b)})}
   function pickedRes(j){S.pickRes=S.pickRes||{};return S.pickRes[j.id]||(j.tailoredAt?"Tailored":(VARIANTS[j.resume]||(j.resume&&j.resume.indexOf("t:")===0&&tplById(j.resume.slice(2)))?j.resume:"Default"))}
   function resLabel(k){if(k==="Tailored")return "Edited copy";if(k&&k.indexOf("t:")===0){var t=tplById(k.slice(2));return t?t.name:"Saved template"}return VARIANTS[k]?VARIANTS[k].label:(k||"Base")}
   // ---------- ATS match: a Jobscan-style report. The AI reads the posting once (j.atsReq);
@@ -2287,13 +2292,14 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(!j.description){box.appendChild(el("span",{class:"pg-dim",text:"Add the job description to check the ATS match."}));return box}
     var line=el("div",{class:"ats-line"}),det=el("div");box.appendChild(line);box.appendChild(det);
     var say=function(t){line.textContent="";line.appendChild(el("span",{class:"ats-busy",text:t}))};ui.say=say;
-    var show=function(s,cannot,saved){if(ui.busy){say(ui.busy);return}line.textContent="";S.atsLast=S.atsLast||{};S.atsLast[j.id]={s:s,cannot:cannot};
-      line.appendChild(atsBadge(s.total));line.appendChild(el("span",{class:"ats-what",text:s.total>=90?"ATS match for this posting. Ready to download.":"ATS match for this posting. 90+ is the goal."}));
+    var show=function(s,cannot,saved){if(ui.busy){say(ui.busy);return}line.textContent="";S.atsLast=S.atsLast||{};S.atsLast[j.id]={s:s,cannot:cannot,at:j.tailoredAt};
+      line.appendChild(atsBadge(s.total));line.appendChild(el("span",{class:"ats-what",text:"ATS match for this posting."}));
       line.appendChild(el("button",{type:"button",class:"linkish ats-more",text:ui.open?"Hide details":"Details",onclick:function(){ui.open=!ui.open;show(s,cannot,saved)}}));
-      if(s.total<90)line.appendChild(aiBtn(saved?"Run again":"Get it to 90+",function(){ui.err=0;return fix()},true));
+      if(s.total<90)line.appendChild(aiBtn(saved?"Run again":"Improve it",function(){ui.err=0;return fix()},true));
       det.textContent="";if(ui.open)det.appendChild(atsReport(s,cannot))};
     var fix=function(){return atsTailor(j,pick).then(function(r){toast("Resume tailored: ATS match "+(r.before<r.score?r.before+" to ":"")+r.score)},fail)};
     if(ui.busy){say(ui.busy);return box}
+    var last=S.atsLast&&S.atsLast[j.id];if(last&&last.at===j.tailoredAt&&pick==="Tailored"){show(last.s,last.cannot,true);return box}
     if(j.ats&&pick==="Tailored"){say("Checking...");mdFor(j,"Tailored").then(function(md){return atsReqFor(j).then(function(R){show(atsScore(atsText(atsDoc(md)),R),j.ats.cannot,true)})}).catch(function(){line.textContent="";line.appendChild(atsBadge(j.ats.score))});return box}
     say("Checking the ATS match...");
     atsReqFor(j).then(function(R){return mdFor(j,pick).then(function(md){var s=atsScore(atsText(atsDoc(md)),R);
@@ -2301,10 +2307,38 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(!j.ats&&!ui.auto&&!ui.err&&!(j.fit&&j.fit.verdict==="skip")&&(s.total<90||(j.description||"").length>=300)){ui.auto=1;return fix()}
       show(s,j.ats&&j.ats.cannot,false)})}).catch(function(e){say("Couldn't check the ATS match.");fail(e)});
     return box}
+  // postings that say "email your resume to..." are applied to by email
+  function mailApply(j){var d=j.description||"";var em=(d.match(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g)||[]).filter(function(e){return !/(accommodat|privacy|eeo|no-?reply|donotreply|unsubscribe|benefits)/i.test(e)});
+    return em.length>0&&/\b(e-?mail|send|submit)\b[^.\n]{0,80}\b(resume|cv|application|cover letter)\b|\b(resume|cv|application)s?\b[^.\n]{0,60}\bto\b[^.\n]{0,30}@/i.test(d)}
+  function applyMailBox(j,pick){S.amAuto=S.amAuto||{};var ae=j.applyEmail,box=el("div",{class:"am"});
+    box.appendChild(el("div",{class:"am-head"},[el("b",{text:"Apply by email"}),el("span",{class:"pg-dim",text:"Send it from "+SEND_FROM+", with the resume PDF attached."})]));
+    if(!ae){var wb=aiBtn("Write the application email",function(){return api("POST","/api/ai/apply-email",{jobId:j.id}).then(function(r){j.applyEmail=r;renderRows()})});box.appendChild(wb);
+      if(!S.amAuto[j.id]&&(j.description||"").length>=300){S.amAuto[j.id]=1;setTimeout(function(){wb.click()},0)}return box}
+    var to=el("input",{id:"fu-am-to-"+j.id,class:"am-to",placeholder:"To"}),sub=el("input",{id:"fu-am-su-"+j.id,class:"rc-subj",placeholder:"Subject"}),ta=el("textarea",{id:"fu-am-bd-"+j.id,class:"rc-ta"});
+    to.value=ae.to||"";sub.value=ae.subject||"";ta.value=ae.body||"";
+    var fit=function(){ta.style.height="auto";ta.style.height=Math.max(160,ta.scrollHeight+2)+"px"};ta.addEventListener("input",fit);setTimeout(fit,0);
+    var save=function(){var v={to:to.value.trim(),subject:sub.value,body:ta.value};if(v.to===(ae.to||"")&&v.subject===(ae.subject||"")&&v.body===(ae.body||""))return;api("PATCH","/api/jobs/"+j.id,{applyEmail:v}).then(function(){ae=j.applyEmail=Object.assign({},v)},fail)};
+    [to,sub,ta].forEach(function(x){x.addEventListener("blur",save)});
+    var gm=function(){return "https://mail.google.com/mail/?authuser="+encodeURIComponent(SEND_FROM)+"&view=cm&fs=1&to="+encodeURIComponent(to.value.trim())+"&su="+encodeURIComponent(sub.value)+"&body="+encodeURIComponent(ta.value)};
+    var copy=function(t){try{navigator.clipboard.writeText(t).then(function(){toast("Copied")})}catch(x){toast("Select the text and copy it")}};
+    box.appendChild(el("div",{class:"am-to-row"},[el("label",{for:"fu-am-to-"+j.id,text:"To"}),to]));box.appendChild(sub);box.appendChild(ta);
+    box.appendChild(el("p",{class:"am-note",text:"Gmail can't attach files from a link: download the resume, then attach it in Gmail before you send."}));
+    box.appendChild(el("div",{class:"am-acts"},[
+      el("button",{type:"button",class:"btn small ghost",text:"Download resume PDF",onclick:function(){mdFor(j,j.tailoredAt?"Tailored":pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)}}),
+      el("a",{class:"btn small accent",target:"_blank",rel:"noopener",href:gm(),onclick:function(){save();this.href=gm()},text:"Open in Gmail"}),
+      el("button",{type:"button",class:"btn small ghost",text:"Copy email",onclick:function(){copy(ta.value)}}),
+      aiBtn("Rewrite",function(){return api("POST","/api/ai/apply-email",{jobId:j.id,to:to.value.trim()}).then(function(r){j.applyEmail=r;renderRows()})},true),
+      el("span",{class:"sp"}),
+      el("button",{type:"button",class:"btn small",text:"I applied by email",onclick:function(){save();var dest=to.value.trim();
+        api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Applied by email"+(dest?" to "+dest:"")}).then(function(){
+          var c=(j.contacts||[]).find(function(x){return dest&&(x.email===dest||x.emailGuess===dest)});
+          return c?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"email",text:"Subject: "+sub.value+"\n\n"+ta.value}):null}).then(function(){toast("Applied to "+j.company+" by email.");S.open=null;refresh()},fail)}})]));
+    return box}
   function stepsCard(j){
     if(j.status!=="saved"||!S.uid)return null;
     var mem=stepState(j),pick=pickedRes(j);
     // with a description, the board makes the resume itself: no versions to pick, just the tailored copy
+    var byMail=!!(j.applyEmail||(S.applyMail&&S.applyMail[j.id])||mailApply(j));
     var auto=(j.description||"").length>=300,made=!!j.tailoredAt,skipFit=j.fit&&j.fit.verdict==="skip"&&!made;if(auto&&made)pick="Tailored";
     var done=[auto?!!mem.resume:!!(j.tailoredAt||mem.resume),!!(j.cover||mem.cover),false];
     var cur=done.indexOf(false);
@@ -2328,11 +2362,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         B(j.tailoredAt?"Edit copy":"Edit a copy",function(){openEditor(j)})]),
       step(1,"Cover letter",j.cover?"Written. Open it to read and edit before you download.":mem.cover?"Not needed for this one.":"Only if the application asks for one.",null,
         j.cover?[B("Edit letter",function(){openCoverEditor(j)}),B("Download PDF",function(){printCover(j.cover.text,j);markStep(j,"cover")},cur===1)]:mem.cover?[]:[j.description?aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Opening it so you can read and edit.");refresh().then(function(){var x=S.jobs.find(function(q){return q.id===j.id});if(x)openCoverEditor(x)})})},cur!==1):null,B("Not needed",function(){markStep(j,"cover")})]),
-      step(2,"Apply",cur===2?"You're set. Apply on their site, then come back and mark it.":"Finish the steps before this, then apply.",null,[
+      step(2,"Apply",byMail?"This one is applied to by email. The email is below.":cur===2?"You're set. Apply on their site, then come back and mark it.":"Finish the steps before this, then apply.",null,[
         j.url?el("a",{class:"btn small ghost",href:j.url,target:"_blank",rel:"noopener",text:"Open posting"}):null,
+        byMail?null:B("Apply by email",function(){S.applyMail=S.applyMail||{};S.applyMail[j.id]=true;renderRows()}),
         B("I applied",function(){api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Changed status to Applied"}).then(function(){toast("Applied to "+j.company+". Nice work.");S.open=null;S.preview=null;refresh()},fail)},cur===2)])
     ]);
     var card=el("div",{class:"steps"},[el("div",{class:"steps-head"},[el("h3",{text:"Apply to this job"}),el("span",{text:done.filter(Boolean).length+" of 2 ready"})]),list]);
+    if(byMail)card.appendChild(applyMailBox(j,pick));
     if(S.preview===j.id){var box=el("div",{class:"paper-box"});card.appendChild(el("div",{class:"res-preview"},[el("div",{class:"res-preview-head"},[el("b",{text:resLabel(pick)+" resume"}),el("button",{class:"btn ghost small",type:"button",text:"Close preview",onclick:function(){S.preview=null;renderRows()}})]),box]));
       mdFor(j,pick).then(function(md){previewInto(box,md)},fail)}
     return card;
@@ -2425,13 +2461,18 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var box=el("div",{class:"fit "+cls},[el("div",{class:"fit-top"},[el("b",{class:"fit-score",text:String(f.score)}),el("div",{},[el("div",{class:"fit-verdict",text:f.verdict==="apply"?"Good fit, apply":f.verdict==="skip"?"Skip this one":"Worth a closer look"}),el("div",{class:"fit-sum",text:f.summary||""})])])]);
     var ul=el("ul");(f.reasons||[]).forEach(function(r){ul.appendChild(el("li",{class:"plus",text:r}))});(f.concerns||[]).forEach(function(r){ul.appendChild(el("li",{class:"minus",text:r}))});box.appendChild(ul);
     box.appendChild(el("div",{class:"cmeta",text:"AI fit check, "+rel(f.at)+". A starting point, not a decision."}));return box}
+  // a new person gets their drafts right away: email lookup if needed, then the email and the LinkedIn note
+  function draftFor(jid,c){if(!c||!c.id)return;var P=function(path,b){return api("POST",path,b).catch(function(){return null})};
+    (c.email||c.emailGuess||c.emailTried?Promise.resolve(c):P("/api/find-email",{jobId:jid,contactId:c.id}).then(function(r){return Object.assign({},c,r||{})}))
+      .then(function(x){return (x.email||x.emailGuess?P("/api/ai/outreach",{jobId:jid,contactId:c.id,mode:"email",context:""}):Promise.resolve()).then(function(){return c.linkedin?P("/api/ai/outreach",{jobId:jid,contactId:c.id,mode:"first",context:""}):null})})
+      .then(function(){refresh()})}
   function contactForm(j,c){
     var id=c?c.id:"new",v=c||{};
     function inp(k,ph,type){var i=el("input",{id:"ct-"+id+"-"+k,placeholder:ph,type:type||"text"});i.value=v[k]||"";return i}
     var name=inp("name","Full name"),title=inp("title","Title, like Senior Recruiter"),li=inp("linkedin","LinkedIn profile link"),em=inp("email","Work email, if you found it"),src=inp("source","How you found them");
     var draft=el("textarea",{id:"ct-"+id+"-draft",rows:"3",placeholder:"Optional: a short message Ifeanyi could send"});draft.value=v.draft||"";
     return el("form",{class:"contact-form",onsubmit:function(e){e.preventDefault();var body={name:name.value,title:title.value,linkedin:li.value,email:em.value,source:src.value,draft:draft.value};if(!body.name.trim()){toast("Add their name");return}
-      (c?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,body):api("POST","/api/jobs/"+j.id+"/contacts",body)).then(function(){S.editContact=null;toast(c?"Contact updated":"Contact added");refresh()},fail)}},[
+      (c?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,body):api("POST","/api/jobs/"+j.id+"/contacts",body)).then(function(doc){S.editContact=null;toast(c?"Contact updated":"Contact added. Writing their email now.");refresh();if(!c&&doc&&doc.contacts)draftFor(j.id,doc.contacts[doc.contacts.length-1])},fail)}},[
       el("div",{class:"cgrid"},[name,title,li,em,src]),draft,
       el("div",{class:"acts"},[el("button",{class:"btn small",type:"submit",text:c?"Save contact":"Add contact"}),el("button",{class:"btn ghost small",type:"button",text:"Cancel",onclick:function(){S.editContact=null;renderRows()}})])]);
   }
@@ -2784,8 +2825,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 
   // boot
   if(getTok()){refresh().catch(function(){S.loaded=true;render()})}else{S.loaded=true;render()}
-  setInterval(function(){if(getTok()&&!document.hidden)refresh().catch(function(){})},15000);
-  document.addEventListener("visibilitychange",function(){if(!document.hidden&&getTok())refresh().catch(function(){})});
+  setInterval(function(){if(getTok()&&!document.hidden)refresh(true).catch(function(){})},15000);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&getTok())refresh(true).catch(function(){})});
 })();
 </script>
 
