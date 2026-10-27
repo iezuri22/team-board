@@ -2546,13 +2546,17 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function goNext(){var v=url.value.trim();if(!/^https?:\/\/[^\s.]+\.\S+/.test(v)){msg.textContent="Paste the full link to the posting, starting with https://";url.focus();return}
       msg.textContent="";check();descPanel.hidden=false;nextBtn.hidden=true;desc.focus()}
     url.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();goNext()}});
-    function reveal(){descPanel.hidden=false;nextBtn.hidden=true;details.hidden=false;justBtn.hidden=false;startBtn.hidden=false;handLink.hidden=true}
+    function reveal(){descPanel.hidden=false;nextBtn.hidden=true;details.hidden=false;if(!prevFor){justBtn.hidden=false;startBtn.hidden=false}handLink.hidden=true}
     function resetStage(){descPanel.hidden=true;nextBtn.hidden=false;details.hidden=true;justBtn.hidden=true;startBtn.hidden=true;skipBtn.hidden=true;handLink.hidden=!S.isOwner;fitBox.textContent="";previewId=null;prevFor="";startBtn.className="btn accent";startBtn.textContent="Save and start applying";startBtn.disabled=false}
     function runPreview(){var t=desc.value.trim();if(t.length<300||t===prevFor)return;prevFor=t;previewId=null;
-      fitBox.textContent="";fitBox.appendChild(el("p",{class:"add-checking",text:"Checking the fit: the rules in the brief, then the ATS match..."}));startBtn.disabled=true;startBtn.textContent="Checking the fit...";skipBtn.hidden=true;
+      fitBox.textContent="";fitBox.appendChild(el("p",{class:"add-checking",text:"Checking the fit: the rules in the brief, then the ATS match..."}));startBtn.disabled=true;startBtn.textContent="Checking the fit...";startBtn.hidden=false;justBtn.hidden=false;skipBtn.hidden=true;
       api("POST","/api/ai/fit-preview",{company:co.value,role:ro.value,description:t}).then(function(r){if(prevFor!==t)return;previewId=r.previewId;var f=r.fit,skip=f.verdict==="skip";
-        fitBox.textContent="";fitBox.appendChild(fitCard(f));fitBox.appendChild(el("p",{class:"add-next",text:skip?"This one breaks a rule or won't reach a strong ATS match. Log it as Not a fit so nobody spends time on it.":"Looks worth it. Save and start applying: the resume gets tailored for this posting."}));
-        startBtn.disabled=false;startBtn.className=skip?"btn ghost":"btn accent";startBtn.textContent=skip?"Apply anyway":"Save and start applying";skipBtn.hidden=!skip},
+        // a broken rule from the brief (not remote, manages people...) is a hard stop; a low ATS match alone can still be overridden
+        var GL={location:"it isn't remote (or hybrid in Chicago)",doer:"it manages people",notPM:"it's a project manager role",notCoding:"it's coding-first",years:"it asks for more than 10 years",company:"it's an excluded company",flags:"it has a red flag"};
+        var broke=Object.keys(f.gates||{}).filter(function(k){return f.gates[k]&&!f.gates[k].pass}).map(function(k){return GL[k]||k});
+        fitBox.textContent="";fitBox.appendChild(fitCard(f));fitBox.appendChild(el("p",{class:"add-next",text:broke.length?"Hard stop: "+broke.join(", and ")+". Log it as Not a fit.":skip?"Won't reach a strong ATS match. Log it as Not a fit, or apply anyway if you think it's worth it.":"Looks worth it. Save and start applying: the resume gets tailored for this posting."}));
+        startBtn.disabled=false;startBtn.className=skip?"btn ghost":"btn accent";startBtn.textContent=skip?"Apply anyway":"Save and start applying";skipBtn.hidden=!skip;
+        startBtn.hidden=broke.length>0;justBtn.hidden=broke.length>0&&!S.isOwner},
       function(e){if(prevFor!==t)return;fitBox.textContent="";fitBox.appendChild(el("p",{class:"add-checking",text:"Couldn't check the fit. You can still save; it runs again after."}));startBtn.disabled=false;startBtn.textContent="Save and start applying";fail(e)})}
     desc.addEventListener("paste",function(){descFrom="paste";setTimeout(runExtract,0)});
     desc.addEventListener("input",function(){clearTimeout(readT);readT=setTimeout(runExtract,1200)});
