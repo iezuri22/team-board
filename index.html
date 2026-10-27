@@ -867,7 +867,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .am{margin:14px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.am-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}.am-head b{font-size:15px}
 .am-to-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}.am-to-row label{font-size:13px;font-weight:600;color:var(--muted)}.am-to{flex:1}.am .rc-subj{width:100%;margin-bottom:8px;box-sizing:border-box}.am .rc-ta{width:100%;box-sizing:border-box}
 .am-note{font-size:12.5px;color:var(--muted);margin:6px 0 10px}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
-.fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}
+.fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}.fu-chip.late b{color:#c2410c}.fu-chip.late.on{background:#c2410c;border-color:#c2410c}.fu-chip.late.on b{color:#fff}
 .fu-done{color:#15803d;font-size:13px;white-space:nowrap}.fu-due{color:#c2410c;font-weight:600;font-size:13px;white-space:nowrap}.fu-bad{color:#b91c1c;font-weight:600;font-size:13px}.fu-rej{margin-left:6px;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;background:#fde8e8;color:#991b1b}
 .fu-table td{vertical-align:middle}
 .fu-cell{border:0;background:none;padding:4px 6px;margin:-4px -6px;border-radius:8px;font:inherit;cursor:pointer}.fu-cell:hover{background:var(--soft2)}.fu-cell:hover span{text-decoration:underline}
@@ -1716,6 +1716,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         if(wide){tb.appendChild(trackRow(t,i));trackExtra(t).forEach(function(r){tb.appendChild(r)});return}
         tb.appendChild(taskRow(t,i));if(S.rcMsg&&S.rcMsg[t.c.id])tb.appendChild(msgRow(t))};
       var TGROUPS=[["mine","Yours to send",""],["ifeanyi","Ifeanyi is sending these","He's handling these himself. Skip them so nobody gets two emails."]];
+      // LinkedIn and Email have their own tabs: Due now (everything due, grouped), then one per group
+      if(S.isOwner&&(S.rcTab==="li"||S.rcTab==="em")){S.rcSub=S.rcSub||{};var SG=S.rcTab==="li"?LIG:EMG,sub=S.rcSub[S.rcTab]||"due";
+        var subs=[["due","Due now",list.filter(function(t){return t.group!=="upcoming"}).length]].concat(SG.map(function(g){return [g[0],g[1],list.filter(function(t){return t.group===g[0]}).length]}).filter(function(x){return x[2]}));
+        if(!subs.some(function(x){return x[0]===sub}))sub="due";
+        body.appendChild(el("div",{class:"fu-chips"},subs.map(function(x){return el("button",{type:"button",class:"fu-chip"+(sub===x[0]?" on":"")+(x[0]==="late"?" late":""),onclick:function(){S.rcSub[S.rcTab]=x[0];drawBody()}},[x[1]+" ",el("b",{text:String(x[2])})])})));
+        list=sub==="due"?list.filter(function(t){return t.group!=="upcoming"}):list.filter(function(t){return t.group===sub});
+        if(sub==="upcoming"){var up=SG.find(function(g){return g[0]==="upcoming"});if(up)body.appendChild(el("p",{class:"rc-how",text:up[2]}))}}
       var GS=S.isOwner&&S.rcTab==="li"?LIG:S.isOwner&&S.rcTab==="em"?EMG:S.rcTab==="waiting"&&S.isOwner?WGROUPS:!S.isOwner&&S.rcTab==="toemail"?TGROUPS:null,gk=S.rcTab==="li"||S.rcTab==="em"?"group":S.rcTab==="toemail"?"tg":"wg";
       if(GS){var i0=0;GS.forEach(function(g){var gl=list.filter(function(t){return t[gk]===g[0]});if(!gl.length)return;
           tb.appendChild(el("tr",{class:"rc-grp"+(g[0]==="late"?" late":""),id:"rc-g-"+g[0]},[el("td",{colspan:wide?"9":"7"},[el("b",{text:g[1]}),el("span",{class:"rc-gn",text:String(gl.length)}),el("span",{class:"rc-gh",text:g[2]})])]));
