@@ -2056,12 +2056,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     x.appendChild(el("div",{class:"today"},[
       el("div",{class:"ringbox big"},[ring(n,g,120),el("div",{class:"rcenter"},[el("b",{text:String(n)}),el("span",{text:"of "+g})])]),
       el("div",{class:"today-main"},[
-        el("h2",{text:greet()+", "+firstName(S.uid)}),el("p",{class:"today-line",text:line}),
-        el("div",{class:"chips"},[
-          el("span",{class:"chip hot"+(st?"":" cold")},[el("b",{text:String(st)})," week streak"]),
-          el("span",{class:"chip"},[el("b",{text:String(wp)})," points this week"]),
-          el("span",{class:"chip"},[el("b",{text:String(cw)})," contacts this week"])
-        ])
+        el("h2",{text:greet()+", "+firstName(S.uid)}),el("p",{class:"today-line",text:line})
       ]),
       nudges()
     ]));
