@@ -905,6 +905,26 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-chtab.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .rc-to{font-size:12.5px;color:var(--muted)}.rc-em{color:#1d4ed8;font-weight:600}
 .rc-subj{font:inherit;font-size:14px;font-weight:600;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+/* posts: important updates from Ifeanyi, shown full screen once */
+.post-wrap{position:fixed;inset:0;z-index:60;background:rgba(10,12,15,.5);display:grid;place-items:center;padding:16px;animation:fadein .18s ease}
+.post{width:min(640px,100%);max-height:88vh;overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:20px;padding:30px 32px 22px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
+.post-kick{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+.post h2{font-size:26px;line-height:1.15;letter-spacing:-.02em;margin:0 0 4px}
+.post-date{font-size:13.5px;color:var(--muted);margin:0 0 20px}
+.post-body{font-size:15.5px;line-height:1.6}
+.post-body p{margin:0 0 14px}.post-body h3{font-size:16.5px;letter-spacing:-.01em;margin:22px 0 6px}
+.post-body ul,.post-body ol{margin:0 0 14px;padding-left:22px}.post-body li{margin:0 0 6px}.post-body b{font-weight:650}
+.post-body a{color:var(--accent)}
+.post-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);position:sticky;bottom:-22px;background:var(--card)}
+.post-list{display:grid;gap:2px;margin:0 0 6px}
+.post-item{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font:inherit;color:inherit;width:100%}
+.post-item b{font-size:15.5px}.post-item span{font-size:13px;color:var(--muted);white-space:nowrap}
+.post-new{display:grid;gap:10px;margin-top:6px}
+.post-new input,.post-new textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+.post-new textarea{min-height:260px;line-height:1.5;resize:vertical}
+.post-hint{font-size:12.5px;color:var(--muted);margin:0}
+#posts-btn.dot::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:middle}
+@media (max-width:600px){.post{padding:24px 18px 18px}.post h2{font-size:22px}}
 
 </style>
 
@@ -924,12 +944,14 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     </nav>
     <div class="spacer"></div>
     <button class="btn accent small" id="ping-btn" type="button" hidden>Reach Ifeanyi now</button>
+    <button class="guide-btn" id="posts-btn" type="button" title="Updates from Ifeanyi" hidden>Updates</button>
     <button class="guide-btn" id="guide-btn" type="button" title="How we work">Guide</button>
     <button class="theme-btn" id="theme-btn" type="button" aria-label="Switch light or dark mode"></button>
     <div class="who-me" id="who-me"></div>
   </header>
   <div id="banner"></div>
   <div id="welcome-slot"></div>
+  <div id="post-slot"></div>
   <div id="ping-slot"></div>
 
   <div id="view-apps">
@@ -1013,7 +1035,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.focus=d.focus||{items:[],note:""};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.focus=d.focus||{items:[],note:""};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.posts=d.posts||[];S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -1256,7 +1278,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     function statusCell(c){var cd=cadence(c),o=outs(c),l=o[o.length-1];
       if(cd.k==="toEmail")return el("span",{class:"pg-pill",text:"To email"});
       if(cd.k==="emailed")return el("span",{class:"pg-pill sent",text:"Emailed "+md(cd.at)});
-      if(cd.k==="li")return el("span",{class:"pg-pill "+(cd.bounced?"bad":"sent"),text:cd.bounced?"Bad email":"Emailed "+md(cd.at)});
+      if(cd.k==="li")return el("span",{class:"pg-pill "+(cd.bounced?"bad":cd.pre?"":"sent"),text:cd.bounced?"Bad email":cd.pre?(c.sendAt?"Email scheduled":"Not contacted"):"Emailed "+md(cd.at)});
       if(cd.k==="answer")return el("span",{class:"pg-pill ok",text:"Responded "+md(c.repliedAt)});
       if(cd.k==="talking"||cd.k==="check")return el("span",{class:"pg-pill ok",text:"In conversation"});
       if(cd.k==="closed")return el("span",{class:"pg-pill",text:"Done "+md(c.closedAt)});
@@ -1265,11 +1287,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(cd.k==="done")return el("span",{class:"pg-pill sent",title:"Two touches: note and follow-up",text:"Followed up "+md(l.at)});
       return el("span",{class:"pg-pill sent",title:(l.by==="owner"?"Ifeanyi":nameOf(l.by).replace(" (you)",""))+" reached out "+viaText(l.via),text:(o[0].via==="LinkedIn"?"Note sent ":"Emailed ")+md(o[0].at)})}
     function nextCell(j,c){var cd=cadence(c);
-      if(!S.isOwner){var T={toEmail:"Email them",emailed:"Emailed; Ifeanyi sends LinkedIn in 3 days",li:"Ifeanyi to send LinkedIn note","new":"Ifeanyi to reach out",waiting:"Waiting on them to accept",accepted:"Ifeanyi following up",nudge:"Ifeanyi following up",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};return el("span",{class:"pg-dim",text:T[cd.k]||""})}
+      if(!S.isOwner){var T={toEmail:"Email them",emailed:"Emailed",li:"Ifeanyi to send LinkedIn note","new":"Ifeanyi to reach out",waiting:"Waiting on them to accept",accepted:"Ifeanyi following up",nudge:"Ifeanyi following up",done:"Followed up",answer:"They responded",talking:"In conversation",check:"In conversation",closed:"Conversation done"};return el("span",{class:"pg-dim",text:T[cd.k]||""})}
       if(cd.k==="new")return c.draft&&c.draftMode!=="followup"?el("span",{class:"pg-ready",text:"\u2726 Note ready"}):el("span",{class:"pg-dim",text:"Send connection note"});
       if(cd.k==="toEmail")return el("span",{class:"pg-dim",text:"Team to email"});
-      if(cd.k==="emailed")return el("span",{class:"pg-dim",text:"LinkedIn note "+md(cd.check)+" if no reply"});
-      if(cd.k==="li")return el("span",{class:"pg-due",text:cd.bounced?"Email bounced: send LinkedIn note":"No reply to email: send LinkedIn note"});
+      if(cd.k==="emailed")return el("span",{class:"pg-dim",text:"Wait for a reply"});
+      if(cd.k==="li")return el("span",{class:"pg-due",text:cd.bounced?"Email bounced: send LinkedIn note":"Send LinkedIn note"});
       if(cd.k==="waiting")return el("span",{class:"pg-dim",text:"Check "+md(cd.check)+" if not accepted"});
       if(cd.k==="accepted")return el("span",{class:"pg-due",text:cd.late?"Follow up now (accepted "+rel(c.acceptedAt)+")":"Send follow-up today"});
       if(cd.k==="nudge")return el("span",{class:"pg-due",text:"Email or InMail ("+cd.days+"d, no accept)"});
@@ -1642,13 +1664,20 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         // Turned down: anyone not reached yet still gets a note (for future roles); follow-ups to earlier notes stop; 21 days on, it's archived
         if(rej&&!/^(answer|talking|check)$/.test(cd.k)){var before=o.length&&String(o[0].at)<String(rejD);
           if(archived||before||cd.k==="closed"){if(!S.isOwner)return;t.tab="done";t.what=archived?"Archived. Turned down "+fmtD(rejD):"Turned down "+fmtD(rejD)+". Follow-ups stopped";out.push(t);return}}
-        if((cd.k==="new"||cd.k==="li")&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. The 7am daily run does this; no email means the LinkedIn note goes right away.";out.push(t);return}
+        if((cd.k==="new"||cd.k==="li")&&!c.linkedin&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. The 7am daily run does this; no email means the LinkedIn note goes right away.";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin){if(!S.isOwner)return;t.tab="cant";t.what=c.emailBad?"Email bounced and no LinkedIn":"No email and no LinkedIn";out.push(t);return}
+        // the first email runs on its own track: unsent ones show under Email (and the team's Scheduled), sent ones under the team's Sent
+        var emSent=o.some(function(e){return e.via==="email"});
+        if(cd.k!=="toEmail"&&(c.email||c.emailGuess)&&!c.emailBad&&!emSent&&!c.repliedAt&&!c.closedAt){var ce={j:j,c:c,cd:{k:"toEmail"},applied:applied},mc=claimed(c);
+          if(S.isOwner){ce.tab="em";ce.group=c.sendAt?"sched":"send"}else{ce.tab="toemail";ce.tg=c.sendAt?"sched":mc?"ifeanyi":"mine"}
+          ce.what=c.sendAt?"Sends "+fmtWhen(c.sendAt):c.sendError?"Didn't send: "+c.sendError:S.isOwner?"Not scheduled yet":"The 7am run schedules it";out.push(ce)}
+        if(!S.isOwner&&emSent&&!/^(emailed|li)$/.test(cd.k)){var em0=o.find(function(e){return e.via==="email"});out.push({j:j,c:c,cd:{k:"emailed",at:em0.at},applied:applied,tab:"emailed",what:c.emailBad?"Bad email":"Emailed "+fmtD(em0.at)})}
         if(cd.k==="toEmail"){t.tab="toemail";n=daysSince(String(applied)>"2026-10-26"?applied:"2026-10-26T12:00:00Z");var mineC=claimed(c);t.tg=mineC?"ifeanyi":"mine";
           if(c.sendAt){t.tg="sched";t.what="Sends "+fmtWhen(c.sendAt)}else if(c.sendError)t.what="Didn't send: "+c.sendError;else
           t.what=S.isOwner?(mineC?"You're sending":mates().indexOf(j.addedBy)>=0?whoName(j.addedBy).split(" ")[0]+"'s list":"Yours"):mineC?"Ifeanyi is sending this one. Skip it":"Send the email";if(mineC)n=0;if(!S.isOwner&&n>=3){t.late=true;t.what="Send the email (waiting "+n+" days)"}}
-        else if(cd.k==="emailed"){t.tab=S.isOwner?"waiting":"emailed";t.wg="emailed";var eb=(o.find(function(e){return e.via==="email"})||{}).by;t.what=S.isOwner?"Emailed "+fmtD(cd.at)+(eb&&eb!=="owner"?" by "+whoName(eb).split(" ")[0]:"")+". LinkedIn note "+fmtD(cd.check)+" if no reply":"Emailed "+fmtD(cd.at)+(eb==="owner"?" by Ifeanyi":"")+". Ifeanyi follows up on LinkedIn "+fmtD(cd.check)+" if no reply"}
-        else if(cd.k==="li"){t.tab=S.isOwner?"first":"emailed";n=daysSince(cd.at);t.late=S.isOwner&&n>=(cd.bounced?2:6);t.what=S.isOwner?(cd.bounced?"Email bounced":"No email reply in "+cd.days+" days"):(cd.bounced?"Bad email. Ifeanyi is reaching out on LinkedIn":"No reply. Ifeanyi is reaching out on LinkedIn")}
+        else if(cd.k==="emailed"){t.tab=S.isOwner?"waiting":"emailed";t.wg="emailed";var eb=(o.find(function(e){return e.via==="email"})||{}).by;t.what=S.isOwner?"Emailed "+fmtD(cd.at)+(eb&&eb!=="owner"?" by "+whoName(eb).split(" ")[0]:"")+". No LinkedIn, so wait for a reply":"Emailed "+fmtD(cd.at)+(eb==="owner"?" by Ifeanyi":"")}
+        else if(cd.k==="li"){t.tab=S.isOwner?"first":cd.pre?"skip":"emailed";n=daysSince(cd.at);t.late=S.isOwner&&!cd.pre&&n>=(cd.bounced?2:6);
+          t.what=S.isOwner?(cd.bounced?"Email bounced. Send the note":cd.pre?(c.sendAt?"Send the note now. Email goes "+fmtWhen(c.sendAt):"Send the note now"):"Emailed "+fmtD(cd.at)+". Send the note"):(cd.bounced?"Bad email. Ifeanyi is reaching out on LinkedIn":"Emailed "+fmtD(cd.at)+". Ifeanyi is also reaching out on LinkedIn")}
         else if(cd.k==="new"){t.tab="first";n=daysSince(applied);t.late=n>=5;t.what="No email found \u00b7 applied "+(n<=0?"today":n===1?"1 day ago":n+" days ago")}
         else if(cd.k==="waiting"){t.tab="waiting";t.what="Waiting on accept, check "+fmtD(cd.check)}
         else if(cd.k==="accepted"){t.tab="follow";n=daysSince(c.acceptedAt);t.late=n>=2;t.what="Send the full follow-up (accepted "+agoN(n)+")"}
@@ -1723,7 +1752,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var tasks=all.filter(pass);
     var TABS=!S.isOwner?[["toemail","Scheduled","The board sends these from "+SEND_FROM+" on its own. You don't need to send anything."],["emailed","Sent","If one bounces back, click Bad email. If someone replies, open that job in Applications, set it to Heard back, and tell Ifeanyi what they said. Don't reply to them yourself."]]:[["li","LinkedIn",""],["em","Email",""],["replies","Replies","They wrote back. Reply to them, then click I replied."],["track","Follow-ups","Everyone you've reached, step by step: email, LinkedIn note, connection, follow-up, reply. Due steps first."],["waiting","Waiting",""],["done","Done","Conversations you closed, follow-ups stopped by a rejection, and turned-down jobs archived 21 days after the rejection."],["cant","Can't find","No one found, or no way to reach them. Add someone by hand if you find them; otherwise these stay out of the way."]];
     var WGROUPS=[["emailed","Emailed","Sent. If there's no reply, the LinkedIn note shows up under LinkedIn on the date shown."],["them","Waiting on them","Waiting on an accept or a reply. Each moves to LinkedIn, Email or Replies when it's due."],["finding","Finding people and emails","The 7am daily run finds people and emails. Anyone with no email goes straight to LinkedIn."]];
-    var LIG=[["confirm","To confirm","You copied these and opened LinkedIn. Confirm the ones you sent. Didn't send puts it back in the list."],["late","Late","No email for these and the application is 5+ days old. Send the note first."],["notes","Connection notes","No email found, the email got no reply in 3 days, or it bounced. Open the note, send the request, click Sent."],["fumsg","Follow-up messages","They accepted. Send the full message within a day."],["nudge","No accept after 7 days","Send the follow-up as an InMail."],["check","Check-ins","Quiet 3+ days since your last message. Check in."],["upcoming","Up next","Notes are ready but wait for the email first. Send one early if you want."]];
+    var LIG=[["confirm","To confirm","You copied these and opened LinkedIn. Confirm the ones you sent. Didn't send puts it back in the list."],["late","Late","No email for these and the application is 5+ days old. Send the note first."],["notes","Connection notes","LinkedIn goes first. Send the request now; the email goes out on its own schedule. Copy & open LinkedIn moves you to the next one."],["fumsg","Follow-up messages","They accepted. Send the full message within a day."],["nudge","No accept after 7 days","Send the follow-up as an InMail."],["check","Check-ins","Quiet 3+ days since your last message. Check in."],["upcoming","Up next","Notes are ready but wait for the email first. Send one early if you want."]];
     var EMG=[["late","Late","Do these first."],["send","Emails to send","Schedule them, or open one in Gmail to send it yourself (that marks it yours so the team skips it)."],["sched","Scheduled","These send on their own from the job-search Gmail, spread out 7am to 5pm on weekdays."],["nudge","Follow-up emails","No LinkedIn accept in 7 days. Email the follow-up."],["check","Check-ins","Quiet 3+ days since your last email. Check in."]];
     var GROUPS=LIG;
     var cnt={};TABS.forEach(function(t){cnt[t[0]]=tasks.filter(function(x){return x.tab===t[0]}).length});
@@ -1745,9 +1774,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(tab[2])V.appendChild(el("p",{class:"rc-how",text:tab[2]}));
     var body=el("div");V.appendChild(body);
     function drawBody(){body.textContent="";S.rcOrder=[];var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
-      // email goes first, but every ready LinkedIn note is visible here as "Up next" and can go out early
-      if(S.isOwner&&S.rcTab==="li")list=list.concat(all.filter(pass).filter(function(t){var c=t.c;return c&&c.linkedin&&!c.pendingSent&&(t.cd.k==="toEmail"||t.cd.k==="emailed")&&!outs(c).some(function(e){return e.via==="LinkedIn"})})
-        .map(function(t){return Object.assign({},t,{tab:"li",group:"upcoming",what:t.cd.k==="toEmail"?"After the email":"Due "+fmtD(t.cd.check)})}));
+      // LinkedIn goes first now, so nothing waits in "Up next"
       if(S.rcTab==="track"){drawTrack(all.filter(pass).filter(reached));return}
       if(S.rcTab==="cant"){var nobody=list.filter(function(t){return !t.c});list=list.filter(function(t){return t.c});
         if(nobody.length){body.appendChild(el("h4",{class:"rc-sub",text:"No one found ("+nobody.length+")"}));drawFind(nobody)}
@@ -1987,7 +2014,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
         var fi=(S.focus&&S.focus.items||[]).find(function(x){return x.type===r.t});
         tb.appendChild(el("tr",{class:fi?(fi.limit!=null?"wk-ease":"wk-train"):null},[el("td",{},[el("b",{text:r.t})]),cell(r.wkSent,"sent this week",r),cell(r.sent,"sent, all time",r),cell(r.skip,"not a fit",r),el("td",{class:af!=null&&af<60?"pg-due":null,text:af==null?"-":String(af)}),cell(r.pos,"replies and interviews",r),
           el("td",{},[S.isOwner?focusCtl(r.t,fi):fi?el("span",{class:"pg-dim",text:fi.limit!=null?"at most "+fi.limit+" a week":"aim for "+fi.target+" a week"}):null])]))});
-      V.appendChild(wkSection("What we're applying to","Tech training and documentation is a focus: software training, user guides and manuals",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
+      V.appendChild(wkSection("What we're applying to","Solutions engineering is a favorite. Don't neglect tech training and documentation: software training, user guides and manuals",el("div",{class:"pg-wrap wk-wrap"},[el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["Job type","Sent this week","Sent, all time","Not a fit","Avg fit","Replies","Focus"].map(function(h){return el("th",{text:h})}))]),tb])])));
       var sec=V.lastChild;if(S.isOwner){var note=el("textarea",{id:"tm-focus-note",class:"focus-note",rows:"2",placeholder:"A note to the team about what to look for this week"});note.value=(S.focus&&S.focus.note)||"";
         note.addEventListener("blur",function(){if(note.value===((S.focus&&S.focus.note)||""))return;saveFocus({note:note.value})});
         sec.appendChild(el("div",{class:"focus-edit"},[el("label",{for:"tm-focus-note",text:"Note on their home screen"}),note,el("p",{class:"pg-dim",text:"Pick job types to push with the Focus column. Esther and Gilaiza see the target, their progress and ready-made LinkedIn searches at the top of their Applications page."})]))}})();
@@ -2093,7 +2120,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(S.db&&S.uid&&!S.isOwner&&(S.tab==="team"||(S.tab==="resume"&&!S.editorJob)))S.tab="apps";
     if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
     ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
-    renderMe();renderWelcome();renderPing();if(!S.db||!S.uid)return;
+    renderMe();renderWelcome();renderPing();renderPosts();if(!S.db||!S.uid)return;
     $("tab-team").textContent="My week";$("tab-team").hidden=true;$("tab-resume").hidden=!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
     if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
@@ -2124,6 +2151,45 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       out,el("div",{class:"foot"},[el("button",{class:"btn ghost",type:"button",text:"Cancel",onclick:function(){S.pinging=false;renderPing()}}),el("button",{class:"btn accent",type:"submit",text:"Send text and email"})])]));
     msgEl.focus();
   }
+  // posts: important updates from Ifeanyi. Each new one opens full screen the next time a teammate opens the board;
+  // they're kept apart from Inbox messages and can be reread under Updates
+  function postHtml(md){var esc=function(x){return x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")};
+    var inl=function(x){return esc(x).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/(^|[\s(])((?:https?:\/\/)?[\w-]+(?:\.[\w-]+)*\.(?:com|io|app|org|net|dev)(?:\/[\w\-./?=&%#]*[\w\/])?)/g,function(m,a,u){return a+'<a href="'+(/^https?:/.test(u)?u:"https://"+u)+'" target="_blank" rel="noopener">'+u+"</a>"})};
+    var out=[],list=null,para=[];
+    var flushP=function(){if(para.length){out.push("<p>"+para.map(inl).join("<br>")+"</p>");para=[]}};
+    var flushL=function(){if(list){out.push("<"+list.t+">"+list.items.map(function(i){return "<li>"+inl(i)+"</li>"}).join("")+"</"+list.t+">");list=null}};
+    String(md||"").split("\n").forEach(function(l){var m;
+      if(!l.trim()){flushP();flushL();return}
+      if((m=l.match(/^#{1,3}\s+(.*)/))){flushP();flushL();out.push("<h3>"+inl(m[1])+"</h3>");return}
+      if((m=l.match(/^\s*[-*]\s+(.*)/))){flushP();if(!list||list.t!=="ul"){flushL();list={t:"ul",items:[]}}list.items.push(m[1]);return}
+      if((m=l.match(/^\s*\d+[.)]\s+(.*)/))){flushP();if(!list||list.t!=="ol"){flushL();list={t:"ol",items:[]}}list.items.push(m[1]);return}
+      flushL();para.push(l)});
+    flushP();flushL();return out.join("")}
+  function postUnseen(){S.postRead=S.postRead||{};return S.isOwner?[]:(S.posts||[]).filter(function(p){return !p.seen&&!S.postRead[p.id]})}
+  function renderPosts(){var b=$("posts-btn"),slot=$("post-slot");if(!S.db||!S.uid){b.hidden=true;slot.textContent="";return}
+    var un=postUnseen();b.hidden=!S.isOwner&&!(S.posts||[]).length;b.classList.toggle("dot",un.length>0);
+    if(un.length&&!slot.firstChild)showPost(un[0])}
+  function postShell(kids,onBack){var slot=$("post-slot");slot.textContent="";
+    var wrap=el("div",{class:"post-wrap",onclick:function(e){if(e.target===e.currentTarget&&onBack)onBack()}},[el("div",{class:"post",role:"dialog","aria-modal":"true"},kids)]);slot.appendChild(wrap);wrap.firstChild.scrollTop=0}
+  function showPost(p,fromList){var unread=!S.isOwner&&!p.seen&&!(S.postRead||{})[p.id];
+    var done=function(){if(unread){S.postRead[p.id]=1;p.seen=true;api("POST","/api/posts/"+p.id+"/seen",{}).catch(function(){})}$("post-slot").textContent="";if(fromList)showPostList();else renderPosts()};
+    var body=el("div",{class:"post-body"});body.innerHTML=postHtml(p.body);
+    var acts=[];
+    if(S.isOwner){acts.push(el("span",{class:"post-hint",style:"margin-right:auto;align-self:center",text:mates().map(function(k){var at=p.seen&&p.seen[k];return whoName(k).split(" ")[0]+(at?" read it "+fmtD(at):" hasn't opened it")}).join(" \u00b7 ")}));
+      acts.push(el("button",{class:"btn ghost",type:"button",text:"Delete",onclick:function(){if(!window.confirm("Delete this update for everyone?"))return;api("DELETE","/api/posts/"+p.id).then(function(){S.posts=S.posts.filter(function(x){return x.id!==p.id});toast("Deleted");showPostList()},fail)}}))}
+    acts.push(el("button",{class:"btn accent",type:"button",text:unread?"Got it":fromList?"Back":"Close",onclick:done}));
+    postShell([el("p",{class:"post-kick",text:"Update from Ifeanyi"}),el("h2",{text:p.title}),el("p",{class:"post-date",text:new Date(p.at).toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"})}),body,el("div",{class:"post-acts"},acts)],unread?null:done)}
+  function showPostList(){var ps=(S.posts||[]).slice().reverse(),close=function(){$("post-slot").textContent=""};
+    var names=mates().map(function(k){return whoName(k).split(" ")[0]}).join(" and ")||"the team";
+    var kids=[el("p",{class:"post-kick",text:"Updates"}),el("h2",{text:S.isOwner?"Updates for the team":"Updates from Ifeanyi"}),
+      el("p",{class:"post-date",text:S.isOwner?"A new update opens full screen the next time "+names+" open the board. Save these for important changes, not everyday notes.":"Important changes to how we work. New ones open when you open the board."}),
+      el("div",{class:"post-list"},ps.length?ps.map(function(p){return el("button",{type:"button",class:"post-item",onclick:function(){showPost(p,true)}},[el("b",{text:p.title}),el("span",{text:fmtD(p.at)})])}):[el("p",{class:"post-hint",text:"No updates yet."})])];
+    var acts=[el("button",{class:"btn ghost",type:"button",text:"Close",onclick:close})];
+    if(S.isOwner){var ti=el("input",{id:"po-title",placeholder:"Title, like: How emails work now"}),tx=el("textarea",{id:"po-body",placeholder:"Write the update. Short sections with bold labels read best."});
+      kids.push(el("div",{class:"post-new"},[el("h3",{text:"New update",style:"margin:18px 0 0;font-size:16px"}),ti,tx,el("p",{class:"post-hint",text:"Formatting: **bold**, a line starting with - for bullets, 1. for steps, ## for a heading. Leave a blank line between sections."})]));
+      acts.push(el("button",{class:"btn accent",type:"button",text:"Post to the team",onclick:function(e){var btn=e.currentTarget;if(!ti.value.trim()||!tx.value.trim()){toast("Add a title and the update");return}btn.disabled=true;
+        api("POST","/api/posts",{title:ti.value.trim(),body:tx.value}).then(function(p){S.posts=(S.posts||[]).concat([Object.assign({},p,{seen:{}})]);toast("Posted. "+names+" will see it next time they open the board.");showPostList()},function(err){btn.disabled=false;fail(err)})}}))}
+    kids.push(el("div",{class:"post-acts"},acts));postShell(kids,close)}
   function renderMe(){var w=$("who-me");w.textContent="";if(!S.db||!S.uid)return;var n=S.isOwner?"Ifeanyi":(myName()||"Teammate");w.appendChild(document.createTextNode("Signed in as "));w.appendChild(el("b",{text:n}));w.appendChild(el("button",{type:"button",text:"Sign out",onclick:function(){setTok("");S.db=null;S.uid=null;S.jobs=[];render()}}))}
   function renderWelcome(){
     var slot=$("welcome-slot");slot.textContent="";
@@ -2709,11 +2775,14 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(c.repliedAt){if(!c.answeredAt||new Date(c.repliedAt)>new Date(c.answeredAt))return {k:"answer",due:true,at:c.repliedAt};
       var q=d(c.answeredAt);return q>=3?{k:"check",due:true,days:q,at:c.answeredAt}:{k:"talking",at:c.answeredAt,check:new Date(new Date(c.answeredAt).getTime()+3*864e5)}}
     var li=-1;for(var x=0;x<o.length;x++){if(o[x].via==="LinkedIn"){li=x;break}}
-    if(li<0){var em=o.find(function(e){return e.via==="email"});
+    var em=o.find(function(e){return e.via==="email"});
+    if(li<0){
+      // LinkedIn first: anyone with a profile gets the note now; the first email goes out on its own schedule
+      if(c.linkedin&&!o.some(function(e){return e.via!=="email"}))return {k:"li",due:true,pre:!em,bounced:!!c.emailBad,at:em?em.at:c.addedAt,days:em?d(em.at):0};
       if(!o.length)return (c.email||c.emailGuess)&&!c.emailBad?{k:"toEmail"}:{k:"new"};
-      if(em){if(c.emailBad)return {k:"li",due:true,bounced:true,at:c.emailBad};var de=d(em.at);
-        return de>=3?{k:"li",due:true,days:de,at:em.at}:{k:"emailed",at:em.at,check:new Date(new Date(em.at).getTime()+3*864e5)}}}
-    else o=o.slice(li);
+      if(em&&o.length===1){if(c.emailBad)return {k:"li",due:true,bounced:true,at:c.emailBad};return {k:"emailed",at:em.at,check:null}}}
+    // the first email runs alongside the LinkedIn steps, so it doesn't count as the follow-up
+    else o=o.slice(li).filter(function(e){return e!==em});
     if(o.length>=2)return {k:"done",at:o[o.length-1].at};
     var first=o[0],days=d(first.at);
     if(c.acceptedAt)return {k:"accepted",due:true,at:c.acceptedAt,late:d(c.acceptedAt)>=1};
@@ -3030,6 +3099,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 
   // events
   $("guide-btn").onclick=function(){S.tab="brief";render();window.scrollTo(0,0)};
+  $("posts-btn").onclick=function(){showPostList()};
   ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
