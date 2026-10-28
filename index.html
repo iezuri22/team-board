@@ -911,6 +911,21 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .rc-chtab.on{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .rc-to{font-size:12.5px;color:var(--muted)}.rc-em{color:#1d4ed8;font-weight:600}
 .rc-subj{font:inherit;font-size:14px;font-weight:600;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+/* notifications: the bell and its panel */
+.nt-btn{position:relative;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:16px;width:36px;height:32px;display:inline-grid;place-items:center;cursor:pointer;padding:0}
+.nt-btn:hover,.nt-btn.on{color:var(--fg)}.nt-btn.has{color:var(--fg)}
+.nt-n{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
+.nt-wrap{position:fixed;inset:0;z-index:55}
+.nt-panel{position:absolute;top:64px;right:16px;width:min(440px,calc(100vw - 32px));max-height:min(620px,calc(100vh - 90px));overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.2);animation:fadein .14s ease}
+.nt-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+.nt-head b{font-size:16px}.nt-sub{font-size:12.5px;color:var(--muted);padding:8px 16px 0}
+.nt-item{display:grid;grid-template-columns:10px 1fr;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.nt-item:hover{background:var(--bg)}.nt-item.read{opacity:.62}
+.nt-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--muted)}
+.nt-dot.k-interview{background:var(--accent)}.nt-dot.k-reply{background:#2563eb}.nt-dot.k-bounce{background:var(--red,#dc2626)}.nt-dot.k-reject{background:#9ca3af}.nt-dot.k-linkedin{background:#0a66c2}
+.nt-t{font-size:14.5px;font-weight:600;line-height:1.35}.nt-b{font-size:13px;color:var(--muted);line-height:1.45;margin-top:2px;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nt-m{display:flex;gap:12px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted)}.nt-m a{color:var(--accent);font-weight:600}
+.nt-empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
 /* posts: important updates from Ifeanyi, shown full screen once */
 .post-wrap{position:fixed;inset:0;z-index:60;background:rgba(10,12,15,.5);display:grid;place-items:center;padding:16px;animation:fadein .18s ease}
 .post{width:min(640px,100%);max-height:88vh;overflow:auto;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:20px;padding:30px 32px 22px;box-shadow:0 24px 60px rgba(0,0,0,.28)}
@@ -950,6 +965,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     </nav>
     <div class="spacer"></div>
     <button class="btn accent small" id="ping-btn" type="button" hidden>Reach Ifeanyi now</button>
+    <button class="nt-btn" id="notif-btn" type="button" aria-label="Notifications" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="nt-n" id="notif-n" hidden></span></button>
     <button class="guide-btn" id="posts-btn" type="button" title="Updates from Ifeanyi" hidden>Updates</button>
     <button class="guide-btn" id="guide-btn" type="button" title="How we work">Guide</button>
     <button class="theme-btn" id="theme-btn" type="button" aria-label="Switch light or dark mode"></button>
@@ -1041,7 +1057,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function getTok(){try{return localStorage.getItem("tb-token")||S.tok||""}catch(e){return S.tok||""}}
   function setTok(t){S.tok=t;try{if(t)localStorage.setItem("tb-token",t);else localStorage.removeItem("tb-token")}catch(e){}}
   function api(method,path,body){return fetch(API+path,{method:method,headers:Object.assign({"Content-Type":"application/json"},getTok()?{"Authorization":"Bearer "+getTok()}:{}),body:body?JSON.stringify(body):undefined}).then(function(r){return r.json().catch(function(){return{}}).then(function(d){if(!r.ok){if(r.status===401&&d.error==="signed_out"){setTok("");S.db=null;S.uid=null;render()}var e=new Error(d.error||"failed");e.code=r.status;e.msg=d.error;throw e}return d})})}
-  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.focus=d.focus||{items:[],note:""};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.posts=d.posts||[];S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
+  function refresh(quiet){return api("GET","/api/state").then(function(d){var sig=JSON.stringify(d);if(quiet&&sig===S.lastSig)return;S.lastSig=sig;S.db=true;S.uid=d.me.id;S.isOwner=!!d.me.owner;S.jobs=(d.jobs||[]).map(function(o){if(!o.status)o.status="applied";return o});S.people=d.people||{};S.focus=d.focus||{items:[],note:""};S.peopleLoaded=true;S.brief=d.brief;S.cover=d.cover;S.posts=d.posts||[];S.notifs=d.notifs||[];S.taken=d.taken||[];S.sources=d.sources||[];S.templates=d.templates||[];S.messages=d.messages||[];S.briefLoaded=true;S.loaded=true;function busy(){var a=document.activeElement;return a&&/^(notes-|mg-|ej-|tx-|cv-|brief-|my-name|my-code|tm-|desc-|ct-|ping-|rz-|fu-)/.test(a.id||"")}if(busy()){if(S.tab==="apps"){renderSummary()}}else render()})}
   function fail(e){toast(e&&e.msg&&e.msg!=="failed"&&e.msg!=="server_error"?e.msg:"That didn't save. Check your connection and try again.")}
   function setStatus(j,k){var p={status:k,note:"Changed status to "+L[k]};if(k==="interview"||k==="heard")p.needsIfeanyi=true;api("PATCH","/api/jobs/"+j.id,p).then(function(){if(REPLIED[k]&&!S.isOwner){S.open=j.id;S.texting=j.id;toast(L[k]+". Tell Ifeanyi what they said.")}else toast(L[k]);refresh()},fail)}
   function saveNotes(j,v){api("PATCH","/api/jobs/"+j.id,{notes:v,note:"Updated notes"}).then(function(){toast("Notes saved");refresh()},fail)}
@@ -1741,6 +1757,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       box.appendChild(el("span",{text:g.ready?"Connect the job-search Gmail and the board sends these for you, spread out 7am to 5pm on weekdays.":"Scheduled sending needs a Google sign-in set up first."}));
       if(g.ready)box.appendChild(el("a",{class:"btn small accent",href:API+"/api/gmail/connect?t="+encodeURIComponent(getTok()),text:"Connect Gmail"}));return box}
     var nq=tasksN();
+    if(S.isOwner&&!g.canRead)box.appendChild(el("span",{class:"gm-read"},["Reply alerts are off. ",el("a",{href:API+"/api/gmail/connect?t="+encodeURIComponent(getTok()),text:"Reconnect Gmail"})," so the board can read replies and bounces."]));
     box.appendChild(el("span",{},["Sending from ",el("b",{text:g.email||"Gmail"}),", up to "+(g.cap||40)+" a day, spread out 7am to 5pm on weekdays"+((g.cap||40)<40?" (40 a day starts next week, so a new account doesn't land in spam)":"")+". ",nq?el("button",{type:"button",class:"linkish gm-q",text:nq+" scheduled",onclick:function(){showQueue()}}):el("b",{text:"0 scheduled"}),"."]));
     box.appendChild(el("button",{type:"button",class:"btn small accent",text:"Schedule all ready emails",onclick:function(){var b=this;b.disabled=true;api("POST","/api/schedule",{all:true}).then(function(r){toast(r.scheduled?"Scheduled "+r.scheduled+", from "+fmtWhen(r.first)+" to "+fmtWhen(r.last)+".":"Nothing ready to schedule.");refresh()},function(e){b.disabled=false;fail(e)})}}));
     if(S.isOwner&&tasksN())box.appendChild(el("button",{type:"button",class:"linkish gm-clear",text:"Clear the queue",onclick:function(){if(window.confirm("Unschedule every queued email?"))api("POST","/api/unschedule",{all:true}).then(function(r){toast("Cleared "+r.cleared);refresh()},fail)}}));
@@ -2129,7 +2146,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     if(S.db&&S.uid&&!S.isOwner&&(S.tab==="team"||(S.tab==="resume"&&!S.editorJob)))S.tab="apps";
     if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
     ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
-    renderMe();renderWelcome();renderPing();renderPosts();if(!S.db||!S.uid)return;
+    renderMe();renderWelcome();renderPing();renderPosts();renderNotifBtn();if(!S.db||!S.uid)return;
     $("tab-team").textContent="My week";$("tab-team").hidden=true;$("tab-resume").hidden=!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
     if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
@@ -2174,6 +2191,23 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if((m=l.match(/^\s*\d+[.)]\s+(.*)/))){flushP();if(!list||list.t!=="ol"){flushL();list={t:"ol",items:[]}}list.items.push(m[1]);return}
       flushL();para.push(l)});
     flushP();flushL();return out.join("")}
+  // notifications: replies, interview requests, rejections and bounces the inbox watch found, newest first
+  function ago(i){var m=Math.round((Date.now()-new Date(i))/6e4);return m<1?"just now":m<60?m+"m ago":m<1440?Math.round(m/60)+"h ago":m<2880?"yesterday":fmtD(i)}
+  function renderNotifBtn(){var b=$("notif-btn"),n=$("notif-n");if(!S.db||!S.uid){b.hidden=true;return}b.hidden=false;
+    var un=(S.notifs||[]).filter(function(x){return !x.read}).length;n.hidden=!un;n.textContent=un>99?"99+":String(un);b.classList.toggle("has",un>0);b.title=un?un+" new":"Notifications"}
+  function markRead(ids,all){(S.notifs||[]).forEach(function(x){if(all||ids.indexOf(x.id)>=0)x.read=true});renderNotifBtn();return api("POST","/api/notifs/read",all?{all:true}:{ids:ids}).catch(function(){})}
+  function showNotifs(){var slot=$("post-slot");if(slot.firstChild&&slot.firstChild.classList.contains("nt-wrap")){slot.textContent="";$("notif-btn").classList.remove("on");return}
+    slot.textContent="";$("notif-btn").classList.add("on");var close=function(){slot.textContent="";$("notif-btn").classList.remove("on")};
+    var ns=S.notifs||[],un=ns.filter(function(x){return !x.read});
+    var list=el("div");
+    if(!ns.length)list.appendChild(el("div",{class:"nt-empty",text:S.isOwner?"Nothing yet. Replies, interview requests and bounces from "+SEND_FROM+" show up here.":"Nothing yet. Replies to your jobs show up here."}));
+    ns.forEach(function(x){var job=x.jobId&&S.jobs.find(function(j){return j.id===x.jobId});
+      list.appendChild(el("div",{class:"nt-item"+(x.read?" read":""),onclick:function(){markRead([x.id]);close();if(job)openJob(job.id);else if(x.link)window.open(x.link,"_blank","noopener")}},[el("span",{class:"nt-dot k-"+(x.kind||"info")}),
+        el("div",{},[el("div",{class:"nt-t",text:x.title}),x.body?el("div",{class:"nt-b",text:x.body}):null,el("div",{class:"nt-m"},[el("span",{text:ago(x.at)}),job?el("span",{text:shortCo(job.company)}):null,x.link&&S.isOwner?el("a",{href:x.link,target:"_blank",rel:"noopener",text:"Open email",onclick:function(e){e.stopPropagation();markRead([x.id])}}):null])])]))});
+    var g=S.gmail,sub=S.isOwner&&g&&g.connected&&!g.canRead?el("div",{class:"nt-sub"},["The board can't read "+(g.email||"Gmail")+" yet. ",el("a",{href:API+"/api/gmail/connect?t="+encodeURIComponent(getTok()),text:"Reconnect Gmail"})," to turn on reply alerts."]):null;
+    slot.appendChild(el("div",{class:"nt-wrap",onclick:function(e){if(e.target===e.currentTarget)close()}},[el("div",{class:"nt-panel",role:"dialog","aria-label":"Notifications"},[
+      el("div",{class:"nt-head"},[el("b",{text:"Notifications"}),un.length?el("button",{type:"button",class:"linkish",text:"Mark all read",onclick:function(){markRead([],true);showNotifs();showNotifs()}}):null]),sub,list])]));
+    if(S.isOwner&&!S.gmail)gmailStatus().then(function(){if(slot.querySelector(".nt-panel")){slot.textContent="";showNotifs()}})}
   function postUnseen(){S.postRead=S.postRead||{};return S.isOwner?[]:(S.posts||[]).filter(function(p){return !p.seen&&!S.postRead[p.id]})}
   function renderPosts(){var b=$("posts-btn"),slot=$("post-slot");if(!S.db||!S.uid){b.hidden=true;slot.textContent="";return}
     var un=postUnseen();b.hidden=!S.isOwner&&!(S.posts||[]).length;b.classList.toggle("dot",un.length>0);
@@ -3131,6 +3165,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   // events
   $("guide-btn").onclick=function(){S.tab="brief";render();window.scrollTo(0,0)};
   $("posts-btn").onclick=function(){showPostList()};
+  $("notif-btn").onclick=function(){showNotifs()};
   ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).onclick=function(){if(t==="resume"){S.editorJob=null}S.resumeShown=false;S.tab=t;try{localStorage.setItem("ay-tab",t)}catch(e){}render()}});
   // theme toggle: system -> light -> dark
   function themeNow(){return document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light"}
