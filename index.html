@@ -866,7 +866,13 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 @media(max-width:640px){.ats-row{grid-template-columns:1fr 54px}.ats-bar{grid-column:1/-1;order:3}}
 .am{margin:14px 0 0;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}.am-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:10px}.am-head b{font-size:15px}
 .am-to-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}.am-to-row label{font-size:13px;font-weight:600;color:var(--muted)}.am-to{flex:1}.am .rc-subj{width:100%;margin-bottom:8px;box-sizing:border-box}.am .rc-ta{width:100%;box-sizing:border-box}
-.am-note{font-size:12.5px;color:var(--muted);margin:6px 0 10px}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
+.am-note{font-size:12.5px;color:var(--muted);margin:6px 0 10px}
+.am-files{margin:10px 0 12px;padding:12px 14px;border:1.5px dashed var(--line);border-radius:12px;background:var(--card)}.am-files.drag{border-color:var(--accent)}
+.am-files-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.am-files-h b{font-size:14px}
+.am-files ol{margin:6px 0 0;padding-left:20px;font-size:13px;color:var(--muted)}.am-files ol li{margin:2px 0}
+.am-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.am-chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:5px 6px 5px 11px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--fg)}
+.am-chip button{border:0;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px}.am-chip button:hover{color:var(--red)}
+.am-sent{font-size:13.5px;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--green,#15803d) 10%,transparent);color:var(--fg)}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}.fu-chip.late b{color:#c2410c}.fu-chip.late.on{background:#c2410c;border-color:#c2410c}.fu-chip.late.on b{color:#fff}
 .fu-done{color:#15803d;font-size:13px;white-space:nowrap}.fu-due{color:#c2410c;font-weight:600;font-size:13px;white-space:nowrap}.fu-bad{color:#b91c1c;font-weight:600;font-size:13px}.fu-rej{margin-left:6px;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;background:#fde8e8;color:#991b1b}
 .fu-table td{vertical-align:middle}
@@ -2599,7 +2605,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function mailApply(j){var d=j.description||"";var em=(d.match(/[\w.+-]+@[\w-]+(\.[\w-]+)+/g)||[]).filter(function(e){return !/(accommodat|privacy|eeo|no-?reply|donotreply|unsubscribe|benefits)/i.test(e)});
     return em.length>0&&/\b(e-?mail|send|submit)\b[^.\n]{0,80}\b(resume|cv|application|cover letter)\b|\b(resume|cv|application)s?\b[^.\n]{0,60}\bto\b[^.\n]{0,30}@/i.test(d)}
   function applyMailBox(j,pick){S.amAuto=S.amAuto||{};var ae=j.applyEmail,box=el("div",{class:"am"});
-    box.appendChild(el("div",{class:"am-head"},[el("b",{text:"Apply by email"}),el("span",{class:"pg-dim",text:"Send it from "+SEND_FROM+", with the resume PDF attached."})]));
+    box.appendChild(el("div",{class:"am-head"},[el("b",{text:"Apply by email"}),el("span",{class:"pg-dim",text:"Attach the resume and send it from "+SEND_FROM+" right here."})]));
     if(!ae){var wb=aiBtn("Write the application email",function(){return api("POST","/api/ai/apply-email",{jobId:j.id}).then(function(r){j.applyEmail=r;renderRows()})});box.appendChild(wb);
       if(!S.amAuto[j.id]&&(j.description||"").length>=300){S.amAuto[j.id]=1;setTimeout(function(){wb.click()},0)}return box}
     var to=el("input",{id:"fu-am-to-"+j.id,class:"am-to",placeholder:"To"}),sub=el("input",{id:"fu-am-su-"+j.id,class:"rc-subj",placeholder:"Subject"}),ta=el("textarea",{id:"fu-am-bd-"+j.id,class:"rc-ta"});
@@ -2610,10 +2616,32 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var gm=function(){return "https://mail.google.com/mail/?authuser="+encodeURIComponent(SEND_FROM)+"&view=cm&fs=1&to="+encodeURIComponent(to.value.trim())+"&su="+encodeURIComponent(sub.value)+"&body="+encodeURIComponent(ta.value)};
     var copy=function(t){try{navigator.clipboard.writeText(t).then(function(){toast("Copied")})}catch(x){toast("Select the text and copy it")}};
     box.appendChild(el("div",{class:"am-to-row"},[el("label",{for:"fu-am-to-"+j.id,text:"To"}),to]));box.appendChild(sub);box.appendChild(ta);
-    box.appendChild(el("p",{class:"am-note",text:"Gmail can't attach files from a link: download the resume, then attach it in Gmail before you send."}));
+    // attachments: the resume PDF (saved from the print window) plus anything else the posting asks for; the board sends it all from the job-search Gmail
+    S.amFiles=S.amFiles||{};var files=S.amFiles[j.id]=S.amFiles[j.id]||[];
+    var chips=el("div",{class:"am-chips"}),pickIn=el("input",{type:"file",multiple:true,accept:".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg",style:"display:none"});
+    var drawChips=function(){chips.textContent="";files.forEach(function(f,i){chips.appendChild(el("span",{class:"am-chip"},[f.name+" \u00b7 "+(f.size<1e6?Math.max(1,Math.round(f.size/1024))+" KB":(f.size/1e6).toFixed(1)+" MB"),el("button",{type:"button",title:"Remove",text:"\u00d7",onclick:function(){files.splice(i,1);drawChips()}})]))});chips.hidden=!files.length};
+    var addFiles=function(list){[].slice.call(list||[]).forEach(function(f){if(f.size>10e6){toast(f.name+" is over 10MB");return}var r=new FileReader();r.onload=function(){files.push({name:f.name,size:f.size,data:String(r.result)});drawChips()};r.readAsDataURL(f)})};
+    pickIn.addEventListener("change",function(){addFiles(pickIn.files);pickIn.value=""});
+    var drop=el("div",{class:"am-files"},[el("div",{class:"am-files-h"},[el("b",{text:"Attachments"}),el("button",{type:"button",class:"btn small ghost",text:"Attach files",onclick:function(){pickIn.click()}})]),
+      el("ol",{},[el("li",{text:"Click Download resume PDF and choose Save as PDF."}),el("li",{text:"Attach it here (or drag it in), plus a cover letter or anything else the posting asks for."})]),chips,pickIn]);
+    drop.addEventListener("dragover",function(e){e.preventDefault();drop.classList.add("drag")});drop.addEventListener("dragleave",function(){drop.classList.remove("drag")});
+    drop.addEventListener("drop",function(e){e.preventDefault();drop.classList.remove("drag");addFiles(e.dataTransfer.files)});drawChips();
+    if(ae.sentAt)box.insertBefore(el("p",{class:"am-sent",text:"Sent to "+ae.to+" "+fmtD(ae.sentAt)+(ae.files&&ae.files.length?" with "+ae.files.join(", "):"")+"."}),box.children[1]);
+    box.appendChild(drop);
+    var sendBtn=el("button",{type:"button",class:"btn small accent",text:ae.sentAt?"Send again":"Send from "+SEND_FROM.split("@")[0],onclick:function(){var dest=to.value.trim();
+      if(!dest){toast("Add the email address first");return}
+      if(!files.length&&!window.confirm("Send without the resume attached?"))return;
+      if(!window.confirm("Send this application to "+dest+" from "+SEND_FROM+(files.length?" with "+files.length+" attachment"+(files.length>1?"s":""):"")+"?"))return;
+      sendBtn.disabled=true;sendBtn.textContent="Sending...";save();
+      api("POST","/api/apply-send",{jobId:j.id,to:dest,subject:sub.value,body:ta.value,files:files.map(function(f){return {name:f.name,data:f.data}})}).then(function(){
+        S.amFiles[j.id]=[];return api("PATCH","/api/jobs/"+j.id,{status:"applied",note:"Applied by email to "+dest})}).then(function(){
+        var c=(j.contacts||[]).find(function(x){return x.email===dest||x.emailGuess===dest});
+        return c?api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{outreach:"email",text:"Subject: "+sub.value+"\n\n"+ta.value}):null}).then(function(){toast("Sent. Applied to "+j.company+" by email.");S.open=null;refresh()},
+        function(err){sendBtn.disabled=false;sendBtn.textContent="Send from "+SEND_FROM.split("@")[0];fail(err)})}});
     box.appendChild(el("div",{class:"am-acts"},[
       el("button",{type:"button",class:"btn small ghost",text:"Download resume PDF",onclick:function(){mdFor(j,j.tailoredAt?"Tailored":pick).then(function(md){printResume(md,fileTitle(j));markStep(j,"resume")},fail)}}),
-      el("a",{class:"btn small accent",target:"_blank",rel:"noopener",href:gm(),onclick:function(){save();this.href=gm()},text:"Open in Gmail"}),
+      sendBtn,
+      el("a",{class:"btn small ghost",target:"_blank",rel:"noopener",href:gm(),title:"Opens it in Gmail instead. Attach the resume there, send, then click I applied by email.",onclick:function(){save();this.href=gm()},text:"Open in Gmail"}),
       el("button",{type:"button",class:"btn small ghost",text:"Copy email",onclick:function(){copy(ta.value)}}),
       aiBtn("Rewrite",function(){return api("POST","/api/ai/apply-email",{jobId:j.id,to:to.value.trim()}).then(function(r){j.applyEmail=r;renderRows()})},true),
       el("span",{class:"sp"}),
