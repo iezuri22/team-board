@@ -1736,6 +1736,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function confirmSent(cs,ts){var jobOf=function(c){return S.jobs.find(function(jj){return (jj.contacts||[]).indexOf(c)>=0})},n=0;
     return cs.reduce(function(p,c){return p.then(function(){var j=jobOf(c),ps=c.pendingSent;if(!j||!ps)return;
       return api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,ps.text?{outreach:ps.via,text:ps.text}:{outreach:ps.via}).then(function(){c.pendingSent=null;n++})})},Promise.resolve()).then(function(){return n})}
+  // they don't work there anymore: close them out and let the next morning's run find someone current
+  function leftCo(j,c){c.leftAt=c.closedAt=new Date().toISOString();c.sendAt=null;c.pendingSent=null;S.rcMsg={};
+    api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{left:true}).then(function(){toast(c.name.split(" ")[0]+" is marked as left. Someone current gets found tomorrow morning.");refresh()},fail);if(typeof renderReach==="function")renderReach()}
   function claimIt(j,c){if(!S.isOwner||claimed(c))return;c.claimedBy="owner";c.claimedAt=new Date().toISOString();api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{claim:true}).catch(function(){})}
   // the sender runs every 15 minutes, so an email goes out at the first run on or after its time ("Send now" means the next run)
   function fmtWhen(iso){if(!iso)return "";var q=9e5,t=new Date(Math.ceil(Math.max(new Date(iso).getTime(),Date.now())/q)*q),d0=new Date();d0.setHours(0,0,0,0);
@@ -1869,10 +1872,12 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
           el("button",{type:"button",class:"pg-act",text:"Copy subject",onclick:function(e){e.stopPropagation();copyText(subj.value)}}),
           el("a",{class:"pg-act rc-mailto",target:"_blank",rel:"noopener",href:gmail(),onclick:function(e){e.stopPropagation();claimIt(j,c);this.href=gmail()},text:"Open in Gmail"}),
           S.isOwner?el("a",{class:"pg-act rc-mailto",href:mailto(),onclick:function(e){e.stopPropagation();this.href=mailto()},text:"Mail app"}):null,gen,el("span",{class:"sp"}),
+          el("button",{type:"button",class:"linkish rc-bad",text:"Left the company",title:"They don't work there anymore. Closes them out, cancels the email, and finds someone current.",onclick:function(e){e.stopPropagation();leftCo(j,c)}}),
           el("button",{type:"button",class:"pg-act",text:"Sent by email ✓",title:"Log it as sent by email, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,"email","Logged as emailed.",(subj&&subj.value?"Subject: "+subj.value+"\n\n":"")+ta.value);S.rcMsg[c.id]=false}})])
         :[el("button",{type:"button",class:"pg-go hot",text:"Copy",onclick:function(e){e.stopPropagation();copyText(ta.value)}}),
           lnk?el("button",{type:"button",class:"pg-act",text:"Copy & open LinkedIn",title:"Copies it, opens their profile, and moves on. Confirm it under To confirm.",onclick:function(e){e.stopPropagation();copyText(ta.value,function(){window.open(lnk,"_blank","noopener")});openedNext(j,c,mode==="first"?"LinkedIn":c.acceptedAt?"LinkedIn message":"InMail",ta.value)}}):null,
           gen,el("span",{class:"sp"}),
+          el("button",{type:"button",class:"linkish rc-bad",text:"Left the company",title:"They don't work there anymore. Closes them out and finds someone current.",onclick:function(e){e.stopPropagation();leftCo(j,c)}}),
           el("button",{type:"button",class:"pg-act",text:"Sent ✓",title:"Log it as sent, with this text",onclick:function(e){e.stopPropagation();logOut(j,c,via,"Logged as sent.",ta.value);S.rcMsg[c.id]=false}})];
       var chTabs=S.isOwner&&mode==="first"&&addr?el("div",{class:"rc-chtabs"},[["note","LinkedIn note"],["email","Email"+(c.email?"":" (likely)")]].map(function(x){return el("button",{type:"button",class:"rc-chtab"+(ch===x[0]?" on":""),text:x[1],onclick:function(e){e.stopPropagation();S.rcCh[c.id]=x[0];drawBody()}})})):null;
       return el("tr",{class:"rc-msgrow",onclick:function(e){e.stopPropagation()}},[el("td"),el("td",{colspan:String((cols||7)-1)},[el("div",{class:"rc-msg"},[
@@ -1959,7 +1964,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       if(t.group==="upcoming")cNote=c.draft?cell(el("span",{class:"pg-dim",text:"ready"}),openDraft("note"),"Preview the note"):none();
       if(t.group==="confirm"){var ps=c.pendingSent;actTd=el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[
           el("button",{type:"button",class:"pg-go",title:"Log it as sent",onclick:function(e){e.stopPropagation();confirmSent([c]).then(function(){toast("Logged as sent");refresh()},fail)},text:"Sent \u2713"}),
-          el("button",{type:"button",class:"pg-act",title:"Put it back in the list",onclick:function(e){e.stopPropagation();c.pendingSent=null;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{unopened:true}).then(function(){toast("Back in the list");refresh()},fail);drawBody()},text:"Didn't send"})])]);
+          el("button",{type:"button",class:"pg-act",title:"Put it back in the list",onclick:function(e){e.stopPropagation();c.pendingSent=null;api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{unopened:true}).then(function(){toast("Back in the list");refresh()},fail);drawBody()},text:"Didn't send"}),
+          el("button",{type:"button",class:"linkish rc-bad",title:"They don't work there anymore",onclick:function(e){e.stopPropagation();leftCo(j,c)},text:"Left"})])]);
         if(ps)cNote=cell(el("span",{class:"fu-due",text:"confirm"}),function(e){e.stopPropagation();S.rcSent=S.rcSent||{};S.rcMsg=S.rcMsg||{};S.rcMsg[c.id]=false;S.rcPend=S.rcPend||{};S.rcPend[c.id]=!S.rcPend[c.id];drawBody()},"See what you copied")}
       if(t.group==="upcoming"){actTd=el("td",{class:"pg-acts"},[el("div",{class:"rc-acts"},[el("button",{type:"button",class:"pg-act",title:"Log the connection request as sent",onclick:function(e){e.stopPropagation();logOut(j,c,"LinkedIn","Logged. Mark them Accepted when they connect.")},text:"Sent \u2713"})])])}
       // the name opens this tab's message: the note on LinkedIn, the email on Email, whatever's next elsewhere
