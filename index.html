@@ -938,6 +938,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .post-body a{color:var(--accent)}
 .post-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);position:sticky;bottom:-22px;background:var(--card)}
 .post-list{display:grid;gap:2px;margin:0 0 6px}
+.post-job{margin:6px 0 4px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg)}
+.post-job-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.post-job-h b{display:block;font-size:15px}.post-job-h span{font-size:13px;color:var(--muted)}
+.post-jd{white-space:pre-wrap;font:inherit;font-size:14px;line-height:1.55;margin:12px 0 0;max-height:420px;overflow:auto;padding-top:10px;border-top:1px solid var(--line)}
 .post-item{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font:inherit;color:inherit;width:100%}
 .post-item b{font-size:15.5px}.post-item span{font-size:13px;color:var(--muted);white-space:nowrap}
 .post-new{display:grid;gap:10px;margin-top:6px}
@@ -2217,6 +2220,10 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function showPost(p,fromList){var unread=!S.isOwner&&!p.seen&&!(S.postRead||{})[p.id];
     var done=function(){if(unread){S.postRead[p.id]=1;p.seen=true;api("POST","/api/posts/"+p.id+"/seen",{}).catch(function(){})}$("post-slot").textContent="";if(fromList)showPostList();else renderPosts()};
     var body=el("div",{class:"post-body"});body.innerHTML=postHtml(p.body);
+    // an attached job: its saved description, readable by everyone (the posting itself may be gone)
+    if(p.job&&p.job.description){var jd=el("pre",{class:"post-jd",text:p.job.description,hidden:true});
+      var jb=el("button",{type:"button",class:"btn small ghost",text:"Read the job description",onclick:function(){jd.hidden=!jd.hidden;jb.textContent=jd.hidden?"Read the job description":"Hide the job description"}});
+      body.appendChild(el("div",{class:"post-job"},[el("div",{class:"post-job-h"},[el("div",{},[el("b",{text:p.job.role}),el("span",{text:p.job.company})]),jb]),jd]))}
     var acts=[];
     if(S.isOwner){acts.push(el("span",{class:"post-hint",style:"margin-right:auto;align-self:center",text:mates().map(function(k){var at=p.seen&&p.seen[k];return whoName(k).split(" ")[0]+(at?" read it "+fmtD(at):" hasn't opened it")}).join(" \u00b7 ")}));
       acts.push(el("button",{class:"btn ghost",type:"button",text:"Delete",onclick:function(){if(!window.confirm("Delete this update for everyone?"))return;api("DELETE","/api/posts/"+p.id).then(function(){S.posts=S.posts.filter(function(x){return x.id!==p.id});toast("Deleted");showPostList()},fail)}}))}
