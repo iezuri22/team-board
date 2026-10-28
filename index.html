@@ -1719,7 +1719,10 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       return api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,ps.text?{outreach:ps.via,text:ps.text}:{outreach:ps.via}).then(function(){c.pendingSent=null;n++})})},Promise.resolve()).then(function(){return n})}
   function claimIt(j,c){if(!S.isOwner||claimed(c))return;c.claimedBy="owner";c.claimedAt=new Date().toISOString();api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{claim:true}).catch(function(){})}
   // the sender runs every 15 minutes, so an email goes out at the first run on or after its time ("Send now" means the next run)
-  function fmtWhen(iso){if(!iso)return "";var q=9e5,t=Math.ceil(Math.max(new Date(iso).getTime(),Date.now())/q)*q;return new Date(t).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"})}
+  function fmtWhen(iso){if(!iso)return "";var q=9e5,t=new Date(Math.ceil(Math.max(new Date(iso).getTime(),Date.now())/q)*q),d0=new Date();d0.setHours(0,0,0,0);
+    var dd=Math.round((new Date(t.getFullYear(),t.getMonth(),t.getDate())-d0)/864e5),hm=t.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
+    // a weekday alone is ambiguous once the queue runs past this week, so dates show from day 2 on
+    return dd===0?"today "+hm:dd===1?"tomorrow "+hm:t.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+", "+hm}
   // the board sends from the job-search Gmail once it's connected; status is checked once a minute at most
   function gmailStatus(){var now0=Date.now();if(S.gmailAt&&now0-S.gmailAt<60000)return Promise.resolve(S.gmail);S.gmailAt=now0;return api("GET","/api/gmail/status").then(function(g){S.gmail=g;return g},function(){return S.gmail})}
   function schedule(j,c,now,then){api("POST","/api/schedule",{jobId:j.id,contactId:c.id,now:!!now}).then(function(r){toast(now?"Sends at "+fmtWhen(r.first)+".":"Scheduled for "+fmtWhen(r.first)+".");if(then)then();refresh()},fail)}
