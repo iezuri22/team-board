@@ -6,15 +6,15 @@
 <title>Interview Practice</title>
 <script>var t="light";try{if(localStorage.getItem("tb-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=Public+Sans:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap">
 <style>
 /* One centered column: each question is a spoken rep. Record, see how you sounded, get coached */
 :root {
   --bg: #f7f9f8; --ink: #17201d; --muted: #5b6863; --rule: #dfe5e2; --field: #ffffff;
   --accent: #1d6b57; --accent-ink: #ffffff; --soft: #e7f1ed; --rec: #b4322b; --warn: #9a5b00;
-  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
-  --body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --display: "Geist", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --body: "Geist", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -24,16 +24,16 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font: 19.5px/1.6 var(--body); }
+body { background: var(--bg); color: var(--ink); font: 19.5px/1.6 var(--body); -webkit-font-smoothing: antialiased; }
 [hidden] { display: none !important; }
-.wrap { max-width: 1080px; margin: 0 auto; padding-block: max(32px, env(safe-area-inset-top, 0px)) 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.col { max-width: 1080px; margin: 0 auto; }
+.wrap { max-width: 1480px; margin: 0 auto; padding-block: max(32px, env(safe-area-inset-top, 0px)) 96px; padding-left: max(clamp(16px, 4vw, 64px), env(safe-area-inset-left, 0px)); padding-right: max(clamp(16px, 4vw, 64px), env(safe-area-inset-right, 0px)); }
+.col { max-width: none; }
 header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
 .eyebrow { font: 600 14px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-h1 { font: 650 clamp(38px, 6.5vw, 60px)/1.05 var(--display); margin: 10px 0 8px; letter-spacing: -.02em; text-wrap: balance; }
+h1 { font: 700 clamp(38px, 6.5vw, 60px)/1.05 var(--display); margin: 10px 0 8px; letter-spacing: -.02em; text-wrap: balance; }
 .meta { color: var(--muted); margin: 0; }
 .ghost { background: none; border: 1px solid var(--rule); color: var(--muted); border-radius: 999px; padding: 8px 16px; font: 16px var(--body); cursor: pointer; }
-.how { margin: 28px 0 8px; padding: 18px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 18px; max-width: 70ch; }
+.how { margin: 28px 0 8px; padding: 18px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 18px; }
 .how b { color: var(--ink); font-weight: 600; }
 .signin { margin-top: 28px; padding: 18px 20px; background: var(--soft); border-radius: 12px; }
 .signin a { color: var(--accent); font-weight: 600; }
@@ -43,7 +43,7 @@ nav.tabs { display: flex; gap: 6px; margin: 28px 0 8px; flex-wrap: wrap; }
 .tabnote { color: var(--muted); font-size: 17.5px; margin: 8px 0 0; }
 .q { padding: 36px 0; border-bottom: 1px solid var(--rule); }
 .qnum { font: 500 15px var(--mono); color: var(--muted); }
-.q h2 { font: 650 clamp(27px, 4vw, 38px)/1.18 var(--display); margin: 6px 0 12px; letter-spacing: -.01em; text-wrap: balance; }
+.q h2 { font: 700 clamp(27px, 4vw, 38px)/1.18 var(--display); margin: 6px 0 12px; letter-spacing: -.01em; text-wrap: balance; }
 .why { color: var(--muted); margin: 0 0 10px; }
 .why b { font-weight: 600; color: var(--ink); }
 details.hit summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 18px; list-style: none; }
@@ -74,7 +74,7 @@ textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid v
 .stat.flag .v { color: var(--warn); }
 audio { width: 100%; max-width: 520px; height: 40px; }
 .fb { padding: 22px 26px; background: var(--soft); border-radius: 12px; display: grid; gap: 14px; }
-.verdict { font: 650 23px/1.35 var(--display); margin: 0; }
+.verdict { font: 700 23px/1.35 var(--display); margin: 0; }
 .fb h3 { font: 600 13.5px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
 .fb ul { margin: 0; padding-left: 20px; }
 .fb li { margin: 3px 0; }
