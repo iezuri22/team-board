@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Interview Practice</title>
+<script>var t="light";try{if(localStorage.getItem("tb-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=Public+Sans:wght@400;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* One centered column: each question is a spoken rep. Record, see how you sounded, get coached */
+:root {
+  --bg: #f7f9f8; --ink: #17201d; --muted: #5b6863; --rule: #dfe5e2; --field: #ffffff;
+  --accent: #1d6b57; --accent-ink: #ffffff; --soft: #e7f1ed; --rec: #b4322b; --warn: #9a5b00;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121715; --ink: #e6ece9; --muted: #9aa8a2; --rule: #2a3330; --field: #1a201e;
+  --accent: #5fc3a5; --accent-ink: #0d1412; --soft: #1c2a25; --rec: #ef6b62; --warn: #e0a24a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+[hidden] { display: none !important; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: max(32px, env(safe-area-inset-top, 0px)) 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.col { max-width: 760px; margin: 0 auto; }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.eyebrow { font: 600 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 650 clamp(34px, 6vw, 52px)/1.05 var(--display); margin: 10px 0 8px; letter-spacing: -.02em; text-wrap: balance; }
+.meta { color: var(--muted); margin: 0; }
+.ghost { background: none; border: 1px solid var(--rule); color: var(--muted); border-radius: 999px; padding: 6px 14px; font: 14px var(--body); cursor: pointer; }
+.how { margin: 28px 0 8px; padding: 16px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 15.5px; }
+.how b { color: var(--ink); font-weight: 600; }
+.signin { margin-top: 28px; padding: 18px 20px; background: var(--soft); border-radius: 12px; }
+.signin a { color: var(--accent); font-weight: 600; }
+nav.tabs { display: flex; gap: 6px; margin: 28px 0 8px; flex-wrap: wrap; }
+.tab { border: 1px solid var(--rule); background: none; color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 600 14.5px var(--body); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tabnote { color: var(--muted); font-size: 15px; margin: 6px 0 0; }
+.q { padding: 36px 0; border-bottom: 1px solid var(--rule); }
+.qnum { font: 500 13px var(--mono); color: var(--muted); }
+.q h2 { font: 650 clamp(23px, 3.4vw, 29px)/1.2 var(--display); margin: 6px 0 12px; letter-spacing: -.01em; text-wrap: balance; }
+.why { color: var(--muted); margin: 0 0 10px; }
+.why b { font-weight: 600; color: var(--ink); }
+details.hit summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 15px; list-style: none; }
+details.hit summary::-webkit-details-marker { display: none; }
+details.hit summary::before { content: "+ "; }
+details.hit[open] summary::before { content: "\2212  "; }
+details.hit ul { margin: 10px 0 0; padding-left: 20px; }
+details.hit li { margin: 4px 0; }
+.practice { margin-top: 18px; display: grid; gap: 12px; }
+.bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { border: 1px solid var(--rule); background: var(--field); color: var(--ink); border-radius: 8px; padding: 9px 16px; font: 600 14.5px var(--body); cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.rec { background: var(--rec); color: #fff; border-color: var(--rec); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn:focus-visible, .tab:focus-visible, .ghost:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.clock { font: 500 15px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock.live { color: var(--rec); }
+.meter { flex: 1 1 120px; max-width: 220px; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .08s linear; }
+.live-tx { min-height: 3.2em; color: var(--muted); font-size: 16px; margin: 0; }
+.live-tx b { color: var(--ink); font-weight: 400; }
+textarea { width: 100%; min-height: 110px; resize: vertical; border: 1px solid var(--rule); border-radius: 10px; background: var(--field); color: var(--ink); font: 16px/1.55 var(--body); padding: 12px 14px; }
+.small { font-size: 14px; color: var(--muted); margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 16px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat .k { font: 600 11.5px/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 18px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.stat .n { font-size: 13px; color: var(--muted); }
+.stat.flag .v { color: var(--warn); }
+audio { width: 100%; max-width: 420px; height: 36px; }
+.fb { padding: 18px 20px; background: var(--soft); border-radius: 12px; display: grid; gap: 14px; }
+.verdict { font: 650 19px/1.35 var(--display); margin: 0; }
+.fb h3 { font: 600 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.fb ul { margin: 0; padding-left: 20px; }
+.fb li { margin: 3px 0; }
+.say { margin: 0; white-space: pre-wrap; }
+.status { font-size: 14.5px; color: var(--muted); margin: 0; }
+.status.err { color: var(--rec); }
+@media (prefers-reduced-motion: no-preference) { .clock.live { animation: pulse 1.4s ease-in-out infinite; } }
+@keyframes pulse { 50% { opacity: .5; } }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="col">
+  <header>
+    <div>
+      <div class="eyebrow">Careforth · Business Systems Analyst II</div>
+      <h1>Interview Practice</h1>
+      <p class="meta">Video screen with Sandra Graham, Senior Talent Acquisition Consultant. Friday, October 30, on Teams. Posted range $61,300 to $85,800.</p>
+    </div>
+    <button class="ghost" id="theme" type="button">Dark</button>
+  </header>
+
+  <p class="how"><b>How it works:</b> press Record and answer out loud like you're on the call. The page listens: it writes down what you say and measures your pace, pauses, filler words, pitch variety and volume. Press Stop, listen back if you want, fix any words it misheard, then Get coaching. Use Chrome or Safari, and allow the microphone when asked.</p>
+
+  <div class="signin" id="signin" hidden>Open <a href="./">your board</a> and sign in first, then come back to this page. Coaching runs through your board.</div>
+
+  <nav class="tabs" role="tablist" aria-label="Interview round">
+    <button class="tab" role="tab" type="button" aria-selected="true" data-set="screen">Recruiter screen</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-set="hm">Hiring manager round</button>
+  </nav>
+  <p class="tabnote" id="tabnote"></p>
+  <main id="list"></main>
+</div></div>
+
+<script>
+var API = "https://team-board-api.iezuri22.workers.dev";
+function tok(){ try { return localStorage.getItem("tb-token") || ""; } catch (e) { return ""; } }
+
+var BACKGROUND = "CRM and AI consultant in Chicago (Central time). Salesforce Certified Administrator, CAPM, BS in Industrial Engineering from the University of Illinois at Chicago. Day job at William Everett: leads delivery of the CRM for a major U.S. city: 15 departments, 200,000+ records, 2,000+ users, engagement up 23% after launch; oversees that CRM's integration with Salesforce. Runs requirements sessions with department leaders and turns feedback into user stories, acceptance criteria and QA test plans. Took 2,000+ users live through demos, admin training, written guides and video walkthroughs. Rebuilt support from a single phone line into self-service intake. Dashboards for 11 programs that replaced manual status decks, plus AI-drafted monthly reports. Internal reporting platform on Microsoft 365. Configured CRM objects, workflows and permission models for compliance; resolves data and integration issues with developers. 2020 Census, Cook County: population and geospatial data to target outreach; grading scale for grants to 22 agencies. Outside the day job: used AI to build the full operations platform a licensed Illinois home care agency runs on (portals, 13 automated daily jobs, QuickBooks billing, SharePoint filing and compliance checks, hiring mapped to Illinois licensing rules, phone system with an AI receptionist); ships his own iOS and web apps, one live on the App Store.";
+var ROLE = "Careforth supports family caregivers caring for loved ones at home (home visits, remote coaching, a caregiver app); programs are funded by state agencies and health plans. Founded in Boston, remote-first, flexible schedules. The BSA II reports to the VP of Product and Strategy and links product, developers and the business. Key focus: Salesforce core platform, custom work not reliant on cloud license features (Shield, Conga, e-signature a plus). Partners with growth, clinical, care coordination and operations; analyzes data; writes user stories with Product Managers and the Salesforce team; supports backlog and QA; translates healthcare workflows (care transitions, eligibility); trains users; Jira, Confluence, Lucidchart; Scrum. 4 to 6 years as a BSA.";
+
+var QS = {
+  screen: { label: "Recruiter screen with a Senior Talent Acquisition Consultant", note: "Friday's call. A recruiter screen checks fit, story, pay and logistics. Aim for 60 to 90 seconds per answer.", items: [
+    { id: "s1", q: "Walk me through your background.", why: "Can you tell a clear story in about 90 seconds that ends on this role?", hit: ["Lead with scope: the CRM for a major U.S. city, 15 departments, 2,000+ users.", "Name the work this role does: requirements sessions, user stories and acceptance criteria, QA with developers, training.", "Salesforce Certified Administrator, and you oversee that CRM's integration with Salesforce.", "On your own time you built the operations platform a home care agency runs on. That's their world.", "Land it: that's why a BSA role at Careforth fits."] },
+    { id: "s2", q: "What interests you about Careforth and this role?", why: "Did you read about them, and is this more than any job?", hit: ["Care at home is something you've built software for: caregiver compliance, care authorizations, billing.", "The role is the part of your work you like most: sitting between the business and the developers.", "Keep it about the work. Skip praising the mission in general terms."] },
+    { id: "s3", q: "Why are you looking for a new role?", why: "Are you running from something, or toward something?", hit: ["Forward-looking: you want to go deeper on Salesforce and on healthcare workflows.", "Never knock your current employer or project.", "Two or three sentences, then stop."] },
+    { id: "s4", q: "Tell me about your Salesforce experience.", why: "Salesforce is the key focus of the role. How deep do you go?", hit: ["Certified Administrator.", "You oversee the city CRM's integration with Salesforce.", "You configure objects, workflows and permission models to meet compliance needs.", "Be precise about what you've built versus overseen. Specific beats big."] },
+    { id: "s5", q: "What are your salary expectations?", why: "Will you fit their range? Posted: $61,300 to $85,800.", hit: ["Say a number: around $90,000, based on the scope of the role and your experience.", "You're open to talking about the full package.", "One sentence of reasoning at most. Then stop talking."] },
+    { id: "s6", q: "This role is remote-first. What does your setup and schedule look like?", why: "Will you be reliable and reachable? They're based in Boston.", hit: ["Dedicated home office, reliable connection, used to Teams and remote work.", "Central time, comfortable overlapping with Eastern hours.", "Short and confident."] },
+    { id: "s7", q: "When could you start, and are you interviewing anywhere else?", why: "Timeline, and how fast they need to move.", hit: ["A normal notice period, about two weeks.", "You're in a few conversations, and Careforth is one you're most interested in.", "No company names needed."] },
+    { id: "s8", q: "What questions do you have for me?", why: "Always have two. These also tell you how busy the job really is.", hit: ["How many BSAs are on the team, and how does work get prioritized across departments?", "What does a typical week look like for this role?", "Is there production support or after-hours coverage?", "What's the biggest project for this role in the first six months?", "What are the next steps, and who would I meet?"] }
+  ]},
+  hm: { label: "Hiring manager round with the VP of Product and Strategy", note: "Likely next round with the VP of Product and Strategy. Use real stories: the situation, what you did, the result.", items: [
+    { id: "h1", q: "Tell me about a time stakeholders disagreed on requirements.", why: "Can you get departments to one decision without drama?", hit: ["Pick a real moment from the city rollout.", "What each side wanted, and why.", "How you got to one answer: a workshop, data, a tradeoff written down.", "The result, and what shipped."] },
+    { id: "h2", q: "How do you write a good user story and acceptance criteria?", why: "Core craft for this role. They want specifics.", hit: ["As a [role], I want [action], so that [outcome].", "Acceptance criteria QA can test, often Given / When / Then.", "You write the QA test plans too, so you write stories you can test.", "One quick real example."] },
+    { id: "h3", q: "How would you turn a care transition or eligibility workflow into a Salesforce solution?", why: "This is the job: complex healthcare workflows into something scalable.", hit: ["Start with the people doing the work; map the current process (Lucidchart).", "Find the hand-offs, the data each step needs, and the compliance rules.", "Design objects, automation and permissions; declarative first.", "Validate with users, release in phases, train.", "Your home care platform is a real example: authorizations, caregiver compliance, billing."] },
+    { id: "h4", q: "Tell me about a release that didn't go as planned.", why: "Honesty, and whether you learn from problems.", hit: ["A real example, briefly.", "What you caught, how you told people, how you fixed it.", "What you changed in the process afterward."] },
+    { id: "h5", q: "How do you handle requests from several departments at once?", why: "You'd be the link to growth, clinical, care coordination and operations.", hit: ["One intake, one backlog, priorities agreed with the Product Manager by impact.", "Tell people clearly what's next and when.", "You rebuilt city support into self-service intake. Use that."] },
+    { id: "h6", q: "How do you get users to adopt a new feature?", why: "Training and user support are in the posting.", hit: ["2,000+ users taken live: demos, admin training, written guides, video walkthroughs.", "Engagement up 23% after launch.", "Train the people who train others."] },
+    { id: "h7", q: "What Salesforce limitations have you had to design around?", why: "They called out custom work that doesn't rely on cloud license features.", hit: ["Licensing and what's available without add-on clouds.", "Sharing and permission models for sensitive data.", "Platform limits on automation; declarative where possible.", "Be honest about depth, and say how you'd find out what you don't know."] },
+    { id: "h8", q: "How have you used data to improve a process?", why: "The posting asks for analyzing data to find trends.", hit: ["Dashboards for 11 programs that replaced manual status decks.", "Census work: population and geospatial data to target outreach.", "What decision the data changed."] }
+  ]}
+};
+
+var KEY = "tb-interview-v1", saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} }
+
+function el(tag, attrs, kids){ var n = document.createElement(tag); attrs = attrs || {}; for (var k in attrs) { if (k === "text") n.textContent = attrs[k]; else if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); } [].concat(kids || []).forEach(function(c){ if (c != null) n.append(c); }); return n; }
+function fmt(s){ s = Math.max(0, s); return Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0"); }
+function words(t){ return (String(t || "").replace(/\[pause [^\]]*\]/g, "").trim().match(/[A-Za-z0-9'$,.]+/g) || []).length; }
+
+// ---------- listening ----------
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+var active = null; // the one recording at a time
+
+function pitchOf(buf, rate){
+  // autocorrelation over the speaking range (70 to 320 Hz)
+  var n = buf.length, rms = 0; for (var i = 0; i < n; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / n); if (rms < 0.01) return 0;
+  var minLag = Math.floor(rate / 320), maxLag = Math.floor(rate / 70), best = 0, bestLag = 0;
+  for (var lag = minLag; lag <= maxLag; lag++) { var c = 0; for (var j = 0; j < n - lag; j++) c += buf[j] * buf[j + lag]; if (c > best) { best = c; bestLag = lag; } }
+  var e0 = 0; for (var m = 0; m < n; m++) e0 += buf[m] * buf[m];
+  return best / e0 > 0.3 && bestLag ? rate / bestLag : 0;
+}
+
+function start(n){
+  if (active) stop(active);
+  n.status.hidden = true; n.status.className = "status";
+  navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }).then(function(stream){
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
+    var buf = new Float32Array(an.fftSize);
+    var r = { stream: stream, ctx: ctx, an: an, buf: buf, t0: performance.now(), frames: [], finals: [], interim: "", pauses: [], chunks: [], floor: 0, silentSince: 0, voicedOnce: false, rec: null, recog: null, on: true };
+    n.r = r; active = n;
+    try { r.rec = new MediaRecorder(stream); r.rec.ondataavailable = function(e){ if (e.data && e.data.size) r.chunks.push(e.data); }; r.rec.start(); } catch (e) { r.rec = null; }
+    if (SR) {
+      var rc = new SR(); rc.lang = "en-US"; rc.continuous = true; rc.interimResults = true; rc.maxAlternatives = 1;
+      rc.onresult = function(e){ var it = ""; for (var i = e.resultIndex; i < e.results.length; i++) { var res = e.results[i]; if (res.isFinal) r.finals.push({ t: (performance.now() - r.t0) / 1000, text: res[0].transcript.trim() }); else it += res[0].transcript; } r.interim = it; paintLive(n); };
+      rc.onerror = function(e){ if (e.error === "not-allowed" || e.error === "service-not-allowed") { r.noText = true; } };
+      rc.onend = function(){ if (r.on && !r.noText) { try { rc.start(); } catch (e) {} } };
+      try { rc.start(); r.recog = rc; } catch (e) { r.noText = true; }
+    } else r.noText = true;
+    r.tick = setInterval(function(){
+      an.getFloatTimeDomainData(buf);
+      var s = 0; for (var i = 0; i < buf.length; i++) s += buf[i] * buf[i]; var rms = Math.sqrt(s / buf.length);
+      var t = (performance.now() - r.t0) / 1000;
+      if (t < 0.6) { r.floor = Math.max(r.floor, rms); }
+      var thr = Math.max(0.012, r.floor * 2.5);
+      var voiced = t >= 0.6 && rms > thr;
+      r.frames.push({ t: t, rms: rms, f0: voiced ? pitchOf(buf.subarray(0, 1024), ctx.sampleRate) : 0, v: voiced });
+      // pause markers: quiet for 1.2 s or more after he started talking
+      if (voiced) { if (r.silentSince && r.voicedOnce && t - r.silentSince >= 1.2) r.pauses.push({ t: r.silentSince, dur: t - r.silentSince }); r.silentSince = 0; r.voicedOnce = true; }
+      else if (!r.silentSince) r.silentSince = t;
+      n.meterI.style.width = Math.min(100, rms / Math.max(thr * 4, 0.05) * 100) + "%";
+      n.clock.textContent = t < 0.6 ? "ready" : fmt(t - 0.6);
+    }, 50);
+    n.clock.classList.add("live"); n.recBtn.textContent = "Stop"; n.recBtn.classList.add("rec");
+    n.liveTx.hidden = false; n.liveTx.textContent = r.noText ? "Recording. This browser can't write down speech, so you'll type a short version after." : "Listening...";
+    n.after.hidden = true;
+  }).catch(function(){ n.status.textContent = "The microphone is blocked. Allow it in the browser's site settings, then press Record again."; n.status.className = "status err"; n.status.hidden = false; });
+}
+
+function paintLive(n){
+  var r = n.r; if (!r) return; n.liveTx.textContent = "";
+  n.liveTx.append(el("b", { text: r.finals.map(function(f){ return f.text; }).join(" ") }), " " + (r.interim || ""));
+}
+
+function stop(n){
+  var r = n.r; if (!r || !r.on) return; r.on = false; active = null;
+  clearInterval(r.tick);
+  try { r.recog && r.recog.stop(); } catch (e) {}
+  var finish = function(){
+    r.stream.getTracks().forEach(function(t){ t.stop(); }); try { r.ctx.close(); } catch (e) {}
+    n.clock.classList.remove("live"); n.recBtn.textContent = "Record again"; n.recBtn.classList.remove("rec"); n.meterI.style.width = "0";
+    if (r.chunks.length) { var url = URL.createObjectURL(new Blob(r.chunks, { type: r.chunks[0].type || "audio/webm" })); n.audio.src = url; n.audio.hidden = false; } else n.audio.hidden = true;
+    // let the last words arrive before building the transcript
+    setTimeout(function(){ analyze(n); }, r.noText ? 0 : 900);
+  };
+  if (r.rec && r.rec.state !== "inactive") { r.rec.onstop = finish; try { r.rec.stop(); } catch (e) { finish(); } } else finish();
+}
+
+function analyze(n){
+  var r = n.r, F = r.frames.filter(function(f){ return f.t >= 0.6; });
+  var V = F.filter(function(f){ return f.v; });
+  if (!V.length) { n.liveTx.textContent = "Didn't hear anything. Check the mic and try again."; return; }
+  // voiced segments, bridging gaps under 0.3 s
+  var segs = [], cur = null;
+  F.forEach(function(f){ if (f.v) { if (cur && f.t - cur.end <= 0.3) cur.end = f.t; else { cur = { start: f.t, end: f.t }; segs.push(cur); } } });
+  var first = segs[0].start, last = segs[segs.length - 1].end, span = Math.max(1, last - first);
+  var gaps = []; for (var i = 1; i < segs.length; i++) { var g = segs[i].start - segs[i - 1].end; if (g >= 0.7) gaps.push(g); }
+  var talk = segs.reduce(function(a, s){ return a + (s.end - s.start + 0.05); }, 0);
+  // pitch variety in semitones around his median
+  var f0 = V.map(function(f){ return f.f0; }).filter(function(x){ return x > 0; }).sort(function(a, b){ return a - b; });
+  var med = f0.length ? f0[Math.floor(f0.length / 2)] : 0, semis = 0;
+  if (f0.length > 10) { var st = f0.map(function(x){ return 12 * Math.log2(x / med); }), mu = st.reduce(function(a, b){ return a + b; }, 0) / st.length; semis = Math.sqrt(st.reduce(function(a, b){ return a + (b - mu) * (b - mu); }, 0) / st.length); }
+  var lv = V.map(function(f){ return f.rms; }), lvs = lv.slice().sort(function(a, b){ return a - b; }), lmed = lvs[Math.floor(lvs.length / 2)];
+  var tail = lv.slice(Math.floor(lv.length * 0.85)), tailAvg = tail.reduce(function(a, b){ return a + b; }, 0) / Math.max(1, tail.length);
+  var lmu = lv.reduce(function(a, b){ return a + b; }, 0) / lv.length, lcv = Math.sqrt(lv.reduce(function(a, b){ return a + (b - lmu) * (b - lmu); }, 0) / lv.length) / lmu;
+
+  // transcript with pause markers placed by time (recognition lands about a second after speech)
+  var items = r.finals.map(function(f){ return { t: f.t - 0.9, s: f.text }; });
+  if (r.interim) items.push({ t: last, s: r.interim.trim() });
+  r.pauses.filter(function(p){ return p.t > first && p.t < last; }).forEach(function(p){ items.push({ t: p.t + 0.2, s: "[pause " + p.dur.toFixed(1) + "s]" }); });
+  items.sort(function(a, b){ return a.t - b.t; });
+  var tx = items.map(function(x){ return x.s; }).filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+
+  var low = " " + tx.toLowerCase().replace(/\[pause [^\]]*\]/g, " ") + " ";
+  var FILL = { "um": /\b(um+|umm+|erm+)\b/g, "uh": /\b(uh+|uhh+|er)\b/g, "like": /\blike\b/g, "you know": /\byou know\b/g, "I mean": /\bi mean\b/g, "kind of / sort of": /\b(kind of|sort of|kinda)\b/g, "basically": /\bbasically\b/g, "actually": /\bactually\b/g };
+  var fillers = {}, fillTotal = 0; for (var k in FILL) { var m = low.match(FILL[k]); if (m && m.length) { fillers[k] = m.length; fillTotal += m.length; } }
+  var w = words(tx);
+  n.metrics = {
+    seconds_speaking: +span.toFixed(1), words: w, words_per_minute: r.noText ? null : Math.round(w / (span / 60)),
+    first_word_after_s: +(first).toFixed(1), pauses_over_0_7s: gaps.length, pauses_over_2s: gaps.filter(function(g){ return g >= 2; }).length,
+    longest_pause_s: gaps.length ? +Math.max.apply(null, gaps).toFixed(1) : 0, talk_ratio: +(talk / span).toFixed(2),
+    fillers_heard: fillers, fillers_total: fillTotal, fillers_per_minute: +(fillTotal / (span / 60)).toFixed(1),
+    pitch_median_hz: Math.round(med), pitch_variety_semitones: +semis.toFixed(1),
+    volume_variation: +lcv.toFixed(2), ending_volume_vs_median: +(tailAvg / lmed).toFixed(2)
+  };
+  n.ta.value = tx; n.liveTx.hidden = true; n.after.hidden = false;
+  if (r.noText) { n.ta.value = ""; n.ta.placeholder = "This browser couldn't write down what you said. Type a short version of your answer so the coaching has the content."; }
+  paintStats(n); save1(n, { tx: n.ta.value, metrics: n.metrics });
+  n.coachBtn.disabled = !n.ta.value.trim();
+}
+
+function stat(k, v, note, flag){ return el("div", { class: "stat" + (flag ? " flag" : "") }, [el("div", { class: "k", text: k }), el("div", { class: "v", text: v }), note ? el("div", { class: "n", text: note }) : null]); }
+function paintStats(n){
+  var m = n.metrics; if (!m) return; n.stats.textContent = "";
+  var f = Object.keys(m.fillers_heard || {}).map(function(k){ return k + " " + m.fillers_heard[k]; }).join(", ");
+  n.stats.append(
+    stat("Length", fmt(m.seconds_speaking), m.seconds_speaking > 120 ? "long for a screen" : m.seconds_speaking < 30 ? "short" : "", m.seconds_speaking > 120 || m.seconds_speaking < 30),
+    stat("Pace", m.words_per_minute ? m.words_per_minute + " wpm" : "n/a", "130 to 160 is easy to follow", m.words_per_minute && (m.words_per_minute > 175 || m.words_per_minute < 115)),
+    stat("Pauses", m.pauses_over_0_7s + (m.pauses_over_2s ? " (" + m.pauses_over_2s + " long)" : ""), "longest " + m.longest_pause_s + "s", m.longest_pause_s >= 2.5),
+    stat("Fillers", String(m.fillers_total), f || "none heard", m.fillers_per_minute > 4),
+    stat("Pitch variety", m.pitch_variety_semitones ? m.pitch_variety_semitones + " st" : "n/a", m.pitch_variety_semitones && m.pitch_variety_semitones < 1.5 ? "reads flat" : "above 2.5 sounds engaged", m.pitch_variety_semitones && m.pitch_variety_semitones < 1.5),
+    stat("Ending", Math.round(m.ending_volume_vs_median * 100) + "%", m.ending_volume_vs_median < 0.7 ? "trailing off" : "volume at the end", m.ending_volume_vs_median < 0.7),
+    stat("First word", m.first_word_after_s + "s", "after you pressed Record", m.first_word_after_s > 4)
+  );
+  n.stats.hidden = false;
+}
+
+function save1(n, patch){ saved[n.item.id] = Object.assign(saved[n.item.id] || {}, patch); save(); }
+
+function coach(n){
+  var t = tok(); if (!t) { document.getElementById("signin").hidden = false; window.scrollTo(0, 0); return; }
+  var tx = n.ta.value.trim(); if (!tx) return;
+  n.coachBtn.disabled = true; n.status.className = "status"; n.status.textContent = "Listening back..."; n.status.hidden = false; n.fb.hidden = true;
+  fetch(API + "/api/coach", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t },
+    body: JSON.stringify({ round: QS[n.set].label, question: n.item.q, why: n.item.why, hit: n.item.hit, role: ROLE, background: BACKGROUND, transcript: tx, metrics: n.metrics || {} }) })
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ if (!r.ok) throw d; return d; }); })
+    .then(function(d){ n.status.hidden = true; save1(n, { tx: tx, fb: d.feedback }); showFb(n, d.feedback); })
+    .catch(function(e){ n.status.className = "status err"; n.status.textContent = e && e.error === "signed_out" ? "Your board sign-in expired. Open your board, sign in, then try again." : (e && e.error) || "Couldn't reach the coach. Check your connection and try again."; })
+    .then(function(){ n.coachBtn.disabled = !n.ta.value.trim(); });
+}
+
+function showFb(n, d){
+  if (!d) return; n.fb.textContent = "";
+  function list(title, arr){ return arr && arr.length ? el("div", {}, [el("h3", { text: title }), el("ul", {}, arr.map(function(x){ return el("li", { text: String(x) }); }))]) : null; }
+  n.fb.append(
+    d.verdict ? el("p", { class: "verdict", text: d.verdict }) : null,
+    list("How you sounded", d.delivery), list("What landed", d.landed), list("Fix next time", d.fix),
+    d.tighter ? el("div", {}, [el("h3", { text: "Say it like this" }), el("p", { class: "say", text: d.tighter })]) : null,
+    d.drill ? el("div", {}, [el("h3", { text: "Next rep" }), el("p", { class: "say", text: d.drill })]) : null
+  );
+  n.fb.hidden = false;
+}
+
+var nodes = [];
+function render(set){
+  if (active) stop(active);
+  var list = document.getElementById("list"); list.textContent = ""; nodes = [];
+  document.getElementById("tabnote").textContent = QS[set].note;
+  QS[set].items.forEach(function(item, i){
+    var st = saved[item.id] || {};
+    var n = { item: item, set: set };
+    n.recBtn = el("button", { class: "btn primary", type: "button", id: "rec-" + item.id, text: "Record" });
+    n.clock = el("span", { class: "clock", text: "0:00" });
+    n.meterI = el("i"); var meter = el("span", { class: "meter", "aria-hidden": "true" }, n.meterI);
+    n.liveTx = el("p", { class: "live-tx", hidden: "" });
+    n.audio = el("audio", { controls: "", hidden: "" });
+    n.stats = el("div", { class: "stats", hidden: "" });
+    n.ta = el("textarea", { id: "tx-" + item.id, "aria-label": "What you said: " + item.q, placeholder: "Your words show up here after you stop. Fix anything it misheard." });
+    n.ta.value = st.tx || "";
+    n.coachBtn = el("button", { class: "btn primary", type: "button", id: "coach-" + item.id, text: "Get coaching" });
+    n.status = el("p", { class: "status", hidden: "" });
+    n.fb = el("div", { class: "fb", hidden: "" });
+    n.after = el("div", { class: "practice" }, [n.audio, n.stats, n.ta, el("div", { class: "bar" }, [n.coachBtn, el("span", { class: "small", text: "Fix misheard words first. Pause markers show where you went quiet." })])]);
+    n.after.hidden = !st.tx;
+    n.metrics = st.metrics || null; if (n.metrics) paintStats(n);
+    n.coachBtn.disabled = !n.ta.value.trim();
+    n.ta.addEventListener("input", function(){ save1(n, { tx: n.ta.value }); n.coachBtn.disabled = !n.ta.value.trim(); });
+    n.recBtn.onclick = function(){ if (n.r && n.r.on) stop(n); else start(n); };
+    n.coachBtn.onclick = function(){ coach(n); };
+    if (st.fb) showFb(n, st.fb);
+    nodes.push(n);
+    list.append(el("section", { class: "q", id: item.id }, [
+      el("div", { class: "qnum", text: String(i + 1).padStart(2, "0") + " / " + String(QS[set].items.length).padStart(2, "0") }),
+      el("h2", { text: item.q }),
+      el("p", { class: "why" }, [el("b", { text: "What they're checking: " }), item.why]),
+      el("details", { class: "hit" }, [el("summary", { text: "Points to hit" }), el("ul", {}, item.hit.map(function(h){ return el("li", { text: h }); }))]),
+      el("div", { class: "practice" }, [el("div", { class: "bar" }, [n.recBtn, n.clock, meter]), n.liveTx, n.after, n.status, n.fb])
+    ]));
+  });
+}
+
+var current = "screen"; try { if (localStorage.getItem(KEY + "-tab") === "hm") current = "hm"; } catch (e) {}
+document.querySelectorAll(".tab").forEach(function(b){
+  b.setAttribute("aria-selected", String(b.dataset.set === current));
+  b.onclick = function(){ current = b.dataset.set; document.querySelectorAll(".tab").forEach(function(x){ x.setAttribute("aria-selected", String(x === b)); }); render(current); try { localStorage.setItem(KEY + "-tab", current); } catch (e) {} };
+});
+render(current);
+if (!tok()) document.getElementById("signin").hidden = false;
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { var s = document.getElementById("signin"); s.hidden = false; s.textContent = "This browser can't use the microphone here. Open this page in Chrome or Safari."; }
+
+var themeBtn = document.getElementById("theme");
+function paintTheme(){ themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "Light" : "Dark"; }
+paintTheme();
+themeBtn.onclick = function(){ var t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", t); try { localStorage.setItem("tb-theme", t); } catch (e) {} paintTheme(); };
+</script>
+</body>
+</html>
