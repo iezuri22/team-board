@@ -24,29 +24,29 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font: 17px/1.6 var(--body); }
+body { background: var(--bg); color: var(--ink); font: 19.5px/1.6 var(--body); }
 [hidden] { display: none !important; }
 .wrap { max-width: 1080px; margin: 0 auto; padding-block: max(32px, env(safe-area-inset-top, 0px)) 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.col { max-width: 760px; margin: 0 auto; }
+.col { max-width: 1080px; margin: 0 auto; }
 header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
-.eyebrow { font: 600 12px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-h1 { font: 650 clamp(34px, 6vw, 52px)/1.05 var(--display); margin: 10px 0 8px; letter-spacing: -.02em; text-wrap: balance; }
+.eyebrow { font: 600 14px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 650 clamp(38px, 6.5vw, 60px)/1.05 var(--display); margin: 10px 0 8px; letter-spacing: -.02em; text-wrap: balance; }
 .meta { color: var(--muted); margin: 0; }
-.ghost { background: none; border: 1px solid var(--rule); color: var(--muted); border-radius: 999px; padding: 6px 14px; font: 14px var(--body); cursor: pointer; }
-.how { margin: 28px 0 8px; padding: 16px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 15.5px; }
+.ghost { background: none; border: 1px solid var(--rule); color: var(--muted); border-radius: 999px; padding: 8px 16px; font: 16px var(--body); cursor: pointer; }
+.how { margin: 28px 0 8px; padding: 18px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); color: var(--muted); font-size: 18px; max-width: 70ch; }
 .how b { color: var(--ink); font-weight: 600; }
 .signin { margin-top: 28px; padding: 18px 20px; background: var(--soft); border-radius: 12px; }
 .signin a { color: var(--accent); font-weight: 600; }
 nav.tabs { display: flex; gap: 6px; margin: 28px 0 8px; flex-wrap: wrap; }
-.tab { border: 1px solid var(--rule); background: none; color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 600 14.5px var(--body); cursor: pointer; }
+.tab { border: 1px solid var(--rule); background: none; color: var(--muted); padding: 10px 20px; border-radius: 999px; font: 600 17px var(--body); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-.tabnote { color: var(--muted); font-size: 15px; margin: 6px 0 0; }
+.tabnote { color: var(--muted); font-size: 17.5px; margin: 8px 0 0; }
 .q { padding: 36px 0; border-bottom: 1px solid var(--rule); }
-.qnum { font: 500 13px var(--mono); color: var(--muted); }
-.q h2 { font: 650 clamp(23px, 3.4vw, 29px)/1.2 var(--display); margin: 6px 0 12px; letter-spacing: -.01em; text-wrap: balance; }
+.qnum { font: 500 15px var(--mono); color: var(--muted); }
+.q h2 { font: 650 clamp(27px, 4vw, 38px)/1.18 var(--display); margin: 6px 0 12px; letter-spacing: -.01em; text-wrap: balance; }
 .why { color: var(--muted); margin: 0 0 10px; }
 .why b { font-weight: 600; color: var(--ink); }
-details.hit summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 15px; list-style: none; }
+details.hit summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 18px; list-style: none; }
 details.hit summary::-webkit-details-marker { display: none; }
 details.hit summary::before { content: "+ "; }
 details.hit[open] summary::before { content: "\2212  "; }
@@ -54,32 +54,32 @@ details.hit ul { margin: 10px 0 0; padding-left: 20px; }
 details.hit li { margin: 4px 0; }
 .practice { margin-top: 18px; display: grid; gap: 12px; }
 .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.btn { border: 1px solid var(--rule); background: var(--field); color: var(--ink); border-radius: 8px; padding: 9px 16px; font: 600 14.5px var(--body); cursor: pointer; }
+.btn { border: 1px solid var(--rule); background: var(--field); color: var(--ink); border-radius: 10px; padding: 12px 22px; font: 600 17px var(--body); cursor: pointer; }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn.rec { background: var(--rec); color: #fff; border-color: var(--rec); }
 .btn:disabled { opacity: .5; cursor: default; }
 .btn:focus-visible, .tab:focus-visible, .ghost:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.clock { font: 500 15px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.clock { font: 500 18px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .clock.live { color: var(--rec); }
-.meter { flex: 1 1 120px; max-width: 220px; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+.meter { flex: 1 1 160px; max-width: 320px; height: 8px; border-radius: 3px; background: var(--rule); overflow: hidden; }
 .meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .08s linear; }
-.live-tx { min-height: 3.2em; color: var(--muted); font-size: 16px; margin: 0; }
+.live-tx { min-height: 3.2em; color: var(--muted); font-size: 19px; margin: 0; }
 .live-tx b { color: var(--ink); font-weight: 400; }
-textarea { width: 100%; min-height: 110px; resize: vertical; border: 1px solid var(--rule); border-radius: 10px; background: var(--field); color: var(--ink); font: 16px/1.55 var(--body); padding: 12px 14px; }
-.small { font-size: 14px; color: var(--muted); margin: 0; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 16px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
-.stat .k { font: 600 11.5px/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.stat .v { font: 500 18px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
-.stat .n { font-size: 13px; color: var(--muted); }
+textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--rule); border-radius: 12px; background: var(--field); color: var(--ink); font: 19px/1.55 var(--body); padding: 12px 14px; }
+.small { font-size: 16px; color: var(--muted); margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.stat .k { font: 600 13px/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat .v { font: 500 22px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+.stat .n { font-size: 15px; color: var(--muted); }
 .stat.flag .v { color: var(--warn); }
-audio { width: 100%; max-width: 420px; height: 36px; }
-.fb { padding: 18px 20px; background: var(--soft); border-radius: 12px; display: grid; gap: 14px; }
-.verdict { font: 650 19px/1.35 var(--display); margin: 0; }
-.fb h3 { font: 600 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+audio { width: 100%; max-width: 520px; height: 40px; }
+.fb { padding: 22px 26px; background: var(--soft); border-radius: 12px; display: grid; gap: 14px; }
+.verdict { font: 650 23px/1.35 var(--display); margin: 0; }
+.fb h3 { font: 600 13.5px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
 .fb ul { margin: 0; padding-left: 20px; }
 .fb li { margin: 3px 0; }
 .say { margin: 0; white-space: pre-wrap; }
-.status { font-size: 14.5px; color: var(--muted); margin: 0; }
+.status { font-size: 17px; color: var(--muted); margin: 0; }
 .status.err { color: var(--rec); }
 @media (prefers-reduced-motion: no-preference) { .clock.live { animation: pulse 1.4s ease-in-out infinite; } }
 @keyframes pulse { 50% { opacity: .5; } }
@@ -102,7 +102,8 @@ audio { width: 100%; max-width: 420px; height: 36px; }
 
   <nav class="tabs" role="tablist" aria-label="Interview round">
     <button class="tab" role="tab" type="button" aria-selected="true" data-set="screen">Recruiter screen</button>
-    <button class="tab" role="tab" type="button" aria-selected="false" data-set="hm">Hiring manager round</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-set="beh">Tell me about a time</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-set="tech">Technical</button>
   </nav>
   <p class="tabnote" id="tabnote"></p>
   <main id="list"></main>
@@ -126,15 +127,34 @@ var QS = {
     { id: "s7", q: "When could you start, and are you interviewing anywhere else?", why: "Timeline, and how fast they need to move.", hit: ["A normal notice period, about two weeks.", "You're in a few conversations, and Careforth is one you're most interested in.", "No company names needed."] },
     { id: "s8", q: "What questions do you have for me?", why: "Always have two. These also tell you how busy the job really is.", hit: ["How many BSAs are on the team, and how does work get prioritized across departments?", "What does a typical week look like for this role?", "Is there production support or after-hours coverage?", "What's the biggest project for this role in the first six months?", "What are the next steps, and who would I meet?"] }
   ]},
-  hm: { label: "Hiring manager round with the VP of Product and Strategy", note: "Likely next round with the VP of Product and Strategy. Use real stories: the situation, what you did, the result.", items: [
-    { id: "h1", q: "Tell me about a time stakeholders disagreed on requirements.", why: "Can you get departments to one decision without drama?", hit: ["Pick a real moment from the city rollout.", "What each side wanted, and why.", "How you got to one answer: a workshop, data, a tradeoff written down.", "The result, and what shipped."] },
-    { id: "h2", q: "How do you write a good user story and acceptance criteria?", why: "Core craft for this role. They want specifics.", hit: ["As a [role], I want [action], so that [outcome].", "Acceptance criteria QA can test, often Given / When / Then.", "You write the QA test plans too, so you write stories you can test.", "One quick real example."] },
-    { id: "h3", q: "How would you turn a care transition or eligibility workflow into a Salesforce solution?", why: "This is the job: complex healthcare workflows into something scalable.", hit: ["Start with the people doing the work; map the current process (Lucidchart).", "Find the hand-offs, the data each step needs, and the compliance rules.", "Design objects, automation and permissions; declarative first.", "Validate with users, release in phases, train.", "Your home care platform is a real example: authorizations, caregiver compliance, billing."] },
-    { id: "h4", q: "Tell me about a release that didn't go as planned.", why: "Honesty, and whether you learn from problems.", hit: ["A real example, briefly.", "What you caught, how you told people, how you fixed it.", "What you changed in the process afterward."] },
-    { id: "h5", q: "How do you handle requests from several departments at once?", why: "You'd be the link to growth, clinical, care coordination and operations.", hit: ["One intake, one backlog, priorities agreed with the Product Manager by impact.", "Tell people clearly what's next and when.", "You rebuilt city support into self-service intake. Use that."] },
-    { id: "h6", q: "How do you get users to adopt a new feature?", why: "Training and user support are in the posting.", hit: ["2,000+ users taken live: demos, admin training, written guides, video walkthroughs.", "Engagement up 23% after launch.", "Train the people who train others."] },
-    { id: "h7", q: "What Salesforce limitations have you had to design around?", why: "They called out custom work that doesn't rely on cloud license features.", hit: ["Licensing and what's available without add-on clouds.", "Sharing and permission models for sensitive data.", "Platform limits on automation; declarative where possible.", "Be honest about depth, and say how you'd find out what you don't know."] },
-    { id: "h8", q: "How have you used data to improve a process?", why: "The posting asks for analyzing data to find trends.", hit: ["Dashboards for 11 programs that replaced manual status decks.", "Census work: population and geospatial data to target outreach.", "What decision the data changed."] }
+  beh: { label: "Behavioral round (hiring manager, 'tell me about a time' questions). Check that he tells one real story with situation, action and result, and that the result is specific", note: "Hiring manager style. Tell one real story each time: the situation in a sentence or two, what you did, and the result. About 90 seconds to two minutes.", items: [
+    { id: "b1", q: "Tell me about a time stakeholders disagreed on requirements.", why: "Can you get departments to one decision without drama?", hit: ["Pick a real moment from the city rollout: two departments wanting different things.", "What each side wanted, and why.", "How you got to one answer: a workshop, data, a tradeoff written down.", "The result, and what shipped."] },
+    { id: "b2", q: "Tell me about a time a release didn't go as planned.", why: "Honesty, and whether you learn from problems.", hit: ["A real example, briefly.", "What you caught, how you told people, how you fixed it.", "What you changed in the process afterward."] },
+    { id: "b3", q: "Tell me about a time you pushed back on a request from a senior leader.", why: "Will you protect the system and the backlog without burning relationships?", hit: ["What they asked for, and why it was a problem (scope, risk, data, timing).", "How you said it: the tradeoff, with an alternative.", "What happened, and how the relationship held up."] },
+    { id: "b4", q: "Tell me about a time requirements changed in the middle of a project.", why: "Healthcare rules and programs change. Can you adapt without chaos?", hit: ["What changed and why.", "How you re-scoped: updated stories, told the team, reset expectations.", "What still shipped on time."] },
+    { id: "b5", q: "Tell me about a time you got people to use something they resisted.", why: "Adoption is half this job: training and user support are in the posting.", hit: ["A department that didn't want the new CRM.", "What you did: demos, admin training, guides, video walkthroughs, finding a champion.", "The result: 2,000+ users live, engagement up 23% after launch."] },
+    { id: "b6", q: "Tell me about a time you used data to change a decision.", why: "The posting asks you to analyze data to find trends.", hit: ["Dashboards for 11 programs that replaced manual status decks, or the Census grant scoring for 22 agencies.", "What the data showed that people didn't expect.", "The decision it changed."] },
+    { id: "b7", q: "Tell me about a time you had several teams asking for things at once.", why: "You'd be the link to growth, clinical, care coordination and operations.", hit: ["The competing asks.", "How you prioritized: impact, deadlines, one backlog, agreed with leadership.", "How you told each team what was next.", "The self-service intake you built is a good example."] },
+    { id: "b8", q: "Tell me about a mistake you made at work.", why: "Ownership. They want a real mistake, not a humblebrag.", hit: ["A real, moderate mistake.", "How you found it and owned it quickly.", "The fix, and the habit you changed so it doesn't happen again."] },
+    { id: "b9", q: "Tell me about a time you explained something technical to someone non-technical.", why: "You sit between developers and the business. Can you translate?", hit: ["Who it was and what they needed to understand.", "How you explained it: plain words, a picture or a demo.", "What they did with it."] },
+    { id: "b10", q: "Tell me about a time you learned a new system quickly.", why: "They use tools you may not know yet (Conga, Shield, e-signature).", hit: ["Something real: Microsoft Graph and SharePoint for the reporting platform, or the QuickBooks and phone integrations you built.", "How you learned it: docs, a sandbox, building something small first.", "How fast you were productive."] },
+    { id: "b11", q: "Tell me about a process you improved.", why: "Process improvement is named in the role summary.", hit: ["Support went from a single phone line to self-service intake with templated answers and self-booked consultations.", "What was broken, what you changed, what got better for users."] }
+  ]},
+  tech: { label: "Technical round (Salesforce and business systems analyst craft). Check his technical accuracy and correct anything wrong or vague, plainly", note: "Salesforce and BSA craft. Be accurate and concrete, and say how you'd find out what you don't know. 60 to 90 seconds each.", items: [
+    { id: "t1", q: "How do you write a good user story and acceptance criteria?", why: "Core craft for this role. They want specifics.", hit: ["As a [role], I want [action], so that [outcome].", "Acceptance criteria QA can test, often Given / When / Then.", "Small enough to finish in a sprint.", "You write the QA test plans too, so you write stories you can test."] },
+    { id: "t2", q: "How would you turn a care transition or eligibility workflow into a Salesforce solution?", why: "This is the job: complex healthcare workflows into something scalable.", hit: ["Start with the people doing the work; map current and future state (Lucidchart swimlanes).", "Find the hand-offs, the data each step needs, and the compliance rules.", "Design objects, automation and permissions; declarative first.", "Validate with users, release in phases, train.", "Your home care platform is a real example: authorizations, caregiver compliance, billing."] },
+    { id: "t3", q: "What's the difference between a profile, a permission set and a role?", why: "Basic Salesforce access model. A certified admin should nail this.", hit: ["Profile: a user's baseline object, field and app permissions. One per user.", "Permission sets (and groups): add permissions on top without new profiles.", "Role: controls which records a user can see through the role hierarchy.", "Short version: profiles and permission sets decide what you can do; roles and sharing decide which records you see."] },
+    { id: "t4", q: "Explain the Salesforce sharing model.", why: "Health data means tight record access.", hit: ["Org-wide defaults set the most restrictive baseline (Private, Public Read Only, Public Read/Write).", "Role hierarchy opens access upward.", "Sharing rules (owner- or criteria-based), teams and manual sharing open it further.", "Field-level security controls fields; sharing controls records."] },
+    { id: "t5", q: "When would you use Flow versus Apex?", why: "The posting mentions custom work and development projects.", hit: ["Flow first: record-triggered, screen and scheduled flows that admins can maintain.", "Apex when logic is too complex, volumes are high, or performance and limits matter.", "Think about who maintains it after go-live.", "Either way, build it bulk-safe and test in a sandbox."] },
+    { id: "t6", q: "What's the difference between a lookup and a master-detail relationship?", why: "Data modeling basics.", hit: ["Master-detail: the child needs a parent, inherits sharing and ownership, deletes with the parent, and allows roll-up summary fields.", "Lookup: optional and loosely linked, with its own sharing; roll-ups need Flow or a tool.", "Example: a care plan's tasks could be master-detail; a client's referring agency would be a lookup."] },
+    { id: "t7", q: "What are governor limits, and why do they matter to a BSA?", why: "Do you design things that won't break at scale?", hit: ["Salesforce is multi-tenant, so each transaction has limits (queries, records changed, CPU time).", "Automation that runs a query per record fails on bulk loads.", "As a BSA you ask about volumes early and write stories that call out bulk behavior."] },
+    { id: "t8", q: "How would you handle a data migration into Salesforce?", why: "Integrations and data work come up constantly.", hit: ["Map source to target fields and clean and de-duplicate first.", "Use external IDs; load parents before children.", "Test in a sandbox, check record counts and samples.", "Have a rollback plan; Data Loader or Import Wizard depending on size.", "The city rollout had 200,000+ records."] },
+    { id: "t9", q: "How would you protect sensitive health data in Salesforce?", why: "Careforth handles health and Medicaid program data. They mention Shield.", hit: ["Least privilege: private org-wide defaults, field-level security, permission sets.", "Shield: Platform Encryption, Event Monitoring, Field Audit Trail.", "Audit who can see what, and review it regularly.", "Be honest: you've designed permission models for compliance; Shield is something you'd come up to speed on."] },
+    { id: "t10", q: "Validation rule, required field, or page layout: when do you use each?", why: "Small question that shows real admin experience.", hit: ["Required on the field: always required, everywhere, API included.", "Required on the page layout: only in the UI.", "Validation rule: conditional logic, like a discharge date after the admission date."] },
+    { id: "t11", q: "How do you test a feature before it goes live?", why: "The posting says you support QA processes.", hit: ["Test plan written from the acceptance criteria.", "Happy path, edge cases, and testing as each kind of user (permissions).", "UAT in a sandbox with real users, regression check, then sign-off."] },
+    { id: "t12", q: "What happens in a sprint, and what's your role in it?", why: "They work in Scrum.", hit: ["Refinement, planning, standups, review or demo, and a retro.", "You write and refine stories, answer developer questions, test, and demo to the business.", "You keep the backlog ready a sprint or two ahead."] },
+    { id: "t13", q: "A director asks for a new report. How do you approach it?", why: "Do you ask what decision it's for before building?", hit: ["Ask what decision the report supports and how often they'll use it.", "Define each metric, then check the data exists and is clean.", "Pick the report type or dashboard, build it, validate the numbers with them.", "Your 11 program dashboards that replaced status decks."] },
+    { id: "t14", q: "How do you document a process or a system change?", why: "Jira, Confluence and Lucidchart are named in the posting.", hit: ["Current and future state diagrams in Lucidchart.", "Confluence pages for the process and the decisions.", "Jira stories linked to the docs.", "User-facing guides, video walkthroughs and release notes."] }
   ]}
 };
 
@@ -338,7 +358,7 @@ function render(set){
   });
 }
 
-var current = "screen"; try { if (localStorage.getItem(KEY + "-tab") === "hm") current = "hm"; } catch (e) {}
+var current = "screen"; try { var lt = localStorage.getItem(KEY + "-tab"); if (QS[lt]) current = lt; } catch (e) {}
 document.querySelectorAll(".tab").forEach(function(b){
   b.setAttribute("aria-selected", String(b.dataset.set === current));
   b.onclick = function(){ current = b.dataset.set; document.querySelectorAll(".tab").forEach(function(x){ x.setAttribute("aria-selected", String(x === b)); }); render(current); try { localStorage.setItem(KEY + "-tab", current); } catch (e) {} };
