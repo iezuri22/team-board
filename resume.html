@@ -425,13 +425,30 @@ function schedOne(j,c,btn){var done=btn?busy(btn,"Scheduling"):function(){};api(
 function rmContact(j,c){if(!confirm("Remove "+c.name+" from "+j.company+"? Any scheduled email to them is cancelled."))return;
   api("DELETE","/api/r/jobs/"+j.id+"/contacts/"+c.id).then(function(x){if(S.job&&S.job.id===x.id)S.job=x;toast(c.name.split(" ")[0]+" removed");load()},fail)}
 
+// finding people and emails happens in their own Claude chat (no API usage): we hand them the prompt, they paste the reply back
+function peoplePrompt(j){var known=(j.contacts||[]).map(function(c){return c.name});
+  return "I applied for the "+j.role+" role at "+j.company+". Find up to 3 real people who currently work at "+j.company+" that I should message about it:\n- a recruiter or talent acquisition partner who hires for this team and region\n- the likely hiring manager (the title the role reports to, if the posting says)\n- someone doing similar work on that team\n\nRules:\n- Search the web. Only include someone if a result from the last 12 months shows them at "+j.company+" now, like their LinkedIn headline or a recent company page. Skip anyone marked ex- or former, or with a newer job somewhere else.\n- Match the role's location. A US role needs people based in the US, ideally near the office for hybrid or on-site roles.\n- Look for each person's work email. Put it under email only if a page shows it. If not, but you can see how the company formats emails from other employees, put their likely address under likely_email.\n- Never guess a name, title or URL. Fewer good people beats more weak ones.\n"+(known.length?"- Skip these people, already on my list: "+known.join(", ")+"\n":"")+"\nReply with only a JSON code block like this:\n[{\"name\": \"\", \"title\": \"\", \"linkedin\": \"\", \"email\": \"\", \"likely_email\": \"\", \"location\": \"\", \"source\": \"\"}]\n\nThe posting:\n"+String(j.description||"").slice(0,6000)}
+function emailPrompt(j,c){return "Find the current work email for "+c.name+(c.title?", "+c.title:"")+" at "+j.company+(c.linkedin?" (LinkedIn: "+c.linkedin+")":"")+". Search the web: company pages, press releases, conference or podcast pages, public directories.\n\nFirst check they still work there. If results from the last 12 months show a newer job elsewhere, reply only: left\nIf a page shows their email, reply only with the address.\nIf not, but you can see the company's email format from other employees, reply: likely: their.address@company.com\nIf you can't tell, reply: not found\nNever guess without evidence."}
+function openClaude(text,msg){window.open("https://claude.ai/new","_blank","noopener");try{navigator.clipboard.writeText(text)}catch(e){}toast(msg||"Prompt copied. Paste it into Claude.")}
+function parsePeople(t){var out=[],s=String(t||"");
+  // the JSON block, even with citations or notes around it: try each closing bracket from the end
+  var st=s.search(/\[\s*\{/),a=null;if(st>=0)for(var e=s.lastIndexOf("]");e>st&&!a;e=s.lastIndexOf("]",e-1)){try{var v=JSON.parse(s.slice(st,e+1));if(Array.isArray(v))a=v}catch(er){}}
+  if(a){try{return a.map(function(x){x=x||{};return{name:x.name||"",title:x.title||"",linkedin:x.linkedin||x.linkedin_url||"",email:x.email||"",emailGuess:x.likely_email||x.likelyEmail||x.emailGuess||"",location:x.location||"",source:x.source||""}}).filter(function(x){return x&&x.name})}catch(e){}}
+  // a table copied from the chat: map columns by the header row
+  var rows=s.split(/\n/).filter(function(l){return /[|\t]/.test(l)&&!/^[\s|:-]+$/.test(l)}).map(function(l){return l.replace(/^\s*\||\|\s*$/g,"").split(/\s*[|\t]\s*/)});
+  if(rows.length<2)return out;var H=rows[0].map(function(h){h=h.toLowerCase();return /likely/.test(h)?"emailGuess":/mail/.test(h)?"email":/linked/.test(h)?"linkedin":/title|role|position/.test(h)?"title":/locat|based/.test(h)?"location":/source|url|link/.test(h)?"source":/name/.test(h)?"name":""});
+  rows.slice(1).forEach(function(r){var x={};H.forEach(function(k,i){if(k)x[k]=(r[i]||"").trim()});if(x.name)out.push(x)});return out}
 function peopleSection(j){var box=el("div"),own=isOwn(),cs=j.contacts||[];
   box.appendChild(el("h2",{},["People to contact",el("span",{class:"hsub",text:cs.length?cs.length+" on this job":"A recruiter, the hiring manager, someone on the team"})]));
   var acts=el("div",{class:"acts",style:"margin-top:0"});
-  if(!j.peopleSearch){var fb=el("button",{class:"btn go",text:"✦ Find people",onclick:function(){var done=busy(fb,"Searching the web, about a minute");api("POST","/api/r/jobs/"+j.id+"/people").then(function(x){S.job=x;done();toast(x.peopleSearch.found?"Found "+x.peopleSearch.found+". Drafts are ready.":"Didn't find anyone current. Add someone by hand.");load()},function(e){done();fail(e)})}});acts.appendChild(fb)}
-  else acts.appendChild(el("span",{class:"note",style:"margin:0",text:"Searched "+md(j.peopleSearch.at)+", found "+j.peopleSearch.found+"."}));
-  acts.appendChild(el("button",{class:"btn sm",text:"Add someone",onclick:function(){S.addPerson=!S.addPerson;render()}}));
+  acts.appendChild(el("button",{class:cs.length?"btn":"btn go",text:"Find people with Claude",onclick:function(){S.pasteFor=j.id;openClaude(peoplePrompt(j),"Prompt copied. Paste it into Claude with web search on, then paste the reply back here.");render()}}));
+  acts.appendChild(el("button",{class:"btn sm",text:"Add someone by hand",onclick:function(){S.addPerson=!S.addPerson;render()}}));
   box.appendChild(acts);
+  if(!cs.length&&S.pasteFor!==j.id)box.appendChild(el("p",{class:"hint",text:"Opens Claude with a prompt ready to paste. It searches the web for the recruiter, the hiring manager and someone on the team, with their emails, in your own Claude account. Then you paste its reply here."}));
+  if(S.pasteFor===j.id){var pt=el("textarea",{class:"in",placeholder:"Paste Claude's whole reply here",style:"min-height:150px;margin-top:12px"}),pe=el("p",{class:"err"});
+    box.appendChild(pt);box.appendChild(el("div",{class:"acts"},[el("button",{class:"btn go",text:"Add these people",onclick:function(e){pe.textContent="";var ppl=parsePeople(pt.value);if(!ppl.length){pe.textContent="Couldn't find anyone in that. Paste Claude's whole reply, including the code block.";return}
+        var done=busy(e.currentTarget,"Adding");api("POST","/api/r/jobs/"+j.id+"/people",{people:ppl}).then(function(r){done();S.job=r.job;S.pasteFor=null;toast("Added "+r.added+", with drafts ready");load()},function(er){done();pe.textContent=er.msg||"That didn't work."})}}),
+      el("button",{class:"btn sm",text:"Copy the prompt again",onclick:function(){openClaude(peoplePrompt(j))}}),el("button",{class:"linkish",text:"Cancel",onclick:function(){S.pasteFor=null;render()}})]),pe)}
   if(S.addPerson){var F={};var form=el("div",{class:"addp"});[["name","Full name"],["title","Title"],["linkedin","LinkedIn URL"],["email","Email (optional)"]].forEach(function(x){F[x[0]]=el("input",{class:"in",placeholder:x[1]})});
     form.appendChild(el("div",{class:"row2"},[F.name,F.title]));form.appendChild(el("div",{style:"height:10px"}));form.appendChild(el("div",{class:"row2"},[F.linkedin,F.email]));
     form.appendChild(el("div",{class:"acts"},[el("button",{class:"btn go",text:"Add",onclick:function(){var b={};for(var k in F)b[k]=F[k].value.trim();api("POST","/api/r/jobs/"+j.id+"/contacts",b).then(function(x){S.job=x;S.addPerson=false;toast("Added, with drafts ready");load()},fail)}})]));box.appendChild(form)}
@@ -439,11 +456,18 @@ function peopleSection(j){var box=el("div"),own=isOwn(),cs=j.contacts||[];
   cs.forEach(function(c){box.appendChild(contactCard(j,c))});
   return box}
 function contactCard(j,c){var own=isOwn(),open=S.pcOpen[c.id],st=cStatus(c),l=linkOf(c),card=el("div",{class:"pc"+(closed(c)?" done":"")});
-  var email=c.email?el("a",{href:"mailto:"+c.email,text:c.email}):c.emailGuess?el("span",{class:"faint",title:"Not confirmed. Based on the company's email format.",text:"likely "+c.emailGuess}):c.emailTried?el("span",{class:"faint",text:"No email found"}):el("button",{class:"linkish",text:"✦ Find email",onclick:function(e){var done=busy(e.currentTarget,"Looking");api("POST","/api/r/jobs/"+j.id+"/contacts/"+c.id+"/email").then(function(x){S.job=x;done();load()},function(er){done();fail(er)})}});
+  var email=c.email?el("a",{href:"mailto:"+c.email,text:c.email}):c.emailGuess?el("span",{class:"faint",title:"Not confirmed. Based on the company's email format.",text:"likely "+c.emailGuess}):el("button",{class:"linkish",text:"Find email with Claude",onclick:function(){S.emailFor=c.id;S.pcOpen[c.id]=true;openClaude(emailPrompt(j,c),"Prompt copied. Paste it into Claude, then paste its answer under "+c.name.split(" ")[0]+".");render()}});
   card.appendChild(el("div",{class:"pc-h",onclick:function(){S.pcOpen[c.id]=!open;render()}},[
     el("div",{class:"pc-who"},[el("b",{text:c.name}),l?el("a",{class:"in-badge",href:l,target:"_blank",rel:"noopener",text:"in",onclick:function(e){e.stopPropagation()}}):null,el("div",{class:"s",text:[c.title,c.location].filter(Boolean).join(" · ")}),el("div",{class:"s",onclick:function(e){e.stopPropagation()}},[email])]),
     el("span",{class:"pc-st "+st[1],text:st[0]}),
     el("button",{class:"x",title:"Remove "+c.name,"aria-label":"Remove "+c.name,text:"×",onclick:function(e){e.stopPropagation();rmContact(j,c)}})]));
+  if(S.emailFor===c.id){var ei=el("input",{class:"in",placeholder:"Paste Claude's answer: the email, likely: address, or left"});
+    card.appendChild(el("div",{class:"addp"},[ei,el("div",{class:"acts"},[el("button",{class:"btn go sm",text:"Save",onclick:function(){var v=ei.value.trim(),a=(v.match(/[^\s<>()"',;:]+@[^\s<>()"',;:]+\.[a-z]{2,}/i)||[])[0];
+      if(/\bleft\b|no longer/i.test(v)&&!a){S.emailFor=null;cPut(j,c,{flag:"left"},"Marked as left the company");return}
+      if(!a){toast(/not found/i.test(v)?"No email, so LinkedIn is the way to reach them.":"Couldn't find an email address in that.");if(/not found/i.test(v)){S.emailFor=null;render()}return}
+      S.emailFor=null;cPut(j,c,/likely/i.test(v)?{emailGuess:a}:{email:a},"Email saved. The draft is ready.")}}),el("button",{class:"btn sm",text:"Copy the prompt again",onclick:function(){openClaude(emailPrompt(j,c))}}),el("button",{class:"linkish",text:"Cancel",onclick:function(){S.emailFor=null;render()}})])]))}
+  if(S.editC===c.id){var E={};[["name","Name"],["title","Title"],["linkedin","LinkedIn URL"],["email","Email"]].forEach(function(x){E[x[0]]=el("input",{class:"in",placeholder:x[1],value:x[0]==="email"?(c.email||c.emailGuess||""):c[x[0]]||""})});
+    card.appendChild(el("div",{class:"addp"},[el("div",{class:"row2"},[E.name,E.title]),el("div",{style:"height:10px"}),el("div",{class:"row2"},[E.linkedin,E.email]),el("div",{class:"acts"},[el("button",{class:"btn go sm",text:"Save details",onclick:function(){var p={name:E.name.value,title:E.title.value,linkedin:E.linkedin.value};var ev=E.email.value.trim();if(ev!==(c.email||c.emailGuess||""))p.email=ev;S.editC=null;cPut(j,c,p,"Saved")}}),el("button",{class:"linkish",text:"Cancel",onclick:function(){S.editC=null;render()}})])]))}
   if(!open)return card;
   var tab=S.pcTab[c.id]||(sentVia(c,"li")||c.acceptedAt?"followup":l?"note":"email");
   var T=[["note","LinkedIn note"],["email","Email"],["followup","Follow-up"]];
@@ -468,6 +492,7 @@ function contactCard(j,c){var own=isOwn(),open=S.pcOpen[c.id],st=cStatus(c),l=li
   if(!c.leftAt)m.push(["Left the company",function(){cPut(j,c,{flag:"left"},"Marked as left")}]);
   if(addr(c)&&!c.emailBad)m.push(["Bad email",function(){cPut(j,c,{flag:"bad"},"Marked as a bad email")}]);
   if(closed(c))m.push(["Reopen",function(){cPut(j,c,{flag:"reopen"},"Reopened")}]);
+  m.push(["Edit details",function(){S.editC=c.id;render()}]);
   m.push(["Refill from templates",function(){if(confirm("Replace all three drafts with your templates?"))cPut(j,c,{flag:"redraft"},"Drafts refilled")}]);
   card.appendChild(el("div",{class:"pc-more"},m.map(function(x){return el("button",{class:"linkish",text:x[0],onclick:x[1]})})));
   return card}
