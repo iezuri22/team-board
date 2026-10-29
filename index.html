@@ -878,7 +878,8 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
 .fu-table td{vertical-align:middle}
 .fu-cell{border:0;background:none;padding:4px 6px;margin:-4px -6px;border-radius:8px;font:inherit;cursor:pointer}.fu-cell:hover{background:var(--soft2)}.fu-cell:hover span{text-decoration:underline}
 .fu-sent{white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.55;margin:6px 0 10px;padding:12px 14px;background:var(--soft2);border-radius:10px}
-.fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
+.fu-table .rc-acts{gap:6px}.fu-table .rc-acts .pg-go,.rc-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;width:30px;height:30px;border-radius:8px;cursor:pointer;flex:none}.rc-x:hover{background:var(--red-wash,rgba(194,54,43,.08));color:var(--red,#c2362b)}
+.fu-table .rc-acts .pg-act{height:30px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
 .fu-table .rc-acts .pg-go{background:var(--fg);color:var(--bg);border:1px solid var(--fg)}.fu-table .rc-acts .pg-go:hover{opacity:.85}
 .fu-table .rc-acts .pg-act{background:var(--bg);color:var(--fg);border:1px solid var(--line)}.fu-table .rc-acts .pg-act:hover{border-color:var(--fg)}.fu-table .rc-d>span{max-width:340px}.fu-name{cursor:pointer}.fu-name:hover{text-decoration:underline}.fu-namerow{display:flex;align-items:center;gap:6px;max-width:none!important}.rc-bad{font-size:12.5px;color:var(--muted);margin-left:4px}.rc-bad:hover{color:#b91c1c}
 .gm-q{font-weight:700;font-size:inherit}.gm-qrow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.gm-qsub{font-size:12.5px;color:var(--muted);margin-top:2px}.gm-qwhen{display:flex;flex-direction:column;align-items:flex-end;gap:4px;white-space:nowrap}
@@ -1737,6 +1738,9 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     return cs.reduce(function(p,c){return p.then(function(){var j=jobOf(c),ps=c.pendingSent;if(!j||!ps)return;
       return api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,ps.text?{outreach:ps.via,text:ps.text}:{outreach:ps.via}).then(function(){c.pendingSent=null;n++})})},Promise.resolve()).then(function(){return n})}
   // they don't work there anymore: close them out and let the next morning's run find someone current
+  function removeContact(j,c){if(!confirm("Remove "+c.name+" ("+j.company+")? Any scheduled email to them is cancelled."))return;
+    j.contacts=(j.contacts||[]).filter(function(x){return x.id!==c.id});S.rcMsg={};if(typeof renderReach==="function")renderReach();
+    api("DELETE","/api/jobs/"+j.id+"/contacts/"+c.id).then(function(){toast(c.name.split(" ")[0]+" removed");refresh()},function(e){fail(e);refresh()})}
   function leftCo(j,c){c.leftAt=c.closedAt=new Date().toISOString();c.sendAt=null;c.pendingSent=null;S.rcMsg={};
     api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{left:true}).then(function(){toast(c.name.split(" ")[0]+" is marked as left. Someone current gets found tomorrow morning.");refresh()},fail);if(typeof renderReach==="function")renderReach()}
   function claimIt(j,c){if(!S.isOwner||claimed(c))return;c.claimedBy="owner";c.claimedAt=new Date().toISOString();api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,{claim:true}).catch(function(){})}
@@ -1910,6 +1914,7 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
       else if(cd.k==="check"){acts.push(P("Checked in",patch("checkin","Logged. Next check-in in 3 days."),true));acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"));acts.push(Q("Done",patch("closed","Marked done"),"Conversation done"))}
       else if(cd.k==="talking"||cd.k==="done"){acts.push(Q("Replied",patch("replied","Marked replied"),"They replied"));acts.push(Q("Open",stop(function(){openContact(j.id,c.id)})))}
       else if(cd.k==="closed")acts.push(Q("Reopen",patch("reopen","Reopened")));
+      if(S.isOwner)acts.push(el("button",{type:"button",class:"rc-x",title:"Remove "+c.name+" from this job","aria-label":"Remove "+c.name,text:"\u00d7",onclick:stop(function(){removeContact(j,c)})}));
       var emailBit=c.email?el("a",{href:"mailto:"+c.email,class:"rc-mail",text:c.email,onclick:function(e){e.stopPropagation()}}):c.emailGuess?el("span",{class:"rc-guess",title:"Not confirmed. Based on the company's email format.",text:"likely "+c.emailGuess}):c.emailTried?el("span",{class:"pg-dim",text:"No email found"}):el("button",{type:"button",class:"linkish rc-find",text:"✦ Find email",onclick:stop(function(){var b=this;b.disabled=true;b.textContent="Looking...";api("POST","/api/find-email",{jobId:j.id,contactId:c.id}).then(function(r){toast(r.email?"Found "+r.email:r.emailGuess?"No confirmed email. Likely "+r.emailGuess:"No email found");refresh()},function(e){b.disabled=false;b.textContent="✦ Find email";fail(e)})})});
       if(j.status==="rejected"&&t.tab!=="done"&&/^(toEmail|li|new)$/.test(cd.k))t.what="Turned down, still worth connecting. "+t.what;
       return el("tr",{class:"pg-row rc-row"+(lt?" late":""),onclick:function(){openContact(j.id,c.id)}},[
