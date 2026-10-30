@@ -104,7 +104,8 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
     </div>
     <div class="opts">
       <label><input type="checkbox" id="fu" checked> Follow-up questions</label>
-      <label>Voice <select id="voice" aria-label="Interviewer voice"></select></label>
+      <label>Interviewer voice <select id="voice" aria-label="Interviewer voice"></select></label>
+      <button class="link" id="hear" type="button">Hear it</button>
     </div>
     <button class="btn" id="go" type="button">Start interview</button>
     <p class="note" style="margin-top:18px">Use Chrome or Safari with headphones if you can, and allow the microphone when asked. <button class="link" id="lastBtn" type="button" hidden>See your last debrief</button></p>
@@ -197,27 +198,51 @@ function planFor(type){
 }
 
 // ---------- voice ----------
-var synth = window.speechSynthesis, voices = [];
+// Realistic voices come from Deepgram Aura 2 through the board's worker; the browser's own voice is the fallback
+var AURA = [["thalia", "Thalia", "woman"], ["helena", "Helena", "woman"], ["andromeda", "Andromeda", "woman"], ["harmonia", "Harmonia", "woman"], ["athena", "Athena", "woman"], ["asteria", "Asteria", "woman"], ["apollo", "Apollo", "man"], ["orion", "Orion", "man"], ["arcas", "Arcas", "man"], ["odysseus", "Odysseus", "man"]];
+var synth = window.speechSynthesis, voices = [], player = new Audio(), clips = {};
 function loadVoices(){
-  if (!synth) return; voices = synth.getVoices().filter(function(v){ return /^en(-|_)/i.test(v.lang); });
-  var pref = ["Samantha", "Ava", "Allison", "Susan", "Zoe", "Google US English", "Microsoft Aria", "Microsoft Jenny", "Karen", "Serena"];
-  voices.sort(function(a, b){ var ia = pref.findIndex(function(p){ return a.name.indexOf(p) >= 0; }), ib = pref.findIndex(function(p){ return b.name.indexOf(p) >= 0; }); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
-  var sel = $("voice"), keep = ""; try { keep = localStorage.getItem("tb-mock-voice") || ""; } catch (e) {}
-  sel.textContent = ""; voices.forEach(function(v){ var o = el("option", { value: v.name, text: v.name.replace(/\s*\(.*\)$/, "") + " (" + v.lang + ")" }); if (v.name === keep) o.selected = true; sel.append(o); });
+  if (synth) voices = synth.getVoices().filter(function(v){ return /^en(-|_)/i.test(v.lang); });
+  var sel = $("voice"), keep = ""; try { keep = localStorage.getItem("tb-mock-voice") || "aura:thalia"; } catch (e) { keep = "aura:thalia"; }
+  sel.textContent = "";
+  var g1 = el("optgroup", { label: "Realistic" }); AURA.forEach(function(v){ var o = el("option", { value: "aura:" + v[0], text: v[1] + " (" + v[2] + ")" }); if (o.value === keep) o.selected = true; g1.append(o); }); sel.append(g1);
+  if (voices.length) { var g2 = el("optgroup", { label: "Browser voices" }); voices.forEach(function(v){ var o = el("option", { value: "sys:" + v.name, text: v.name.replace(/\s*\(.*\)$/, "") }); if (o.value === keep) o.selected = true; g2.append(o); }); sel.append(g2); }
 }
-if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
+loadVoices(); if (synth) synth.onvoiceschanged = loadVoices;
 $("voice").onchange = function(){ try { localStorage.setItem("tb-mock-voice", this.value); } catch (e) {} };
-function speak(text){
+function auraSpeaker(){ var v = $("voice").value || ""; return v.indexOf("aura:") === 0 && tok() ? v.slice(5) : ""; }
+function clip(text){
+  var sp = auraSpeaker(); if (!sp) return Promise.reject(new Error("no_aura"));
+  var k = sp + "|" + text;
+  if (!clips[k]) clips[k] = fetch(API + "/api/coach/voice", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok() }, body: JSON.stringify({ text: text, speaker: sp }) })
+    .then(function(r){ if (!r.ok) throw new Error("voice_failed"); return r.blob(); }).then(function(b){ return URL.createObjectURL(b); })
+    .catch(function(e){ delete clips[k]; throw e; });
+  return clips[k];
+}
+function preload(list){ list.forEach(function(t){ clip(t).catch(function(){}); }); }
+function unlockAudio(){ try { player.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRBqpAAAAAAD/+xDEAAPAAAGkAAAAIAAANIAAAARMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EMQpg8AAAaQAAAAgAAA0gAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU="; player.play().catch(function(){}); } catch (e) {} }
+function sysSpeak(text){
   return new Promise(function(res){
     if (!synth) { setTimeout(res, 400); return; }
     synth.cancel();
-    var u = new SpeechSynthesisUtterance(text), v = voices.find(function(x){ return x.name === $("voice").value; });
-    if (v) { u.voice = v; u.lang = v.lang; } u.rate = 1.0; u.pitch = 1.0;
+    var u = new SpeechSynthesisUtterance(text), name = ($("voice").value || "").replace(/^sys:/, ""), v = voices.find(function(x){ return x.name === name; }) || voices[0];
+    if (v) { u.voice = v; u.lang = v.lang; }
     var done = false, fin = function(){ if (!done) { done = true; clearTimeout(guard); setTimeout(res, 250); } };
     var guard = setTimeout(fin, 2500 + words(text) * 450); // some browsers never fire onend
     u.onend = fin; u.onerror = fin; synth.speak(u);
   });
 }
+function speak(text){
+  return clip(text).then(function(url){
+    return new Promise(function(res){
+      var done = false, fin = function(){ if (!done) { done = true; clearTimeout(guard); player.onended = player.onerror = null; setTimeout(res, 300); } };
+      var guard = setTimeout(fin, 4000 + words(text) * 500);
+      player.onended = fin; player.onerror = fin; player.src = url;
+      player.play().catch(function(){ fin(); });
+    });
+  }).catch(function(){ return sysSpeak(text); });
+}
+function hush(){ try { player.pause(); } catch (e) {} try { synth && synth.cancel(); } catch (e) {} }
 
 // ---------- mic, level trace, measurements ----------
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -327,8 +352,10 @@ function run(type){
   S = { type: type, plan: plan, entries: entries, mode: "idle" };
   $("setup").hidden = true; $("report").hidden = true; $("live").hidden = false; window.scrollTo(0, 0);
   setStatus("thinking", "Connecting the microphone"); $("q").textContent = ""; $("prog").textContent = "";
+  var CLOSE_Q = "That's everything I had for you. What questions do you have for me?", BYE = "Thanks so much for your time, Ifeanyi. We'll be in touch about next steps.";
   openMic().then(function(){
     var intro = type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at Careforth, and I'd love to learn more about you. Let's get started." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
+    preload([intro].concat(plan.map(function(x){ return x.q; }), [CLOSE_Q, BYE]));
     return speak(intro).then(function(){ next(); });
   }).catch(function(){ $("live").hidden = true; $("setup").hidden = false; warn("The microphone is blocked. Allow it in the browser's site settings, then start again."); S = null; });
 
@@ -352,13 +379,13 @@ function run(type){
   function closing(){
     $("prog").textContent = "Your questions";
     var entry = { item: { id: "close", q: "What questions do you have for me?", why: "Always have two good questions. They also show how busy the job is.", hit: [] }, question: "What questions do you have for me?" }; entries.push(entry);
-    S.onAnswer = function(A){ entry.main = A; speak("Thanks so much for your time, Ifeanyi. We'll be in touch about next steps.").then(finish); };
-    ask("That's everything I had for you. What questions do you have for me?");
+    S.onAnswer = function(A){ entry.main = A; speak(BYE).then(finish); };
+    ask(CLOSE_Q);
   }
 }
 
 function stopAll(){
-  if (!S) return; S.ended = true; try { synth && synth.cancel(); } catch (e) {}
+  if (!S) return; S.ended = true; hush();
   if (S.cur) { try { S.cur.recog && S.cur.recog.stop(); } catch (e) {} try { S.cur.rec && S.cur.rec.state !== "inactive" && S.cur.rec.stop(); } catch (e) {} }
   clearInterval(S.tick); try { S.stream && S.stream.getTracks().forEach(function(t){ t.stop(); }); } catch (e) {} try { S.ctx && S.ctx.close(); } catch (e) {}
 }
@@ -418,7 +445,8 @@ function warn(t){ var w = $("warn"); w.textContent = t; w.hidden = false; }
 function showLast(){ var has = false; try { has = !!localStorage.getItem("tb-mock-last"); } catch (e) {} $("lastBtn").hidden = !has; }
 $("lastBtn").onclick = function(){ var d = null; try { d = JSON.parse(localStorage.getItem("tb-mock-last")); } catch (e) {} if (!d) return; $("setup").hidden = true; var rep = $("report"); rep.hidden = false; rep.textContent = ""; rep.append(el("h1", { text: "Last debrief" })); renderReport(d.entries, d.fb); };
 
-$("go").onclick = function(){ var t = document.querySelector("input[name=type]:checked").value; $("warn").hidden = true; run(t); };
+$("go").onclick = function(){ var t = document.querySelector("input[name=type]:checked").value; $("warn").hidden = true; unlockAudio(); run(t); };
+$("hear").onclick = function(){ var b = this; b.disabled = true; b.textContent = "Playing"; speak("Hi Ifeanyi, thanks for making time today. Let's start with your background.").then(function(){ b.disabled = false; b.textContent = "Hear it"; }); };
 $("done").onclick = finishAnswer;
 $("repeat").onclick = function(){ if (!S || S.mode !== "listening") return; var A = S.cur; try { A.recog && A.recog.abort(); } catch (e) {} try { A.rec && A.rec.state !== "inactive" && A.rec.stop(); } catch (e) {} S.cur = null; ask($("q").textContent); };
 $("end").onclick = function(){ if (!S) return; if (S.mode === "listening") { var cb = S.onAnswer; S.onAnswer = function(A){ var e = S.entries[S.entries.length - 1]; if (e && !e.main) e.main = A; finish(); }; finishAnswer(); } else finish(); };
@@ -428,7 +456,6 @@ window.addEventListener("resize", drawTrace);
 if (!tok()) warn("Open your board and sign in first, so follow-ups and the debrief can run.");
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) warn("This browser can't use the microphone here. Open this page in Chrome or Safari.");
 else if (!SR) warn("This browser can't write down speech, so the debrief will only have your delivery numbers. Chrome or Safari work best.");
-if (!synth) warn("This browser can't speak the questions out loud. Try Chrome or Safari.");
 showLast(); drawTrace();
 
 var themeBtn = $("theme");
