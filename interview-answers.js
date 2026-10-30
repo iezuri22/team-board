@@ -1,5 +1,5 @@
 // Study guide for the Careforth BSA II interview: model answers built only from Ifeanyi's real experience.
-// Square brackets mark spots where he drops in a real detail from memory. Answers were expanded 2026-10-30 from a shared fact sheet and checked against the VitalTouch Ops code.
+// Square brackets mark spots where he drops in a real detail from memory. Answers were expanded 2026-10-30 from a shared fact sheet and checked against the VitalTouch Ops, War Room and ecm-dashboards code.
 window.STUDY = {
  "hype": {
   "title": "You've already done this job",
@@ -19,7 +19,7 @@ window.STUDY = {
    ],
    [
     "Provide training and user support",
-    "You took 2,000+ users live through demos, admin training, written guides and video walkthroughs. Engagement went up 23% after launch."
+    "You took 2,000+ users live through demos, admin training, a training library of step-by-step guides and YouTube tutorials. Engagement went up 23% after launch."
    ],
    [
     "Knowledge of the Salesforce core platform",
@@ -32,6 +32,10 @@ window.STUDY = {
    [
     "Documentation in Jira, Confluence, Lucidchart",
     "You write the guides, the stories, the test plans and the walkthroughs. Documentation is how you got 2,000 people using a new system."
+   ],
+   [
+    "Analyze data and improve processes (and you're efficient by nature)",
+    "Before AI you wrote support email templates. Now Zoom transcripts become Notion summaries and Smartsheet tasks automatically, and 11 program dashboards update themselves every 10 minutes."
    ]
   ],
   "numbers": [
@@ -74,8 +78,8 @@ window.STUDY = {
     "A single phone line turned into self-service intake with templated answers and self-booked consultations. Use it for process improvement, competing requests and user empathy."
    ],
    [
-    "Dashboards over decks",
-    "Dashboards for 11 programs that rebuild automatically from the master task list, plus AI-drafted monthly reports for directors. Use it for data, reporting and efficiency."
+    "Meetings to dashboards",
+    "War Room: Zoom transcripts become Notion summaries and Smartsheet tasks automatically, a daily deadline digest goes out, and live dashboards for 11 programs replace hand-built decks. Use it for data, efficiency, AI, initiative and reporting."
    ],
    [
     "The home care platform",
@@ -743,6 +747,83 @@ window.STUDY = {
     "Most teams blend: fixed milestones, sprint delivery",
     "Your CAPM and the iterative city rollout"
    ]
+  },
+  "p10": {
+   "a": "War Room is a system I built so that what we decide in meetings actually turns into owned, tracked work, without anyone retyping notes.\n\nHere's how the chain works. Every weekday at 6 PM, an automated job finds that day's project meetings on Zoom and pulls the transcript from Zoom's meeting notes. If I couldn't record a meeting, teammates drop the transcript into a shared Google Drive folder and it gets picked up from there too. Claude writes a clean summary of each meeting into Notion, so there's one searchable record of what was discussed and decided.\n\nThen it pulls out the action items and adds them as rows on our team's master task list in Smartsheet, with an owner assigned based on who the work belongs to. Before anything is added, it checks the existing rows for the same item said a different way, so a request mentioned in three meetings becomes one task, not three. At the end it drafts one summary email to the team. If a meeting's transcript is missing, it goes on a transcript checklist in War Room so nothing falls through.\n\nWar Room itself is the team's working view on top of Smartsheet. Teammates can acknowledge items, link them to the week's priorities, tag each other, and log in-person visits and trainings. Every weekday morning it posts one digest in Notion that tags each person with their deadlines coming up in three days, one day, today, or already overdue, and Notion emails it to them. It's built so the same reminder never goes out twice.\n\nOn the technical side it's a web app on Vercel with a Postgres database, serverless functions that talk to the Smartsheet, Notion, Zoom and Google Calendar APIs, and Claude for the summaries and extraction. Smartsheet doesn't allow direct browser calls, so the app proxies those calls server-side, and teammates use a team token instead of anyone's personal API key.\n\nThe point for Careforth is the mindset: keep the system of record the team already uses, which was Smartsheet for us and would be Salesforce for you, and automate the busywork around it so the record stays current without extra effort.",
+   "k": [
+    "Meetings become owned, tracked work automatically",
+    "Zoom notes and shared Drive transcripts, Claude summary in Notion",
+    "Action items to the Smartsheet master list with owners and duplicate checks",
+    "One team email; missing transcripts go on a checklist",
+    "Daily Notion digest tags people on deadlines; never double-sends",
+    "Keep the system of record, automate around it"
+   ]
+  },
+  "p11": {
+   "a": "The program dashboards came from a simple problem: leaders and client programs wanted to know where their work stood, and the answer lived in a status deck someone rebuilt by hand every month. It was always out of date.\n\nSo I built dashboards that rebuild themselves. Our master task list in Smartsheet is the single source of truth. Every 10 minutes, an automated job pulls the sheet, filters out anything marked internal only, groups the work by program, and generates a separate dashboard for each one: what's in progress, what was recently completed, a feed of what changed built from the sheet's cell history and comments, and a roll-up of open tech support tickets.\n\nEach program gets its own private link with a random token, so one program can never see another program's work. The summary text at the top of each dashboard can be edited without touching code, and every item has a link back to its row in Smartsheet, so if a note needs correcting, it gets fixed at the source and the dashboard catches up on the next refresh.\n\nThe status data stays current on its own, too. Every night, a reconciliation job takes the platform vendor's outstanding ticket report, which comes in by email, and matches it against our task list, first by ticket number and then by title. It fills in missing ticket numbers, syncs statuses, adds new tickets as rows, and marks closed tickets completed. Meeting action items flow in from the War Room pipeline. So the dashboards are fed by meetings, tickets and the team's own updates, without anyone building a slide.\n\nThat covers 11 programs, and it changed the conversations. Instead of debating whose slide was right, leaders could see live status and spend the time on the programs that actually needed help.\n\nIn Salesforce terms, this is reports and dashboards on top of clean data, with the data kept clean by automation and integrations. That's exactly how I'd think about operational reporting for care coordination or growth at Careforth.",
+   "k": [
+    "Problem: hand-built monthly decks, always stale",
+    "Smartsheet master list as the source of truth",
+    "Every 10 minutes: filter internal, group by program, generate dashboards",
+    "Private link per program; editable copy; links back to the source row",
+    "Nightly ticket reconciliation keeps status current",
+    "11 programs; the Salesforce parallel"
+   ]
+  },
+  "p12": {
+   "a": "I use AI the way I've always tried to work: find the repetitive part of a job and take it off people's plates, so their time goes to the parts that need judgment.\n\nI was doing that before AI tools existed. When I was on support, I noticed we answered the same questions over and over, so I wrote email templates for the common support tickets. Answers got faster and more consistent, and that later grew into the self-service intake with templated answers and self-booked consultations.\n\nToday, a few examples. Meeting transcripts from Zoom are summarized into Notion automatically, and the action items land on our Smartsheet task list with owners, checked so the same item isn't added twice. Every morning, people get a digest of their upcoming and overdue deadlines without anyone sending it. Directors get AI-drafted monthly delivery reports instead of someone writing them from scratch. And on the home care platform, an AI receptionist answers calls, and AI drafts outreach that still has to pass a compliance check before anything is sent.\n\nThe rule I follow is that AI drafts and people decide. Summaries are reviewed, action items can be edited before they matter, and anything that touches a client or a compliance rule goes through a check that AI can't skip.\n\nFor a BSA at Careforth, that shows up in practical ways: faster first drafts of user stories and test cases, meeting notes that turn into backlog items the same day, and quick prototypes so stakeholders can react to something real instead of a description. And I'm careful about data, especially health information. Nothing sensitive goes into a tool that isn't approved for it.",
+   "k": [
+    "Same instinct before AI: support email templates",
+    "Zoom to Notion to Smartsheet, deduped",
+    "Daily deadline digests; AI-drafted director reports",
+    "AI drafts, people decide; compliance checks AI can't skip",
+    "BSA uses: story and test drafts, same-day backlog, prototypes",
+    "Careful with health data"
+   ]
+  },
+  "b12": {
+   "a": "I'm always looking for the repetitive part of a job, and that started well before AI tools.\n\nWhen I was in a support role on the CRM, I noticed most tickets were variations of the same handful of questions: how to do a common task, why a record looked a certain way, how to get access. We were writing every answer from scratch, so response times depended on who picked it up and how busy they were. [Add a specific example of a common ticket.]\n\nSo I wrote a set of email templates for the most common tickets. Each one had the clear steps, the right links and screenshots, and room to personalize the first line. I organized them so anyone on the team could find the right one in seconds, and I updated them whenever the system changed.\n\nAnswers got faster and more consistent, and new team members could give a good answer on day one. It also showed me which questions came up most, which was really a list of what users found confusing. That fed directly into training and into fixes in the system itself.\n\nLater I took the same idea further and rebuilt support from a single phone line into self-service intake, with templated answers for common questions, an intake form so real issues arrived with the right details, and self-booked consultations for anything that needed a conversation. And now I use automation for things like turning meeting notes into tasks automatically.\n\nThe lesson I carry is that efficiency starts with noticing patterns. At Careforth, I'd look at what care coordinators and operations staff ask about most, because that tells you where the system, the process or the training needs to get better.",
+   "k": [
+    "Pattern: the same questions over and over",
+    "Built support email templates before AI",
+    "Faster, consistent answers; day-one ready for new people",
+    "Top questions revealed what to fix and train",
+    "Grew into self-service intake, then automation",
+    "At Careforth: watch what people ask most"
+   ]
+  },
+  "b13": {
+   "a": "On the city CRM, one department's program wasn't working the way they actually worked. [Name the department and what was wrong, for example a workflow with too many steps, statuses that didn't match their process, or reports they couldn't trust.] Staff were working around the system, which meant data was missing and leaders couldn't rely on the reports.\n\nInstead of patching it piece by piece, I treated it as an overhaul. I sat down with the department lead and the staff doing the work and mapped how their process really ran, step by step, including the workarounds, because the workarounds tell you exactly where the system is failing people.\n\nThen I redesigned their setup in the system: the fields they actually needed, statuses that matched their real stages, the workflow and the permissions, and the reports their leadership wanted. I wrote it up as user stories with acceptance criteria, worked through it with the developers, and tested it as each type of user before it went live.\n\nI didn't just switch it on. I retrained the team on the new setup, updated the guides and walkthroughs, and checked in after launch to catch anything we missed. [Add the result: fewer workarounds, cleaner data, reports they trusted, time saved.]\n\nWhat I took from it is that when people work around a system, the system is wrong, not the people. At Careforth, if a care coordination or operations team is keeping a side spreadsheet, that's the first place I'd look.",
+   "k": [
+    "A department's setup didn't match how they worked [fill in]",
+    "Treated it as an overhaul, not patches",
+    "Mapped the real process, workarounds included",
+    "Redesigned fields, statuses, workflow, permissions, reports",
+    "Stories, testing, retraining, follow-up",
+    "Workarounds mean the system is wrong"
+   ]
+  },
+  "b14": {
+   "a": "[Pick the initiative you want to lead with. The meeting-to-task system is the strongest.] One initiative I led was changing how our team turned meetings into work.\n\nThe problem was that decisions and requests came up in meetings with departments, and then depended on someone remembering to write them down and add them to the task list. Things slipped, the same request got added twice, and status reports were always behind.\n\nI proposed a system and built it. Meeting transcripts from Zoom, plus any a teammate drops in a shared folder, get summarized into Notion automatically, and the action items go onto our Smartsheet master task list with an owner and a check against duplicates. The team gets one summary email, and every morning people get a digest of their upcoming and overdue deadlines. On top of that, the master list feeds live dashboards for 11 programs, so leaders and clients see current status without anyone building slides.\n\nLeading it meant more than building it. I had to get the team to trust it, so I kept Smartsheet as the system of record instead of asking anyone to learn a new tool, made sure every automated item could be reviewed and edited, and added a checklist for meetings whose transcripts were missing so nothing was silently lost. I adjusted the rules as we used it, like how owners get assigned.\n\nThe result was that action items landed on the list the same day, duplicates dropped off, and status was always current. [Add a real effect, like time saved each week or fewer missed follow-ups.]\n\nOther initiatives I've led include the training library and the self-service support intake. At Careforth, I'd bring the same approach: find the friction, build on the tools people already use, and make adoption part of the plan.",
+   "k": [
+    "[Pick your initiative]",
+    "Problem: meeting decisions slipped and duplicated",
+    "Zoom to Notion to Smartsheet, digests, live dashboards",
+    "Leading = trust: kept Smartsheet, reviewable items, a missing-transcript checklist",
+    "Same-day action items; current status",
+    "Other initiatives: training library, self-service intake"
+   ]
+  },
+  "b15": {
+   "a": "I build training around how people actually learn a system: short, task-based, and available the moment they need it.\n\nFor the CRM rollout, I created a training library of step-by-step learning guides, one per task, with screenshots and the exact clicks, and I recorded YouTube tutorials that walk through common workflows. A written guide is great when you want to follow along, and a short video is better when you need to see it done once. Having both meant people could pick whatever worked for them. [Add a number if you have one, like how many guides or videos.]\n\nI organized everything by what people are trying to do, not by system menus, because nobody thinks 'I need the case management module.' They think 'I need to close out a case.' I also tailored training by role. Admins got deeper training so they could support their own teams, and front-line staff got the shortest path to doing their job.\n\nLive sessions mattered too. I ran demos built around each department's real work, and I used the questions people asked in training and in support tickets to decide what the next guide or video should be. When the system changed, I updated the material, because outdated training is worse than none.\n\nThat's a big part of how we took more than 2,000 users live, and engagement went up 23 percent after launch.\n\nThe posting says this role provides training and user support for new features. At Careforth, I'd want release notes, a short guide and a quick video ready on the day a feature ships, so care teams can use it right away instead of finding out it exists weeks later.",
+   "k": [
+    "Short, task-based, there when people need it",
+    "Training library of step-by-step guides and YouTube tutorials",
+    "Organized by tasks, tailored by role",
+    "Live demos on real work; questions drive the next guide",
+    "Kept current; 2,000+ live, engagement up 23%",
+    "At Careforth: release notes, guide and video on ship day"
+   ]
   }
  },
  "extraScreen": [
@@ -860,6 +941,39 @@ window.STUDY = {
     "Honest, one or two sentences.",
     "It runs on systems, not on you.",
     "Pivot back to the workflows."
+   ]
+  },
+  {
+   "id": "p10",
+   "q": "Tell me about War Room. How does it turn meetings into work?",
+   "why": "A system you designed end to end, connecting Zoom, Notion and Smartsheet. Shows you automate around the system of record.",
+   "hit": [
+    "Zoom notes and Drive transcripts summarized into Notion.",
+    "Action items to Smartsheet with owners and duplicate checks.",
+    "Daily deadline digest; a missing-transcript checklist.",
+    "Keep the system of record, automate around it."
+   ]
+  },
+  {
+   "id": "p11",
+   "q": "How do the program dashboards work?",
+   "why": "Reporting and data quality, the heart of a BSA's job.",
+   "hit": [
+    "Smartsheet master list is the single source of truth.",
+    "Every 10 minutes: per-program dashboards with private links.",
+    "Nightly ticket reconciliation keeps status current.",
+    "11 programs; the Salesforce parallel."
+   ]
+  },
+  {
+   "id": "p12",
+   "q": "How do you use AI in your day-to-day work?",
+   "why": "They'll want to know it makes you better, not careless.",
+   "hit": [
+    "The same instinct before AI: support email templates.",
+    "Meeting pipeline, digests, AI-drafted reports.",
+    "AI drafts, people decide.",
+    "Careful with health data."
    ]
   }
  ],
@@ -1040,6 +1154,51 @@ window.STUDY = {
     "Agile: sprints, for evolving needs.",
     "Most teams blend them.",
     "Your CAPM, and the city rollout done in iterations."
+   ]
+  }
+ ],
+ "extraBeh": [
+  {
+   "id": "b12",
+   "q": "Tell me about a time you made a process more efficient.",
+   "why": "They want someone who removes busywork, not adds it.",
+   "hit": [
+    "Support email templates before AI.",
+    "Faster, consistent answers.",
+    "The top questions showed what to fix and train.",
+    "Grew into self-service intake and automation."
+   ]
+  },
+  {
+   "id": "b13",
+   "q": "Tell me about a time the system wasn't working for a department and you fixed it.",
+   "why": "Core BSA judgment: when to overhaul, and how to do it with the people involved.",
+   "hit": [
+    "What wasn't working [fill in].",
+    "Mapped the real process, workarounds included.",
+    "Redesigned the setup; stories, testing, retraining.",
+    "Workarounds mean the system is wrong."
+   ]
+  },
+  {
+   "id": "b14",
+   "q": "Tell me about an initiative you led.",
+   "why": "Leadership without a title: proposing, building and getting adoption.",
+   "hit": [
+    "Pick one: the meeting-to-task system is strongest.",
+    "The problem, what you built, how you got the team to trust it.",
+    "Results [fill in]."
+   ]
+  },
+  {
+   "id": "b15",
+   "q": "How do you create training materials that people actually use?",
+   "why": "Training and user support are in the posting.",
+   "hit": [
+    "Step-by-step guides and YouTube tutorials.",
+    "Organized by tasks, tailored by role.",
+    "Questions drive the next guide; kept current.",
+    "2,000+ users live, engagement up 23%."
    ]
   }
  ]
