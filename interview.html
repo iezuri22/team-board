@@ -109,18 +109,48 @@ ol.pri li, ul.plain li { margin: 6px 0; }
 .ans summary { cursor: pointer; }
 audio { margin-top: 12px; height: 36px; max-width: 100%; }
 .busy { color: var(--muted); font-size: 18px; }
+.nav { display: flex; gap: 22px; align-items: baseline; }
+.navb.on { color: var(--ink); font-weight: 600; text-decoration-color: var(--ink); }
+/* study guide */
+.big { font: 500 clamp(20px, 2vw, 25px)/1.5 var(--sans); max-width: 62ch; margin: 0 0 26px; letter-spacing: -.01em; }
+.studybar { display: flex; flex-wrap: wrap; gap: 14px 30px; align-items: center; margin: 4px 0 18px; font-size: 16.5px; color: var(--muted); }
+.studybar label { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.studybar input[type=search] { font: 16px var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 12px; width: 260px; max-width: 100%; }
+.studybar input[type=checkbox] { accent-color: var(--ink); width: 17px; height: 17px; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 14px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 8px; font-size: 16.5px; }
+.jump a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--rule); }
+.proof { width: 100%; border-collapse: collapse; margin: 6px 0 30px; font-size: 17.5px; }
+.proof td { padding: 13px 18px 13px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.proof td:first-child { color: var(--muted); width: 36%; }
+.proof th { text-align: left; font: 500 14px var(--sans); color: var(--muted); padding: 0 18px 8px 0; border-bottom: 1px solid var(--rule); }
+.stories { display: grid; gap: 14px; margin: 6px 0 30px; max-width: 90ch; }
+.stories b { font-weight: 600; }
+h2.set { font: 600 clamp(26px, 2.6vw, 34px)/1.2 var(--sans); letter-spacing: -.02em; margin: 56px 0 6px; scroll-margin-top: 20px; }
+.setnote { color: var(--muted); margin: 0 0 8px; }
+.sq { padding: 30px 0; border-top: 1px solid var(--rule); max-width: 92ch; }
+.sq .qn { font: 400 14px var(--mono); color: var(--faint); }
+.sq h3 { font: 600 clamp(21px, 1.9vw, 25px)/1.3 var(--sans); letter-spacing: -.01em; margin: 4px 0 6px; }
+.sq .why { color: var(--muted); margin: 0 0 12px; font-size: 17px; }
+.keys { margin: 0 0 18px; padding-left: 20px; color: var(--muted); font-size: 16.5px; }
+.keys li { margin: 3px 0; }
+.answer p { font-size: 19px; line-height: 1.7; margin: 0 0 14px; }
+.sqbar { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; margin-top: 6px; font-size: 15.5px; }
+.sqbar .link { color: var(--ink); }
+.reveal { display: none; }
+.quiz .sq:not(.open) .answer, .quiz .sq:not(.open) .keys { display: none; }
+.quiz .reveal { display: inline; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><span><b>Careforth</b> · Business Systems Analyst II</span><button class="link" id="theme" type="button">Dark mode</button></div>
+  <div class="top"><span><b>Careforth</b> · Business Systems Analyst II</span><span class="nav"><button class="link navb" id="navMock" type="button">Mock interview</button><button class="link navb" id="navStudy" type="button">Study guide</button><button class="link" id="theme" type="button">Dark mode</button></span></div>
 
   <section id="setup">
     <h1>Mock interview</h1>
     <p class="lede">A recruiter on a video call asks the questions out loud and listens to your answers, with follow-ups when you stay vague. Your camera shows in the corner like Zoom. Answer like it's the real call. You get a debrief at the end.</p>
     <p class="note warn" id="warn" hidden></p>
     <div class="types" role="radiogroup" aria-label="Interview type">
-      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">7 questions</span><span class="desc">Friday's call with the recruiter: background, why Careforth, Salesforce, salary, logistics.</span></label>
+      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">9 questions</span><span class="desc">Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics.</span></label>
       <label class="type"><input type="radio" name="type" value="beh"><span class="name">Tell me about a time</span><span class="count">5 questions</span><span class="desc">Behavioral questions a hiring manager asks. One real story each: situation, what you did, the result.</span></label>
       <label class="type"><input type="radio" name="type" value="tech"><span class="name">Technical</span><span class="count">5 questions</span><span class="desc">Salesforce and business systems analyst questions. Checked for accuracy.</span></label>
       <label class="type"><input type="radio" name="type" value="full"><span class="name">Full mock</span><span class="count">7 questions</span><span class="desc">A mix of all three, the way a longer interview runs.</span></label>
@@ -153,9 +183,11 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
   </section>
 
   <section id="report" hidden></section>
+  <section id="study" hidden></section>
 </div>
 <div id="avpark" style="position:fixed;left:-10000px;top:0;width:960px;height:540px;pointer-events:none" aria-hidden="true"><div id="avatar" style="width:100%;height:100%"></div></div>
 
+<script src="interview-answers.js"></script>
 <script>
 var API = "https://team-board-api.iezuri22.workers.dev";
 function tok(){ try { return localStorage.getItem("tb-token") || ""; } catch (e) { return ""; } }
@@ -205,6 +237,11 @@ var QS = {
 };
 
 
+if (window.STUDY) {
+  var s8 = QS.screen.items.findIndex(function(x){ return x.id === "s8"; });
+  Array.prototype.splice.apply(QS.screen.items, [s8, 0].concat(STUDY.extraScreen || []));
+  QS.tech.items = QS.tech.items.concat(STUDY.extraTech || []);
+}
 function $(id){ return document.getElementById(id); }
 function el(tag, attrs, kids){ var n = document.createElement(tag); attrs = attrs || {}; for (var k in attrs) { if (k === "text") n.textContent = attrs[k]; else if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); } [].concat(kids || []).forEach(function(c){ if (c != null) n.append(c); }); return n; }
 function fmt(s){ s = Math.max(0, s || 0); return Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0"); }
@@ -223,7 +260,8 @@ function planFor(type){
   if (type === "screen") return sc;
   if (type === "beh") return shuffle(QS.beh.items).slice(0, 5);
   if (type === "tech") return shuffle(QS.tech.items).slice(0, 5);
-  return [sc[0], sc[1]].concat(shuffle(QS.beh.items).slice(0, 2), shuffle(QS.tech.items).slice(0, 2), [sc[4]]);
+  var know = sc.find(function(x){ return x.id === "s9"; });
+  return [sc[0], know || sc[1]].concat(shuffle(QS.beh.items).slice(0, 2), shuffle(QS.tech.items).slice(0, 2), [sc[4]]);
 }
 
 // ---------- voice ----------
@@ -389,8 +427,9 @@ function setStatus(kind, text){
 // ---------- the interview ----------
 function ask(text){ S.mode = "speaking"; setStatus("speaking", "Recruiter"); $("q").textContent = text; $("heard").textContent = ""; $("done").disabled = true; return speak(text).then(function(){ if (S && !S.ended) startListening(); }); }
 
-function run(type){
-  var plan = planFor(type), entries = [], i = 0, followups = $("fu").checked;
+function run(type, only){
+  var plan = only ? [only] : planFor(type), entries = [], i = 0, followups = $("fu").checked;
+  $("study").hidden = true; setNav("");
   S = { type: type, plan: plan, entries: entries, mode: "idle" };
   $("setup").hidden = true; $("report").hidden = true; $("live").hidden = false; window.scrollTo(0, 0);
   setStatus("thinking", "Connecting the microphone"); $("q").textContent = ""; $("prog").textContent = "";
@@ -400,14 +439,14 @@ function run(type){
   if (window.AV) AV.resume();
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: "user" } }).then(function(v){ if (!S || S.ended) { v.getTracks().forEach(function(t){ t.stop(); }); return; } S.cam = v; $("selfcam").srcObject = v; $("self").hidden = false; }).catch(function(){ $("self").hidden = true; });
   openMic().then(function(){
-    var intro = type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at Careforth, and I'd love to learn more about you. Let's get started." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
+    var intro = only ? "Okay, let's practice this one." : type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at Careforth, and I'd love to learn more about you. Let's get started." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
     preload([intro].concat(plan.map(function(x){ return x.q; }), [CLOSE_Q, BYE]));
     return speak(intro).then(function(){ next(); });
   }).catch(function(){ $("live").hidden = true; $("setup").hidden = false; warn("The microphone is blocked. Allow it in the browser's site settings, then start again."); S = null; });
 
   function next(){
     if (!S || S.ended) return;
-    if (i >= plan.length) return closing();
+    if (i >= plan.length) return only ? speak("Good. Let's look at how that went.").then(finish) : closing();
     var item = plan[i]; $("prog").textContent = "Question " + (i + 1) + " of " + plan.length;
     var entry = { item: item, question: item.q }; entries.push(entry);
     S.onAnswer = function(A){
@@ -492,12 +531,12 @@ function renderReport(entries, fb, keepBusy){
 }
 var reader = new Audio(), readingBtn = null;
 function stopReading(){ try { reader.pause(); } catch (e) {} if (readingBtn) { readingBtn.textContent = "Listen"; readingBtn.disabled = false; } readingBtn = null; }
-function listenBtn(text){
+function listenBtn(text, pickId){
   var b = el("button", { class: "link listen", type: "button", text: "Listen" });
   b.onclick = function(){
     if (readingBtn === b) return stopReading();
     stopReading(); readingBtn = b; b.textContent = "Loading"; b.disabled = true;
-    clip(text, $("readVoice").value).then(function(url){
+    clip(text, $(pickId || "readVoice").value).then(function(url){
       if (readingBtn !== b) return;
       b.disabled = false; b.textContent = "Stop"; reader.src = url; reader.onended = stopReading;
       reader.play().catch(stopReading);
@@ -506,6 +545,55 @@ function listenBtn(text){
   return b;
 }
 function newBtn(){ var b = el("button", { class: "btn", type: "button", text: "New interview" }); b.onclick = function(){ stopReading(); $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); }; return b; }
+
+function setNav(v){ $("navMock").classList.toggle("on", v === "mock"); $("navStudy").classList.toggle("on", v === "study"); }
+function showView(v){
+  if (S && !S.ended) return;
+  stopReading(); ["setup", "live", "report", "study"].forEach(function(id){ $(id).hidden = true; });
+  if (v === "study") { if (!$("study").firstChild) renderStudy(); $("study").hidden = false; } else { $("setup").hidden = false; showLast(); }
+  setNav(v); try { history.replaceState(null, "", v === "study" ? "#study" : location.pathname); } catch (e) {}
+  window.scrollTo(0, 0);
+}
+$("navMock").onclick = function(){ showView("mock"); };
+$("navStudy").onclick = function(){ showView("study"); };
+
+function renderStudy(){
+  var st = $("study"); st.textContent = "";
+  if (!window.STUDY) { st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "The study guide didn't load. Refresh the page." })); return; }
+  var H = STUDY.hype, A = STUDY.answers;
+  st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "Every question with an answer built from your real experience. Read it, hear it, then practice it out loud." }));
+  var voiceSel = el("select", { id: "studyVoice", "aria-label": "Voice for reading answers" }), keepV = "thalia"; try { keepV = localStorage.getItem("tb-mock-readvoice") || "thalia"; } catch (e) {}
+  AURA.forEach(function(v){ var o = el("option", { value: v[0], text: v[1] + " (" + v[2] + ")" }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
+  voiceSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", voiceSel.value); } catch (e) {} stopReading(); };
+  var quiz = el("input", { type: "checkbox", id: "quiz" }), find = el("input", { type: "search", id: "find", placeholder: "Find a question", "aria-label": "Find a question" });
+  quiz.onchange = function(){ st.classList.toggle("quiz", quiz.checked); };
+  find.oninput = function(){ var t = find.value.trim().toLowerCase(); st.querySelectorAll(".sq").forEach(function(n){ n.hidden = t && n.textContent.toLowerCase().indexOf(t) < 0; }); };
+  st.append(el("div", { class: "studybar" }, [el("label", {}, ["Read answers with ", voiceSel]), el("label", {}, [quiz, " Hide answers to quiz yourself"]), find]));
+  var sets = [["screen", "Recruiter screen", "Friday's call. Aim for 60 to 90 seconds per answer."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Swap in real details where you see [brackets]."], ["tech", "Technical", "Salesforce and analyst craft. Accurate and concrete, and honest about what you'd ramp up on."]];
+  st.append(el("nav", { class: "jump", "aria-label": "Sections" }, [el("a", { href: "#s-hype", text: H.title })].concat(sets.map(function(x){ return el("a", { href: "#s-" + x[0], text: x[1] + " (" + QS[x[0]].items.length + ")" }); }))));
+  // hype
+  st.append(el("h2", { class: "set", id: "s-hype", text: H.title }), el("p", { class: "big", text: H.lede }));
+  var tb = el("table", { class: "proof" }); tb.append(el("tr", {}, [el("th", { text: "What they asked for" }), el("th", { text: "What you've done" })]));
+  H.proof.forEach(function(r){ tb.append(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] })])); });
+  st.append(el("div", { style: "overflow-x:auto" }, tb));
+  st.append(el("h2", { text: "Numbers to say out loud" }), el("div", { class: "facts" }, H.numbers.map(function(n){ return el("div", { class: "fact" }, [el("div", { class: "v", text: n[0] }), el("div", { class: "k", text: n[1] })]); })));
+  st.append(el("h2", { text: "Your four go-to stories" }), el("div", { class: "stories" }, H.stories.map(function(x){ return el("p", { style: "margin:0" }, [el("b", { text: x[0] + ". " }), x[1]]); })));
+  st.append(el("h2", { text: "On the call" }), el("ul", { class: "plain" }, H.mindset.map(function(x){ return el("li", { text: x }); })));
+  // questions
+  sets.forEach(function(x){
+    st.append(el("h2", { class: "set", id: "s-" + x[0], text: x[1] }), el("p", { class: "setnote", text: x[2] }));
+    QS[x[0]].items.forEach(function(item, i){
+      var a = A[item.id] || {}, box = el("div", { class: "sq", id: "q-" + item.id });
+      var ans = el("div", { class: "answer" }, String(a.a || "Answer coming soon.").split(/\n\n+/).map(function(p){ return el("p", { text: p }); }));
+      var rv = el("button", { class: "link reveal", type: "button", text: "Show answer" }); rv.onclick = function(){ box.classList.toggle("open"); rv.textContent = box.classList.contains("open") ? "Hide answer" : "Show answer"; };
+      var pr = el("button", { class: "link", type: "button", text: "Practice this one out loud" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(x[0], item); };
+      box.append(el("div", { class: "qn", text: x[1] + " · " + (i + 1) }), el("h3", { text: item.q }), el("p", { class: "why", text: "What they're checking: " + item.why }),
+        a.k ? el("ul", { class: "keys" }, a.k.map(function(k){ return el("li", { text: k }); })) : null, ans,
+        el("div", { class: "sqbar" }, [rv, a.a ? listenBtn(a.a, "studyVoice") : null, pr]));
+      st.append(box);
+    });
+  });
+}
 
 function warn(t){ var w = $("warn"); w.textContent = t; w.hidden = false; }
 function showLast(){ var has = false; try { has = !!localStorage.getItem("tb-mock-last"); } catch (e) {} $("lastBtn").hidden = !has; }
@@ -523,6 +611,7 @@ if (!tok()) warn("Open your board and sign in first, so follow-ups and the debri
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) warn("This browser can't use the microphone here. Open this page in Chrome or Safari.");
 else if (!SR) warn("This browser can't write down speech, so the debrief will only have your delivery numbers. Chrome or Safari work best.");
 showLast(); drawTrace();
+if (location.hash === "#study") showView("study"); else setNav("mock");
 
 var themeBtn = $("theme");
 function paintTheme(){ themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "Light mode" : "Dark mode"; }
