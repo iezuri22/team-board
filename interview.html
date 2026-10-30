@@ -136,15 +136,17 @@ h2.set { font: 600 clamp(26px, 2.6vw, 34px)/1.2 var(--sans); letter-spacing: -.0
 .answer p { font-size: 19px; line-height: 1.7; margin: 0 0 14px; }
 .sqbar { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; margin-top: 6px; font-size: 15.5px; }
 .sqbar .link { color: var(--ink); }
-.studyh1 { margin: 36px 0 18px; }
-.stoolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 24px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
-.stabs { display: flex; gap: 6px 30px; flex-wrap: wrap; }
-.stab { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 0 12px; font: 500 17.5px var(--sans); color: var(--muted); cursor: pointer; white-space: pre; }
+/* study guide: one slim bar pinned to the top so the answers get the screen */
+.stoolbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 18px 0 0; background: var(--bg); border-bottom: 1px solid var(--rule); }
+.stabs { display: flex; gap: 22px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.stabs::-webkit-scrollbar { display: none; }
+.stab { background: none; border: 0; border-bottom: 2px solid transparent; padding: 11px 0 10px; font: 500 15px var(--sans); color: var(--muted); cursor: pointer; white-space: pre; flex: none; }
 .stab.on { color: var(--ink); border-bottom-color: var(--ink); }
 .stab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.stools { display: flex; gap: 10px; align-items: center; padding-bottom: 10px; }
-.stools input[type=search] { font: 16px var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 12px; width: 240px; max-width: 100%; }
-.sbody { padding-top: 22px; }
+.vsel { flex: none; appearance: none; -webkit-appearance: none; background: none; border: 0; padding: 4px 0; font: 13.5px var(--sans); color: var(--faint); cursor: pointer; text-align: right; }
+.vsel:hover, .vsel:focus-visible { color: var(--ink); }
+.sbody { padding-top: 18px; }
+body.studying::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 .shead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 6px; }
 .shead .setnote { margin: 0; }
 .qlist { border-top: 1px solid var(--rule); }
@@ -165,7 +167,7 @@ h2.set { font: 600 clamp(26px, 2.6vw, 34px)/1.2 var(--sans); letter-spacing: -.0
 .edgefacts .fact .v { font-size: 30px; }
 h2.eh { font: 600 22px/1.3 var(--sans); margin: 38px 0 10px; }
 .stories p { margin: 0; }
-@media (max-width: 700px) { .qbody { padding-left: 0; } .qd summary { grid-template-columns: 36px 1fr 20px; } .stools { width: 100%; } .stools input[type=search] { flex: 1; } }
+@media (max-width: 700px) { .qbody { padding-left: 0; } .qd summary { grid-template-columns: 36px 1fr 20px; } .stab { font-size: 14px; } .stabs { gap: 16px; } }
 </style>
 </head>
 <body>
@@ -598,6 +600,7 @@ function setNav(v){ $("navMock").classList.toggle("on", v === "mock"); $("navStu
 function showView(v){
   if (S && !S.ended) return;
   stopReading(); ["setup", "live", "report", "study"].forEach(function(id){ $(id).hidden = true; });
+  document.body.classList.toggle("studying", v === "study");
   if (v === "study") { if (!$("study").firstChild) renderStudy(); $("study").hidden = false; } else { $("setup").hidden = false; showLast(); }
   setNav(v); try { history.replaceState(null, "", v === "study" ? "#study" : location.pathname); } catch (e) {}
   window.scrollTo(0, 0);
@@ -612,17 +615,15 @@ function renderStudy(){
   var SETS = [["edge", "Your edge", ""], ["screen", "Recruiter screen", "Friday's call. Aim for 60 to 90 seconds per answer."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Fill in the [brackets] with real details."], ["tech", "Technical", "Salesforce and analyst craft. Be accurate and concrete, and honest about what you'd ramp up on."], ["proj", "Your projects", "The home care platform you built, checked against the actual code. Expect a hiring manager to dig in here. Fill in the [brackets] yourself."]];
   var tab = "edge"; try { tab = localStorage.getItem("tb-study-tab") || "edge"; } catch (e) {}
 
-  st.append(el("h1", { class: "studyh1", text: "Study guide" }));
   // one toolbar: sections on the left, search and voice on the right
   var tabs = el("div", { class: "stabs", role: "tablist", "aria-label": "Study sections" });
-  SETS.forEach(function(x){ var b = el("button", { class: "stab", role: "tab", type: "button", "data-tab": x[0], text: x[1] + (x[0] === "edge" ? "" : "  " + QS[x[0]].items.length) }); b.onclick = function(){ find.value = ""; show(x[0]); }; tabs.append(b); });
-  var find = el("input", { type: "search", id: "find", placeholder: "Search all questions", "aria-label": "Search all questions" });
+  SETS.forEach(function(x){ var b = el("button", { class: "stab", role: "tab", type: "button", "data-tab": x[0], text: x[1] + (x[0] === "edge" ? "" : "  " + QS[x[0]].items.length) }); b.onclick = function(){ show(x[0]); window.scrollTo(0, 0); }; tabs.append(b); });
   var voiceSel = el("select", { id: "studyVoice", "aria-label": "Voice for reading answers" }), keepV = "thalia"; try { keepV = localStorage.getItem("tb-mock-readvoice") || "thalia"; } catch (e) {}
+  voiceSel.className = "vsel";
   AURA.forEach(function(v){ var o = el("option", { value: v[0], text: "Voice: " + v[1] }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
   voiceSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", voiceSel.value); } catch (e) {} stopReading(); };
-  st.append(el("div", { class: "stoolbar" }, [tabs, el("div", { class: "stools" }, [find, voiceSel])]));
+  st.append(el("div", { class: "stoolbar" }, [tabs, voiceSel]));
   var body = el("div", { class: "sbody" }); st.append(body);
-  find.oninput = function(){ var t = find.value.trim(); if (t) search(t.toLowerCase()); else show(tab); };
 
   function show(t){
     tab = t; try { localStorage.setItem("tb-study-tab", t); } catch (e) {}
@@ -634,12 +635,6 @@ function renderStudy(){
     expand.onclick = function(){ var all = list.querySelectorAll("details"), open = expand.textContent === "Open all"; all.forEach(function(d){ d.open = open; }); expand.textContent = open ? "Close all" : "Open all"; };
     body.append(el("div", { class: "shead" }, [el("p", { class: "setnote", text: set[2] }), expand]), list);
     QS[t].items.forEach(function(item, i){ list.append(card(t, item, i)); });
-  }
-  function search(q){
-    tabs.querySelectorAll(".stab").forEach(function(b){ b.classList.remove("on"); });
-    stopReading(); body.textContent = ""; var n = 0, list = el("div", { class: "qlist" });
-    SETS.slice(1).forEach(function(x){ QS[x[0]].items.forEach(function(item, i){ var a = A[item.id] || {}; if ((item.q + " " + (a.a || "") + " " + (a.k || []).join(" ")).toLowerCase().indexOf(q) >= 0) { list.append(card(x[0], item, i, x[1])); n++; } }); });
-    body.append(el("p", { class: "setnote", text: n ? n + (n === 1 ? " question" : " questions") + " match" : "No questions match. Try another word." }), list);
   }
   function card(set, item, i, label){
     var a = A[item.id] || {}, d = el("details", { class: "qd", id: "q-" + item.id });
