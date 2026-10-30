@@ -1,5 +1,5 @@
 // Study guide for the Careforth BSA II interview: model answers built only from Ifeanyi's real experience.
-// Square brackets mark spots where he drops in a real detail from memory. Answers were expanded 2026-10-30 from a shared fact sheet and checked against the VitalTouch Ops, War Room and ecm-dashboards code.
+// Square brackets mark spots where he drops in a real detail from memory. Checked against the VitalTouch Ops, War Room, ecm-dashboards and WE-Status-Report code.
 window.STUDY = {
  "hype": {
   "title": "You've already done this job",
@@ -87,6 +87,7 @@ window.STUDY = {
    ]
   ],
   "mindset": [
+   "Your superpower: you spot patterns. Same question twice, and you're already closing the gap or automating the answer. Say that when they ask what makes you different.",
    "Slow down for the first 15 seconds of every answer. Calm reads as senior.",
    "Lead with the answer, then the proof. Never warm up.",
    "Say your numbers out loud and stress them. They're the most impressive thing you'll say.",
@@ -824,9 +825,43 @@ window.STUDY = {
     "Kept current; 2,000+ live, engagement up 23%",
     "At Careforth: release notes, guide and video on ship day"
    ]
+  },
+  "p13": {
+   "a": "I built an internal status reporting app for my company, because weekly project status was being collected by email and spreadsheets, and managers spent hours chasing and compiling it.\n\nIt has three role-based views. Consultants submit their weekly status for each project. Managers get a tracker of who has and hasn't reported, weekly and monthly review workflows, and team history. Directors get a portfolio view across every project. There's also historic reporting with filters and print or PDF export, so monthly delivery reports come straight out of the data.\n\nIt's a React app hosted on Azure Static Web Apps, with Azure Functions as the backend. Sign-in is Microsoft Entra ID only: every page requires an authenticated user, anyone not signed in is redirected to Entra, and other sign-in options are turned off. Roles come from Entra security group membership, so someone in the directors group lands on the portfolio, managers land on the manager hub, and everyone else gets the consultant view. If someone is in both groups, the highest privilege wins, and each person is matched to their record by email.\n\nThe data lives in SharePoint lists, read and written through Microsoft Graph. I set it up with the Sites.Selected permission, which means the app can only touch its one SharePoint site, not the whole tenant. That's least privilege, and it's what I asked IT to approve. I also built a small admin endpoint that maps SharePoint's internal column names, because those rarely match the display names and that's where these integrations usually break.\n\nTwo more design choices I'm proud of. Weekly and monthly summaries are drafted by Claude on the server, so the API key never reaches the browser, and if AI isn't turned on it falls back to a draft built from the same data. And for reminders, instead of granting the app permission to send mail as any mailbox in the company, the app works out who needs a nudge each day and writes the emails, and a scheduled flow running as a real account sends them. Secrets live in app settings, never in the code, and the site is HTTPS only.\n\nFor Careforth, the same thinking applies to Salesforce: single sign-on through your identity provider, roles driven by groups, least-privilege access to data, and automation that never gets more permission than it needs.",
+   "k": [
+    "Problem: status collected by email and spreadsheets",
+    "Role-based views: consultant, manager, director; PDF reporting",
+    "React on Azure Static Web Apps + Azure Functions",
+    "Entra ID only; roles from security groups; highest privilege wins",
+    "SharePoint via Microsoft Graph with Sites.Selected (least privilege)",
+    "Claude summaries server-side; reminders without Mail.Send",
+    "Same thinking for Salesforce SSO and access"
+   ]
+  },
+  "s11": {
+   "a": "I'd say my biggest strength is finding patterns in problems. If I get the same question two or three times, I'm already thinking about why it keeps coming up, and whether there's a gap to close or a way to provide the answer automatically so nobody has to ask again.\n\nThat's shown up throughout my career, and it started long before AI tools. When I was on CRM support, I noticed most tickets were the same handful of questions, so I wrote email templates for the common ones. Answers got faster and more consistent, and the patterns told me what to fix in the system and what to cover in training. That eventually became a self-service intake process with templated answers and self-booked consultations, so users got help without waiting on a call.\n\nThe same instinct drives everything I've built since. When people kept asking which program dashboards were current, I built dashboards for 11 programs that refresh themselves every 10 minutes from our master task list. When action items kept slipping after meetings, I built a system that turns Zoom transcripts into Notion summaries and Smartsheet tasks automatically. When people kept asking how to do the same tasks, I built a training library of step-by-step guides and YouTube tutorials.\n\nFor a business systems analyst, I think that's exactly the right instinct, because repeated questions and workarounds are where a system is failing people. At Careforth, I'd be listening for those patterns with care coordinators, clinical and operations teams, and turning them into the right fix, whether that's a change in Salesforce, better training, or a process that runs itself.",
+   "k": [
+    "Strength: finding patterns in problems",
+    "Same question twice means a gap to close or an answer to automate",
+    "Support email templates before AI, then self-service intake",
+    "Dashboards, the meeting-to-task system, the training library",
+    "Repeated questions and workarounds show where a system fails",
+    "At Careforth: listen for patterns, pick the right fix"
+   ]
   }
  },
  "extraScreen": [
+  {
+   "id": "s11",
+   "q": "What would you say is your biggest strength?",
+   "why": "A classic. Give one strength with proof, not a list of adjectives.",
+   "hit": [
+    "Finding patterns in problems.",
+    "Same question twice: close the gap or automate the answer.",
+    "Proof: templates, self-service intake, dashboards, the meeting-to-task system, the training library.",
+    "Why it matters for a BSA."
+   ]
+  },
   {
    "id": "s9",
    "q": "What do you know about Careforth?",
@@ -974,6 +1009,17 @@ window.STUDY = {
     "Meeting pipeline, digests, AI-drafted reports.",
     "AI drafts, people decide.",
     "Careful with health data."
+   ]
+  },
+  {
+   "id": "p13",
+   "q": "Tell me about the internal status reporting app you built. How does sign-in and access work?",
+   "why": "Shows enterprise identity and security thinking: Entra ID, group-based roles, least privilege. Maps directly to Salesforce access.",
+   "hit": [
+    "Role-based views; replaced email and spreadsheet status.",
+    "Entra ID only; roles from security groups.",
+    "SharePoint through Graph with Sites.Selected.",
+    "Claude summaries server-side; reminders without Mail.Send."
    ]
   }
  ],
