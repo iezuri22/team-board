@@ -136,9 +136,36 @@ h2.set { font: 600 clamp(26px, 2.6vw, 34px)/1.2 var(--sans); letter-spacing: -.0
 .answer p { font-size: 19px; line-height: 1.7; margin: 0 0 14px; }
 .sqbar { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; margin-top: 6px; font-size: 15.5px; }
 .sqbar .link { color: var(--ink); }
-.reveal { display: none; }
-.quiz .sq:not(.open) .answer, .quiz .sq:not(.open) .keys { display: none; }
-.quiz .reveal { display: inline; }
+.studyh1 { margin: 36px 0 18px; }
+.stoolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px 24px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
+.stabs { display: flex; gap: 6px 30px; flex-wrap: wrap; }
+.stab { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 0 12px; font: 500 17.5px var(--sans); color: var(--muted); cursor: pointer; white-space: pre; }
+.stab.on { color: var(--ink); border-bottom-color: var(--ink); }
+.stab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stools { display: flex; gap: 10px; align-items: center; padding-bottom: 10px; }
+.stools input[type=search] { font: 16px var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 7px 12px; width: 240px; max-width: 100%; }
+.sbody { padding-top: 22px; }
+.shead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 6px; }
+.shead .setnote { margin: 0; }
+.qlist { border-top: 1px solid var(--rule); }
+.qd { border-bottom: 1px solid var(--rule); }
+.qd summary { display: grid; grid-template-columns: 48px 1fr 24px; align-items: baseline; gap: 0 8px; padding: 18px 0; cursor: pointer; list-style: none; }
+.qd summary::-webkit-details-marker { display: none; }
+.qd summary::after { content: "+"; font: 400 22px var(--sans); color: var(--faint); text-align: right; }
+.qd[open] summary::after { content: "\2212"; }
+.qd summary:hover .qtext { color: var(--accent); }
+.qnum { font: 400 14.5px var(--mono); color: var(--faint); }
+.qtext { font: 600 clamp(18px, 1.6vw, 21px)/1.35 var(--sans); letter-spacing: -.01em; }
+.qset { display: block; font: 400 13.5px var(--sans); color: var(--muted); letter-spacing: 0; margin-bottom: 2px; }
+.qbody { padding: 0 0 28px 56px; max-width: calc(92ch + 56px); }
+.qbody .why { color: var(--muted); font-size: 17px; margin: 0 0 14px; }
+.qbody .why b { color: var(--ink); font-weight: 600; }
+.qbody .lbl { font-size: 13.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 14px 0 6px; }
+.edgefacts { margin: 0 0 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px 28px; }
+.edgefacts .fact .v { font-size: 30px; }
+h2.eh { font: 600 22px/1.3 var(--sans); margin: 38px 0 10px; }
+.stories p { margin: 0; }
+@media (max-width: 700px) { .qbody { padding-left: 0; } .qd summary { grid-template-columns: 36px 1fr 20px; } .stools { width: 100%; } .stools input[type=search] { flex: 1; } }
 </style>
 </head>
 <body>
@@ -561,38 +588,62 @@ function renderStudy(){
   var st = $("study"); st.textContent = "";
   if (!window.STUDY) { st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "The study guide didn't load. Refresh the page." })); return; }
   var H = STUDY.hype, A = STUDY.answers;
-  st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "Every question with an answer built from your real experience. Read it, hear it, then practice it out loud." }));
+  var SETS = [["edge", "Your edge", ""], ["screen", "Recruiter screen", "Friday's call. Aim for 60 to 90 seconds per answer."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Fill in the [brackets] with real details."], ["tech", "Technical", "Salesforce and analyst craft. Be accurate and concrete, and honest about what you'd ramp up on."]];
+  var tab = "edge"; try { tab = localStorage.getItem("tb-study-tab") || "edge"; } catch (e) {}
+
+  st.append(el("h1", { class: "studyh1", text: "Study guide" }));
+  // one toolbar: sections on the left, search and voice on the right
+  var tabs = el("div", { class: "stabs", role: "tablist", "aria-label": "Study sections" });
+  SETS.forEach(function(x){ var b = el("button", { class: "stab", role: "tab", type: "button", "data-tab": x[0], text: x[1] + (x[0] === "edge" ? "" : "  " + QS[x[0]].items.length) }); b.onclick = function(){ find.value = ""; show(x[0]); }; tabs.append(b); });
+  var find = el("input", { type: "search", id: "find", placeholder: "Search all questions", "aria-label": "Search all questions" });
   var voiceSel = el("select", { id: "studyVoice", "aria-label": "Voice for reading answers" }), keepV = "thalia"; try { keepV = localStorage.getItem("tb-mock-readvoice") || "thalia"; } catch (e) {}
-  AURA.forEach(function(v){ var o = el("option", { value: v[0], text: v[1] + " (" + v[2] + ")" }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
+  AURA.forEach(function(v){ var o = el("option", { value: v[0], text: "Voice: " + v[1] }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
   voiceSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", voiceSel.value); } catch (e) {} stopReading(); };
-  var quiz = el("input", { type: "checkbox", id: "quiz" }), find = el("input", { type: "search", id: "find", placeholder: "Find a question", "aria-label": "Find a question" });
-  quiz.onchange = function(){ st.classList.toggle("quiz", quiz.checked); };
-  find.oninput = function(){ var t = find.value.trim().toLowerCase(); st.querySelectorAll(".sq").forEach(function(n){ n.hidden = t && n.textContent.toLowerCase().indexOf(t) < 0; }); };
-  st.append(el("div", { class: "studybar" }, [el("label", {}, ["Read answers with ", voiceSel]), el("label", {}, [quiz, " Hide answers to quiz yourself"]), find]));
-  var sets = [["screen", "Recruiter screen", "Friday's call. Aim for 60 to 90 seconds per answer."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Swap in real details where you see [brackets]."], ["tech", "Technical", "Salesforce and analyst craft. Accurate and concrete, and honest about what you'd ramp up on."]];
-  st.append(el("nav", { class: "jump", "aria-label": "Sections" }, [el("a", { href: "#s-hype", text: H.title })].concat(sets.map(function(x){ return el("a", { href: "#s-" + x[0], text: x[1] + " (" + QS[x[0]].items.length + ")" }); }))));
-  // hype
-  st.append(el("h2", { class: "set", id: "s-hype", text: H.title }), el("p", { class: "big", text: H.lede }));
-  var tb = el("table", { class: "proof" }); tb.append(el("tr", {}, [el("th", { text: "What they asked for" }), el("th", { text: "What you've done" })]));
-  H.proof.forEach(function(r){ tb.append(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] })])); });
-  st.append(el("div", { style: "overflow-x:auto" }, tb));
-  st.append(el("h2", { text: "Numbers to say out loud" }), el("div", { class: "facts" }, H.numbers.map(function(n){ return el("div", { class: "fact" }, [el("div", { class: "v", text: n[0] }), el("div", { class: "k", text: n[1] })]); })));
-  st.append(el("h2", { text: "Your four go-to stories" }), el("div", { class: "stories" }, H.stories.map(function(x){ return el("p", { style: "margin:0" }, [el("b", { text: x[0] + ". " }), x[1]]); })));
-  st.append(el("h2", { text: "On the call" }), el("ul", { class: "plain" }, H.mindset.map(function(x){ return el("li", { text: x }); })));
-  // questions
-  sets.forEach(function(x){
-    st.append(el("h2", { class: "set", id: "s-" + x[0], text: x[1] }), el("p", { class: "setnote", text: x[2] }));
-    QS[x[0]].items.forEach(function(item, i){
-      var a = A[item.id] || {}, box = el("div", { class: "sq", id: "q-" + item.id });
-      var ans = el("div", { class: "answer" }, String(a.a || "Answer coming soon.").split(/\n\n+/).map(function(p){ return el("p", { text: p }); }));
-      var rv = el("button", { class: "link reveal", type: "button", text: "Show answer" }); rv.onclick = function(){ box.classList.toggle("open"); rv.textContent = box.classList.contains("open") ? "Hide answer" : "Show answer"; };
-      var pr = el("button", { class: "link", type: "button", text: "Practice this one out loud" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(x[0], item); };
-      box.append(el("div", { class: "qn", text: x[1] + " · " + (i + 1) }), el("h3", { text: item.q }), el("p", { class: "why", text: "What they're checking: " + item.why }),
-        a.k ? el("ul", { class: "keys" }, a.k.map(function(k){ return el("li", { text: k }); })) : null, ans,
-        el("div", { class: "sqbar" }, [rv, a.a ? listenBtn(a.a, "studyVoice") : null, pr]));
-      st.append(box);
-    });
-  });
+  st.append(el("div", { class: "stoolbar" }, [tabs, el("div", { class: "stools" }, [find, voiceSel])]));
+  var body = el("div", { class: "sbody" }); st.append(body);
+  find.oninput = function(){ var t = find.value.trim(); if (t) search(t.toLowerCase()); else show(tab); };
+
+  function show(t){
+    tab = t; try { localStorage.setItem("tb-study-tab", t); } catch (e) {}
+    tabs.querySelectorAll(".stab").forEach(function(b){ var on = b.getAttribute("data-tab") === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", String(on)); });
+    stopReading(); body.textContent = "";
+    if (t === "edge") return edge();
+    var set = SETS.find(function(x){ return x[0] === t; });
+    var expand = el("button", { class: "link", type: "button", text: "Open all" }), list = el("div", { class: "qlist" });
+    expand.onclick = function(){ var all = list.querySelectorAll("details"), open = expand.textContent === "Open all"; all.forEach(function(d){ d.open = open; }); expand.textContent = open ? "Close all" : "Open all"; };
+    body.append(el("div", { class: "shead" }, [el("p", { class: "setnote", text: set[2] }), expand]), list);
+    QS[t].items.forEach(function(item, i){ list.append(card(t, item, i)); });
+  }
+  function search(q){
+    tabs.querySelectorAll(".stab").forEach(function(b){ b.classList.remove("on"); });
+    stopReading(); body.textContent = ""; var n = 0, list = el("div", { class: "qlist" });
+    SETS.slice(1).forEach(function(x){ QS[x[0]].items.forEach(function(item, i){ var a = A[item.id] || {}; if ((item.q + " " + (a.a || "") + " " + (a.k || []).join(" ")).toLowerCase().indexOf(q) >= 0) { list.append(card(x[0], item, i, x[1])); n++; } }); });
+    body.append(el("p", { class: "setnote", text: n ? n + (n === 1 ? " question" : " questions") + " match" : "No questions match. Try another word." }), list);
+  }
+  function card(set, item, i, label){
+    var a = A[item.id] || {}, d = el("details", { class: "qd", id: "q-" + item.id });
+    d.append(el("summary", {}, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("span", { class: "qtext" }, [label ? el("span", { class: "qset", text: label }) : null, item.q])]));
+    var pr = el("button", { class: "link", type: "button", text: "Practice out loud" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(set, item); };
+    d.append(el("div", { class: "qbody" }, [
+      el("p", { class: "why" }, [el("b", { text: "What they're checking. " }), item.why]),
+      a.k ? el("div", {}, [el("p", { class: "lbl", text: "Hit these" }), el("ul", { class: "keys" }, a.k.map(function(k){ return el("li", { text: k }); }))]) : null,
+      el("p", { class: "lbl", text: "Say it like this" }),
+      el("div", { class: "answer" }, String(a.a || "Answer coming soon.").split(/\n\n+/).map(function(p){ return el("p", { text: p }); })),
+      el("div", { class: "sqbar" }, [a.a ? listenBtn(a.a, "studyVoice") : null, pr])
+    ]));
+    d.addEventListener("toggle", function(){ if (!d.open) stopReading(); });
+    return d;
+  }
+  function edge(){
+    body.append(el("p", { class: "big", text: H.lede }));
+    body.append(el("div", { class: "facts edgefacts" }, H.numbers.map(function(n){ return el("div", { class: "fact" }, [el("div", { class: "v", text: n[0] }), el("div", { class: "k", text: n[1] })]); })));
+    var tb = el("table", { class: "proof" }); tb.append(el("tr", {}, [el("th", { text: "What they asked for" }), el("th", { text: "What you've already done" })]));
+    H.proof.forEach(function(r){ tb.append(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] })])); });
+    body.append(el("h2", { class: "eh", text: "The job, matched to your work" }), el("div", { style: "overflow-x:auto" }, tb));
+    body.append(el("h2", { class: "eh", text: "Your four go-to stories" }), el("div", { class: "stories" }, H.stories.map(function(x){ return el("p", {}, [el("b", { text: x[0] + ". " }), x[1]]); })));
+    body.append(el("h2", { class: "eh", text: "On the call" }), el("ol", { class: "pri" }, H.mindset.map(function(x){ return el("li", { text: x }); })));
+  }
+  show(SETS.some(function(x){ return x[0] === tab; }) ? tab : "edge");
 }
 
 function warn(t){ var w = $("warn"); w.textContent = t; w.hidden = false; }
