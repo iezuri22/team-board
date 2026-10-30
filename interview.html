@@ -81,7 +81,13 @@ ol.pri li, ul.plain li { margin: 6px 0; }
 .ans .m { font: 400 14.5px var(--mono); color: var(--muted); margin: 0 0 14px; }
 .ans .v { margin: 0 0 10px; font-weight: 500; }
 .ans .lbl { font-size: 14px; color: var(--muted); margin: 16px 0 4px; }
-.ans .say { margin: 0; }
+.ans .say { margin: 0; font-size: 19px; line-height: 1.65; max-width: 75ch; }
+.readhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px 24px; flex-wrap: wrap; margin-top: 40px; }
+.readhead h2 { margin: 0; }
+.readpick { font-size: 16px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+.sayhead { display: flex; align-items: baseline; gap: 16px; margin: 16px 0 6px; }
+.sayhead .lbl { margin: 0; }
+.listen { font-size: 15px; color: var(--ink); }
 .ans details { margin-top: 14px; font-size: 16.5px; color: var(--muted); }
 .ans summary { cursor: pointer; }
 audio { margin-top: 12px; height: 36px; max-width: 100%; }
@@ -211,8 +217,8 @@ function loadVoices(){
 loadVoices(); if (synth) synth.onvoiceschanged = loadVoices;
 $("voice").onchange = function(){ try { localStorage.setItem("tb-mock-voice", this.value); } catch (e) {} };
 function auraSpeaker(){ var v = $("voice").value || ""; return v.indexOf("aura:") === 0 && tok() ? v.slice(5) : ""; }
-function clip(text){
-  var sp = auraSpeaker(); if (!sp) return Promise.reject(new Error("no_aura"));
+function clip(text, speaker){
+  var sp = speaker || auraSpeaker(); if (!sp || !tok()) return Promise.reject(new Error("no_aura"));
   var k = sp + "|" + text;
   if (!clips[k]) clips[k] = fetch(API + "/api/coach/voice", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + tok() }, body: JSON.stringify({ text: text, speaker: sp }) })
     .then(function(r){ if (!r.ok) throw new Error("voice_failed"); return r.blob(); }).then(function(b){ return URL.createObjectURL(b); })
@@ -385,7 +391,7 @@ function run(type){
 }
 
 function stopAll(){
-  if (!S) return; S.ended = true; hush();
+  if (!S) return; S.ended = true; hush(); stopReading();
   if (S.cur) { try { S.cur.recog && S.cur.recog.stop(); } catch (e) {} try { S.cur.rec && S.cur.rec.state !== "inactive" && S.cur.rec.stop(); } catch (e) {} }
   clearInterval(S.tick); try { S.stream && S.stream.getTracks().forEach(function(t){ t.stop(); }); } catch (e) {} try { S.ctx && S.ctx.close(); } catch (e) {}
 }
@@ -422,7 +428,11 @@ function renderReport(entries, fb, keepBusy){
   ]));
   function list(title, arr, ordered){ if (!arr || !arr.length) return; rep.append(el("h2", { text: title }), el(ordered ? "ol" : "ul", { class: ordered ? "pri" : "plain" }, arr.map(function(x){ return el("li", { text: String(x) }); }))); }
   if (fb) { list("Fix before the real one", fb.priorities, true); list("How you sound", fb.delivery); list("What worked", fb.strengths); }
-  rep.append(el("h2", { text: "Answer by answer" }));
+  var readSel = el("select", { id: "readVoice", "aria-label": "Read-aloud voice" }), keepR = "thalia";
+  try { keepR = localStorage.getItem("tb-mock-readvoice") || (($("voice").value || "").indexOf("aura:") === 0 ? $("voice").value.slice(5) : "thalia"); } catch (e) {}
+  AURA.forEach(function(v){ var o = el("option", { value: v[0], text: v[1] + " (" + v[2] + ")" }); if (v[0] === keepR) o.selected = true; readSel.append(o); });
+  readSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", readSel.value); } catch (e) {} stopReading(); };
+  rep.append(el("div", { class: "readhead" }, [el("h2", { text: "Answer by answer" }), el("label", { class: "readpick" }, ["Read the model answers with ", readSel])]));
   entries.forEach(function(e, i){
     var a = fb && (fb.answers || []).find(function(x){ return x.n === i + 1; }), m = e.main.metrics || {};
     var box = el("div", { class: "ans" }, [
@@ -431,7 +441,7 @@ function renderReport(entries, fb, keepBusy){
       el("p", { class: "m", text: [fmt(m.seconds_speaking), (m.words_per_minute || "n/a") + " wpm", (m.fillers_total || 0) + " fillers", (m.pauses_over_2s || 0) + " long pauses", (m.pitch_variety_semitones || 0) + " st pitch variety"].join("  ·  ") }),
       a && a.verdict ? el("p", { class: "v", text: a.verdict }) : null,
       a && a.fix && a.fix.length ? el("ul", { class: "plain" }, a.fix.map(function(x){ return el("li", { text: x }); })) : null,
-      a && a.tighter ? el("div", {}, [el("p", { class: "lbl", text: "Say it like this" }), el("p", { class: "say", text: a.tighter })]) : null,
+      a && a.tighter ? el("div", {}, [el("div", { class: "sayhead" }, [el("p", { class: "lbl", text: "Say it like this" }), listenBtn(a.tighter)]), el("p", { class: "say", text: a.tighter })]) : null,
       e.main.audio ? el("audio", { controls: "", src: e.main.audio }) : null,
       el("details", {}, [el("summary", { text: "What you said" }), el("p", { text: e.main.transcript }), e.fu ? el("p", { text: "Follow-up: " + e.fu.transcript }) : null])
     ]);
@@ -439,7 +449,22 @@ function renderReport(entries, fb, keepBusy){
   });
   rep.append(el("div", { style: "margin-top:36px" }, newBtn()));
 }
-function newBtn(){ var b = el("button", { class: "btn", type: "button", text: "New interview" }); b.onclick = function(){ $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); }; return b; }
+var reader = new Audio(), readingBtn = null;
+function stopReading(){ try { reader.pause(); } catch (e) {} if (readingBtn) { readingBtn.textContent = "Listen"; readingBtn.disabled = false; } readingBtn = null; }
+function listenBtn(text){
+  var b = el("button", { class: "link listen", type: "button", text: "Listen" });
+  b.onclick = function(){
+    if (readingBtn === b) return stopReading();
+    stopReading(); readingBtn = b; b.textContent = "Loading"; b.disabled = true;
+    clip(text, $("readVoice").value).then(function(url){
+      if (readingBtn !== b) return;
+      b.disabled = false; b.textContent = "Stop"; reader.src = url; reader.onended = stopReading;
+      reader.play().catch(stopReading);
+    }).catch(function(){ if (readingBtn === b) { stopReading(); b.textContent = "Couldn't load the voice"; setTimeout(function(){ b.textContent = "Listen"; }, 2500); } });
+  };
+  return b;
+}
+function newBtn(){ var b = el("button", { class: "btn", type: "button", text: "New interview" }); b.onclick = function(){ stopReading(); $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); }; return b; }
 
 function warn(t){ var w = $("warn"); w.textContent = t; w.hidden = false; }
 function showLast(){ var has = false; try { has = !!localStorage.getItem("tb-mock-last"); } catch (e) {} $("lastBtn").hidden = !has; }
