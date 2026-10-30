@@ -105,51 +105,51 @@ window.STUDY = {
   "s1": {
    "a": "Sure. I'm a CRM and AI consultant based in Chicago. I'm a Salesforce Certified Administrator, I hold the CAPM, and my degree is in Industrial Engineering from the University of Illinois at Chicago, which is really where I learned to look at a process, find where it breaks, and redesign it.\n\nToday I'm at William Everett, a government technology consulting firm, where I lead delivery of the CRM for a major U.S. city. It's 15 departments, more than 2,000 users and over 200,000 records on one system, and I also oversee that CRM's integration with Salesforce.\n\nMost of my week is the work this role describes. I run requirements sessions with department leaders, turn what they tell me into user stories with acceptance criteria, write the QA test plans, and stay with the developers until it ships. When a data or integration issue comes up, I work through it with them. Then I train people. I took more than 2,000 users live through demos, admin training, written guides and video walkthroughs, and engagement went up 23 percent after launch. I also rebuilt our support model from a single phone line into self-service intake with templated answers and self-booked consultations, and I built dashboards for 11 programs that rebuild automatically from the master task list, so directors stopped waiting on manual status decks.\n\nI also worked on the 2020 Census in Cook County, using population and geospatial data to decide where outreach should go, and I designed the grading scale used to award grants to 22 agencies.\n\nHealthcare is also personal for me. My mom has owned a home care agency and a CNA school for 20 years, so I've been around this business for a long time, and I've helped her run it more efficiently. [One specific thing you did for her.] So I know care at home from the inside, not just from a requirements document.\n\nThat combination is why this role stood out to me. It's the same analyst work I do every day, focused on Salesforce, in the space I've been building for.",
    "k": [
-    "CRM and AI consultant in Chicago; Salesforce Certified Admin, CAPM, Industrial Engineering at UIC",
-    "Lead the CRM for a major U.S. city: 15 departments, 2,000+ users, 200,000+ records",
-    "Oversee its integration with Salesforce",
-    "Requirements, user stories, QA plans, training; engagement up 23%",
-    "Mom has owned a home care agency and CNA school for 20 years; helped her run it more efficiently",
-    "That's why this role fits"
+    "I'm a CRM and AI consultant in Chicago, a Salesforce Certified Administrator with a CAPM and an Industrial Engineering degree from UIC.",
+    "At William Everett, I lead the CRM for a major U.S. city: 15 departments, more than 2,000 users and over 200,000 records.",
+    "I also oversee that CRM's integration with Salesforce.",
+    "Most of my week is requirements sessions, user stories, QA test plans and working with developers until it ships.",
+    "I took more than 2,000 users live through demos, training, guides and video walkthroughs, and engagement went up 23 percent.",
+    "Healthcare is personal for me. My mom has owned a home care agency and a CNA school for 20 years, and I've helped her run it more efficiently.",
+    "That's why this role stood out: it's the analyst work I already do, on Salesforce, in a world I know."
    ]
   },
   "s2": {
    "a": "Two things, really: the work itself and the role.\n\nOn the work, Careforth pays, coaches and supports family caregivers so people can stay at home, and that's a world I know. My mom has owned a home care agency and a CNA school for 20 years, so I've been around caregivers, clients and the day-to-day of this business for a long time. I've helped her make the operation more efficient, so I've seen firsthand how much of this work runs on paperwork, follow-up and people remembering things. [One specific example.] So when I read care transitions and eligibility in the posting, I didn't just see requirements. I thought about the people on the other end of them.\n\nI also pay attention to the fact that your programs are funded by state agencies and health plans. That means eligibility, authorizations and compliance can't be an afterthought in the systems, and that's the kind of problem I enjoy. Every time a program expands, like Structured Family Caregiving in Ohio in 2025, there are new rules to configure, new reporting and new people to train.\n\nOn the role, it's the part of my job I enjoy most. I like sitting between the people doing the work and the people building the system, and making sure what gets built is what the business actually needs. On the city CRM I do that across 15 departments: requirements sessions, user stories and acceptance criteria, QA with the developers, and training. Doing that on Salesforce, with growth, clinical, care coordination and operations teams, is a very direct fit for how I already work.\n\nAnd the remote-first setup matters to me. A lot of my best work has happened with distributed teams, and I'm comfortable running requirements sessions, demos and training over video, keeping a remote session focused, and making sure people leave able to use what we built.",
    "k": [
-    "Care at home is personal: mom's agency and CNA school, 20 years",
-    "Helped her be more efficient [your example]",
-    "You like sitting between the business and the developers",
-    "This role = that work, on Salesforce, for caregivers"
+    "Care at home is personal for me, because my mom has owned a home care agency and a CNA school for 20 years.",
+    "I've seen firsthand how much this work runs on paperwork, follow-up and people remembering things, and I've helped her make it more efficient. [Your example.]",
+    "I like sitting between the people doing the work and the people building the system.",
+    "This role is exactly that, on Salesforce, supporting caregivers."
    ]
   },
   "s3": {
    "a": "I'm looking to go deeper on two things: Salesforce and healthcare workflows.\n\nOn Salesforce, I've spent my current role leading the CRM for a major U.S. city and overseeing its integration with Salesforce. That work put me right at the boundary between the two systems, figuring out what each side owns and what happens when records don't line up, and it made me want to spend more of my time on the Salesforce side itself. That's why I earned my Salesforce Administrator certification. I want my day to be about the core platform: the data model, Flow, the security model, and getting the requirements right before anything gets built.\n\nOn healthcare, it's personal. My mom has owned a home care agency and a CNA school for 20 years, and being around that showed me how much the systems behind care matter. In most businesses, a bad workflow costs people time. In care at home, a bad workflow can mean a caregiver shows up without the right paperwork, a visit doesn't get documented, or a referral sits too long. Getting those details right actually affects someone's care, and I find that work really satisfying.\n\nI've had a good experience at William Everett. Leading a rollout across 15 departments and more than 2,000 users taught me a lot, and that's exactly the experience I'd bring here. But this role puts both of the things I want to grow in into one place. It's Salesforce-focused analyst work, at an organization doing care at home, alongside clinical, care coordination and operations teams. So for me it's a natural next step, not a change of direction.",
    "k": [
-    "Toward, not away",
-    "Go deeper on Salesforce: certified, want more of it",
-    "Go deeper on healthcare: grew up around it through your mom",
-    "In care at home, a bad workflow affects someone's care",
-    "Never knock your employer; then stop"
+    "I'm looking to go deeper on two things I care about: Salesforce and healthcare.",
+    "I earned my Salesforce Administrator certification because it's the platform I want to spend more of my time on.",
+    "I grew up around home care through my mom's agency, and I know a bad workflow in this world can affect someone's care.",
+    "This role puts both in one place, so it's a natural next step, not a change of direction."
    ]
   },
   "s4": {
    "a": "I'm a Salesforce Certified Administrator, and I want to be precise about what I've done, because the split matters.\n\nOn the job, the city CRM I lead isn't Salesforce, but I oversee its integration with Salesforce. So my Salesforce work there is on the boundary: how data moves between the two systems, which side owns which records, how matching works, and what happens when something doesn't line up. When there's a data or integration issue, I work through it with the developers, figure out whether it's a mapping problem, a timing problem or a bad source record, and write it up so it gets fixed properly instead of patched.\n\nI've also done Salesforce work internally at William Everett. [Say what you built or configured there, in a sentence or two.]\n\nOn the platform itself, the certification covers the core admin skills, and I'm comfortable with them: custom objects and fields, relationships, record types, page layouts and Dynamic Forms, validation rules, reports and dashboards, and the security model, meaning profiles, permission sets and permission set groups, roles and sharing rules. For automation I think Flow first, since Flow has replaced Workflow Rules and Process Builder, and I know when something should go to a developer as Apex instead. A lot of my CRM work is configuring objects, workflows and permission models to meet compliance requirements, and that thinking carries straight over. In a healthcare setting, who can see what is one of the first questions I ask.\n\nThe posting mentions custom work that doesn't rely on cloud license features, with Shield, Conga and e-signature as a plus. I haven't used Shield or Conga, so those are what I'd ramp up on. But the problems they solve, encryption, audit and document generation, are ones I already think about, from configuring permission models for compliance on the city CRM to setting up least-privilege access to SharePoint on our internal status reporting app.\n\nWhere I add the most is the analyst part. I understand what a team actually needs, turn it into stories with clear acceptance criteria, and test that what gets built works for every type of user. I'd be the person making sure the Salesforce team builds the right thing, and that people actually use it.",
    "k": [
-    "Salesforce Certified Administrator",
-    "Oversee the city CRM's integration with Salesforce (the city CRM isn't Salesforce)",
-    "Internal Salesforce work at William Everett [fill in]",
-    "Know: objects, record types, Dynamic Forms, validation rules, reports, profiles, permission sets, sharing, Flow",
-    "Shield and Conga: honest, you'd ramp up",
-    "Your edge: the analyst side"
+    "I'm a Salesforce Certified Administrator.",
+    "The city CRM I lead isn't Salesforce, but I oversee its integration with Salesforce, including how data moves and which system owns what.",
+    "I've also done Salesforce work internally at William Everett. [Say what you did.]",
+    "I'm comfortable with objects, record types, validation rules, reports, permission sets, sharing and Flow.",
+    "I haven't used Shield or Conga yet, so those are what I'd ramp up on.",
+    "My biggest strength is the analyst side: making sure the team builds the right thing and that people use it."
    ]
   },
   "s5": {
    "a": "Based on the scope of this role and my experience leading a CRM across 15 departments and more than 2,000 users, I'm targeting around 90,000. That reflects the Salesforce focus plus the healthcare workflow experience I'd bring from day one. I'm open to talking about the full package. How are you thinking about the range for this role?",
    "k": [
-    "Say the number: around $90,000",
-    "One sentence of reasoning: scope, Salesforce, healthcare workflows",
-    "Open to the full package",
-    "Hand it back with a question, then stop talking"
+    "Based on the scope of this role and my experience, I'm targeting around 90,000.",
+    "I'm open to talking about the full package.",
+    "How are you thinking about the range for this role?",
+    "Then stop talking and let her answer."
    ]
   },
   "s6": {
@@ -172,35 +172,34 @@ window.STUDY = {
   "s8": {
    "a": "Yes, I have a few.\n\nI'd like to understand who I'd be translating between, so first: how is the Salesforce team set up today? Is it in-house developers, a partner, or both, and where does the BSA sit between them and the clinical, care coordination and operations teams?\n\nThis role partners with four different groups, so the answer to this one tells me a lot about the day to day: how does work get prioritized across growth, clinical, care coordination and operations? Is there one backlog the Product Managers own, or do requests come straight to the analyst?\n\nThe posting mentions custom work that doesn't rely on cloud license features, so I'm curious about the org itself: what does the current Salesforce setup look like, and how much of the care workflow, things like eligibility, authorizations and care transitions, lives in Salesforce versus other systems?\n\nI want to know what success looks like early, so: what would a strong first 90 days look like for this role, and is there a big project on the horizon, like a new program launch, a new state, or a migration?\n\nSince I'd be supporting QA and training, I'd like to know how releases work here: how often does the team release, how are testing and user training handled when something goes live, and is there production support or after-hours coverage for this role?\n\nAnd finally, so I can prepare well: what are the next steps in the process, and who would I meet next?",
    "k": [
-    "How is the Salesforce team set up: in-house, partner, or both?",
-    "How is work prioritized across departments?",
-    "How many BSAs? Any after-hours support?",
-    "What does a strong first 90 days look like?",
-    "Biggest project in the next six months?",
-    "Next steps, and who would I meet?"
+    "How is the Salesforce team set up: in-house developers, a partner, or both?",
+    "How does work get prioritized across growth, clinical, care coordination and operations?",
+    "How many BSAs are on the team, and is there any after-hours support?",
+    "What would a strong first 90 days look like in this role?",
+    "What's the biggest project for this role in the next six months?",
+    "What are the next steps, and who would I meet?"
    ]
   },
   "s9": {
    "a": "Careforth has been supporting family caregivers for about 25 years. It was founded in 2000 and started as Seniorlink and Caregiver Homes, and in 2023 those brands, along with the Vela app, came together under the Careforth name. You're based in Boston, you're remote-first, and you've served caregivers in around 30 states.\n\nThe core of what you do is making it possible for people to stay at home with family caring for them. Through Structured Family Caregiving, family caregivers get paid, coached and supported. That support comes through in-person home visits, remote coaching, and the Careforth app, which is HITRUST certified and HIPAA secure. That certification told me something about how you treat data, because HITRUST isn't something an organization gets by accident.\n\nWhat I find compelling is the model. It improves outcomes for the person getting care. It gives caregivers real financial support for work they're often already doing. And it saves money for the state agencies and health plans that fund these programs, which is what makes it sustainable. Those goals usually pull against each other, and here they work together.\n\nBecause the programs are funded by states and health plans, I'd imagine the systems behind them carry a lot of weight. Each caregiver and each person in care has to move through eligibility, authorization, enrollment, visits, coaching and reporting back to the payer, and each state program has its own rules. That's exactly where a BSA makes a difference. And I've seen the paperwork and compliance side of home care up close through my mom's agency, so I know what's at stake when any of that falls behind.\n\nI also saw you expanded Structured Family Caregiving in Ohio in 2025. Every new state or program brings systems work with it: new eligibility rules, new reporting, new people to train. That's the part of the business I'd want to help with.",
    "k": [
-    "About 25 years; formerly Seniorlink and Caregiver Homes; Careforth since 2023",
-    "Based in Boston; caregivers served in about 30 states",
-    "Structured Family Caregiving: pays, coaches and supports family caregivers",
-    "Home visits, remote coaching, the Careforth app (HITRUST, HIPAA)",
-    "Win-win: better outcomes, caregiver income, savings for states and health plans",
-    "Expanded in Ohio; every new state means systems work"
+    "Careforth has supported family caregivers for about 25 years, and it was formerly Seniorlink and Caregiver Homes before becoming Careforth in 2023.",
+    "You're based in Boston and have served caregivers in about 30 states.",
+    "Through Structured Family Caregiving, family caregivers get paid, coached and supported so their loved ones can stay at home.",
+    "That comes with in-person home visits, remote coaching and the Careforth app, which is HITRUST certified and HIPAA secure.",
+    "The model works for everyone: better outcomes, income for caregivers, and savings for state agencies and health plans.",
+    "You've also been expanding, like in Ohio, and every new program brings systems work with it."
    ]
   },
   "s10": {
    "a": "As I understand it, the Business Systems Analyst II is the link between product, the developers and the business. It reports to the VP of Product and Strategy, and the key focus is Salesforce, including custom work on the core platform that doesn't depend on cloud license features.\n\nDay to day, that means partnering with growth, clinical, care coordination and operations to understand their needs and pain points, and documenting the requirements. Then working with the Product Managers and the Salesforce team to turn those into user stories, validate them, support the backlog and help with QA. It also means translating healthcare workflows like care transitions and eligibility into solutions that scale, analyzing data to improve processes, and training people when new features go live. The team works in Scrum, with Jira, Confluence and Lucidchart for stories, documentation and process maps.\n\nSo the heart of the role is making sure what the Salesforce team builds actually solves the problem the care teams have, and that people use it once it's live.\n\nThat's what I do today on the city CRM. I run requirements sessions with leaders across 15 departments, turn them into user stories with acceptance criteria and QA test plans, work through data and integration issues with the developers, and I trained more than 2,000 users through demos, admin training, written guides and video walkthroughs. The data side carries over too. I built dashboards for 11 programs that rebuild automatically from the master task list, and on the 2020 Census in Cook County I used population and geospatial data to decide where outreach should go.\n\nThe healthcare side I know from being around my mom's home care agency and CNA school for years. And the workflow mapping is what I do on the city CRM every week, across 15 departments. A care transition or an eligibility check is the same kind of work: find who does what, what information they need, where the hand-offs happen, and what the rules require.\n\nThe difference here is that it's Salesforce, and it's care at home, which are the two areas I most want to focus on.\n\nOne thing I'd like to understand better is how the work splits between the BSA and the Product Managers, and which internal tools beyond Salesforce would fall under this role.",
    "k": [
-    "The link between product, developers and the business",
-    "Reports to the VP of Product and Strategy; Salesforce focus",
-    "Partners with growth, clinical, care coordination, operations",
-    "User stories, backlog, QA, training; Jira, Confluence, Lucidchart; Scrum",
-    "Care transitions and eligibility workflows",
-    "Same work you do on the city CRM",
-    "Ask how work splits between the BSA and Product Managers"
+    "The BSA II is the link between product, the developers and the business, reporting to the VP of Product and Strategy with a strong focus on Salesforce.",
+    "It means working with growth, clinical, care coordination and operations to understand their needs and document requirements.",
+    "It means writing user stories with the Product Managers and Salesforce team, and supporting the backlog and QA.",
+    "It also means turning workflows like care transitions and eligibility into solutions that scale, and training people on new features.",
+    "That's what I do today on the city CRM, and here it would be on Salesforce, in care at home.",
+    "I'd love to understand how the work splits between the BSA and the Product Managers."
    ]
   },
   "p1": {
@@ -303,12 +302,11 @@ window.STUDY = {
   "b1": {
    "a": "During the city CRM rollout, two departments wanted the same intake process set up in very different ways. [Name the two departments and the process.] One wanted every field captured up front so their reporting would be complete. The other wanted intake as short as possible, because their staff were entering requests while on the phone with residents. Both had a fair point.\n\nInstead of picking a side, I brought both groups into the same requirements session and we walked through the actual process step by step, from the first contact to the point where the request was closed. I mapped it as a simple swimlane [tool you used] so everyone could see who touched the record at each stage and what they needed to know at that moment. For every field on the reporting department's list, I asked one question: at what step does someone actually use this?\n\nOnce it was laid out, it was clear most of the extra fields weren't needed at intake. They were needed later, at the review stage, by the people doing the review. So we agreed on a short intake form with only the essentials required, and the detailed fields moved to the review step, where they became required before a request could move forward. That gave the reporting department a guarantee instead of a hope.\n\nI wrote the decision up as user stories with acceptance criteria, including which fields were required at which stage and what should happen if someone tried to skip ahead. Both leads signed off before development started, and I built the QA test plan from those same criteria, so we tested the exact behavior they had agreed to.\n\nThe result was that intake stayed fast for the front line, the reporting department still got complete data, and we didn't have to rebuild it after launch. [Add anything real you remember, like how long it stayed unchanged.] What I took from it is that most requirement disagreements are really about timing and ownership, and mapping the process together usually settles it.\n\nAt Careforth, I'd expect the same kind of tension between teams like clinical and operations over what gets captured at referral versus at assessment. I'd handle it the same way: map it together, decide by stage, and write it down so the decision holds.",
    "k": [
-    "Two departments, one intake process, opposite needs",
-    "Same room, swimlane of the real process: when is each field used?",
-    "Short intake, detailed fields required at review",
-    "Stories and acceptance criteria signed off; test plan built from them",
-    "Fast intake, complete data, no rework after launch",
-    "Careforth: referral vs assessment, decide by stage"
+    "During the city CRM rollout, two departments wanted the same intake process set up very differently. [Name them.]",
+    "One wanted every field up front for reporting, and the other needed intake short because staff were on the phone with residents.",
+    "I got both groups in the same session and we mapped the real process step by step.",
+    "We saw most fields were only needed at the review stage, so we kept intake short and moved the rest to the next step.",
+    "Both leads signed off on the stories, intake stayed fast, reporting stayed complete, and we avoided rework after launch."
    ]
   },
   "b2": {
@@ -347,12 +345,11 @@ window.STUDY = {
   "b5": {
    "a": "When we rolled out the city CRM, some departments didn't want to change. [Name one department if you can.] They had their own spreadsheets and email processes that worked well enough for them, and to their staff a new system looked like extra work with no payoff.\n\nI treated adoption as part of the project, not something that happens after launch. The first step was understanding what each department actually did all day, so I could show them the system doing their work instead of a tour of generic features. I built demos around each department's real process: their intake, their hand-offs, their reports. When people see their own work on the screen, the conversation shifts from 'why do we have to do this' to 'can it also do this.'\n\nThen I built support in layers, because people need help at different moments. I ran admin training for the people who would support others in their department, so help was close by. I wrote step-by-step guides for the common tasks, organized by what someone was trying to get done rather than by screen. And I recorded short video walkthroughs people could pull up when they actually needed them, instead of trying to remember a training session from weeks earlier.\n\nI also found a champion in each department, someone their peers trusted. They answered quick questions, told me honestly what wasn't working, and pushed their colleagues more effectively than I could from outside. When they raised a real pain point, I turned it into a user story, so they saw their feedback change the system.\n\nWe took more than 2,000 users live, and engagement went up 23 percent after launch. The lesson for me is that people don't resist systems, they resist extra work. If you show them how it makes their day easier and you make help easy to find, they come around.\n\nAt Careforth, training and user support are part of the role, and the users are care coordinators, coaches and operations staff whose time belongs to caregivers and families. I'd bring the same approach: demos built on their real workflows, guides and short videos they can use in the moment, and champions inside each team.",
    "k": [
-    "Resistance was fear of extra work",
-    "Demos built on each department's real process",
-    "Admin training, task-based guides, short video walkthroughs",
-    "A champion in each department; feedback became user stories",
-    "2,000+ users live, engagement up 23%",
-    "Careforth: coordinators and coaches need help in the moment"
+    "Some departments resisted the new CRM because they had their own spreadsheets and saw it as extra work.",
+    "I ran demos built around their real work, so they could see their own process in the system.",
+    "I trained admins to support their teams, and created step-by-step guides and video walkthroughs.",
+    "We took more than 2,000 users live, and engagement went up 23 percent after launch.",
+    "People don't resist systems. They resist extra work."
    ]
   },
   "b6": {
@@ -369,12 +366,11 @@ window.STUDY = {
   "b7": {
    "a": "With 15 departments on one CRM, I regularly had several teams asking for changes at the same time, each convinced theirs was the most urgent. [Name a real moment: which departments, what they wanted.] Requests came in through email, phone calls and hallway conversations, so nobody, including me, could see the full picture, and whoever followed up most often tended to get attention first.\n\nThe first thing I did was get everything into one place. I rebuilt support from a single phone line into a self-service intake process with templated answers and self-booked consultations. Common questions got answered without a ticket, real requests came in through an intake form, and everything landed in one queue. That alone made the workload visible.\n\nThen I set up a consistent way to prioritize and agreed it with leadership, so it wasn't just my opinion. Every request was weighed on the same questions: how many people it affected, whether it was tied to a compliance or reporting deadline, and how much effort it would take. Requests that cleared that bar became user stories with acceptance criteria and went into the backlog in priority order, so the developers always knew what was next.\n\nOnce everything was in one backlog, I could tell each department where their request stood and roughly when to expect it. When something got bumped, I told them why. That transparency took a lot of pressure off. Most people are fine waiting if they know where they are in line and the rules are the same for everyone.\n\nThe result was fewer escalations, faster answers for common questions through self-service, and departments trusting the process instead of trying to go around it. [Add a real example of a department that stopped escalating, if you have one.]\n\nAt Careforth, I'd be the link between growth, clinical, care coordination and operations, and they won't always want the same thing at the same time. A growth push and a care coordination fix can land in the same week. I'd bring the same approach: one intake, one backlog, clear criteria agreed with product leadership, and honest updates to every team about what's next.",
    "k": [
-    "15 departments, competing urgent asks, no single view",
-    "Self-service intake: one queue for everything",
-    "Prioritized by impact, deadlines and effort, agreed with leadership",
-    "One backlog of user stories with acceptance criteria",
-    "Told every team where they stood, and why when bumped",
-    "Fewer escalations, more trust in the process"
+    "With 15 departments on one CRM, several teams often needed changes at the same time, and each thought theirs was most urgent.",
+    "I got every request into one place, and rebuilt support from a phone line into self-service intake.",
+    "I prioritized with leadership by impact, deadlines and effort.",
+    "I told each department where their request stood and when to expect it.",
+    "That meant fewer escalations, and departments trusted the process instead of going around it."
    ]
   },
   "b8": {
@@ -423,33 +419,32 @@ window.STUDY = {
   "t1": {
    "a": "A good user story says who needs something, what they need, and why, in the business's language. I use the standard shape: as a care coordinator, I want to be alerted 30 days before a member's authorization ends, so that I can request a renewal before services lapse. The \"so that\" matters most. It tells the developer what problem they're solving, and it leaves room for them to suggest a better way to get there. I keep the solution out of the story itself; the how belongs in the conversation and the technical notes.\n\nThen the acceptance criteria make it testable. I write them as Given, When, Then. Given a member has an active authorization ending in 30 days, when the nightly check runs, then a task is created for that member's assigned coordinator with the authorization number and end date. Then I write the cases people forget: no duplicate task if one is already open, no alert if a renewal has already been entered, and a coordinator only sees tasks for members they have access to. I also call out the non-functional pieces, like volume, so the story says it has to work across every active authorization, not just one record in a demo.\n\nI check stories against INVEST: independent, negotiable, valuable, estimable, small and testable. If a story is too big for a sprint, I split it by workflow step or by role, for example the alert first and the renewal tracking second, rather than by technical layer, so each piece still delivers something a user can see.\n\nThis is my day-to-day at work. I run requirements sessions with department leaders, turn their feedback into user stories and acceptance criteria, and write the QA test plans the development team builds against. Because I write the test plans too, I write criteria I can actually test. If I can't test it, the story isn't finished, and it isn't ready for sprint planning either.",
    "k": [
-    "As a / I want / so that; the 'so that' carries the why",
-    "Keep the solution out of the story",
-    "Given / When / Then, plus duplicates, renewals and role access",
-    "Call out volume and other non-functional needs",
-    "INVEST; split by workflow step or role, not technical layer",
-    "He writes the QA test plans, so criteria must be testable"
+    "A good story says who needs something, what they need and why: as a care coordinator, I want to see open authorizations, so I don't search another system before a visit.",
+    "The 'so that' matters most, because it tells the developer what problem they're solving.",
+    "I write acceptance criteria as Given, When, Then, so they can be tested.",
+    "I include edge cases, like an expired authorization, and which roles should see it.",
+    "I keep stories small enough to finish in one sprint."
    ]
   },
   "t2": {
    "a": "I'd start with the people doing the work, not with Salesforce. Take a care transition, like a member being discharged from the hospital back home. I'd sit with the care coordinators, the clinical team and whoever handles intake, and map the current process in Lucidchart as a swimlane: who learns about the discharge and how, what they do next, what information they need at each step, and where the hand-offs between teams happen. Eligibility gets the same treatment: referral, eligibility check, assessment, the authorization from the state agency or health plan, and enrollment.\n\nThat map usually shows where the pain is: double entry, information sitting in someone's inbox, or a step that depends on someone remembering. Then I'd define the future state and the rules behind it, written down precisely: what makes someone eligible, what triggers a transition, which follow-ups are required and in what time window, and what the compliance and audit requirements are.\n\nIn Salesforce I'd translate that into the data model first: a member record, an eligibility determination, an authorization with payer, units and dates, a care transition with type, facility, discharge date and status, and the care plan. Master-detail where a record can't exist without its parent, lookup where it can. Then automation in Flow: a record-triggered flow that creates follow-up tasks when a transition is logged, a scheduled path that escalates if the follow-up is overdue, and a screen flow that walks a coordinator through the transition checklist. Then permissions, so clinical details are visible only to the roles that need them. If a health plan sends admission and discharge notices, that becomes its own integration story. Declarative first, Apex only where Flow can't handle the logic or the volume.\n\nThen I'd validate with the actual users before building, release in phases, often one program or region first, train, and measure whether follow-up time actually improved.\n\nI do this kind of mapping across 15 departments on the city CRM. And I've been around care-at-home work for years through my mom's home care agency, so I know what coordinators and caregivers actually deal with. Different stack, same thinking.",
    "k": [
-    "Start with the people; swimlane in Lucidchart",
-    "Find hand-offs, data needs, rules",
-    "Data model first, then Flow, then permissions; declarative first",
-    "Validate with users, phase, train, measure",
-    "You do this across 15 departments; you know care at home through your mom"
+    "I'd start with the people doing the work, and map the current process in Lucidchart as a swimlane.",
+    "That shows who does what, what information they need, and where hand-offs break down.",
+    "Then I'd design the data model, like members, episodes of care and authorizations, before the automation.",
+    "I'd use Flow for status changes, tasks and alerts, and permissions so the right people see the right data.",
+    "I'd validate with users before building, release in phases, and train.",
+    "I do this kind of mapping across 15 departments today, and I know care at home through my mom's agency."
    ]
   },
   "t3": {
    "a": "They control different things. A profile is a user's baseline. It sets object permissions, meaning create, read, edit and delete on each object, field-level security, which apps and tabs they see, system permissions, and a few things that still live only on the profile, like page layout assignments, default record types, login hours and login IP ranges. Every user has exactly one profile.\n\nPermission sets add access on top of the profile without changing it. Salesforce's guidance is to keep profiles minimal, ideally a few base profiles, and grant almost everything through permission sets. Permission set groups bundle those into a persona. So at Careforth I might have a Care Coordinator group made of a member access set, a care plan set and a reporting set, and a Care Coordinator Supervisor group that adds reassignment and approval permissions. When someone changes jobs, you swap a group instead of rebuilding a profile.\n\nThe follow-up question is usually muting. Permission sets only add access; they never take it away. But inside a permission set group you can add a muting permission set, which removes specific permissions from that group only. So if the supervisor group pulls in a set that includes delete on authorizations, I can mute delete in that group without editing the shared permission set everyone else uses.\n\nA role is separate. It controls which records a user can see, through the role hierarchy: people above you get the same access to your records that you have, which matters when the org-wide default is Private or Read Only. Roles don't grant object permissions at all, and a user doesn't even need a role. Some object permissions also cut across sharing entirely. View All and Modify All on an object, or View All Data for the org, override the sharing model, so I treat those as high-risk and review who has them.\n\nThe simple version: profiles and permission sets decide what you can do, and roles and sharing decide which records you can do it on. When I'm troubleshooting someone's access, I check both sides before changing anything.",
    "k": [
-    "Profile: baseline CRUD, FLS, apps, layouts, login hours; one per user",
-    "Permission sets add access; keep profiles minimal",
-    "Permission set groups model personas, like Care Coordinator",
-    "Muting permission sets remove access inside one group only",
-    "Role: record visibility via the hierarchy, grants no object permissions",
-    "View All / Modify All bypass sharing; do vs see"
+    "A profile is a user's baseline access, and every user has exactly one.",
+    "Permission sets add access on top of the profile, and permission set groups bundle them by job.",
+    "Salesforce's direction is to keep profiles minimal and grant access through permission sets.",
+    "A role controls which records someone can see, through the role hierarchy.",
+    "Simple version: profiles and permission sets decide what you can do, and roles and sharing decide which records you can see."
    ]
   },
   "t4": {
@@ -466,12 +461,11 @@ window.STUDY = {
   "t5": {
    "a": "I go declarative first, and now that Workflow Rules and Process Builder are retired, that means Flow. The big advantage is that an admin can read and maintain a flow after go-live without a developer.\n\nMost automation is record-triggered flows, and the first decision is before-save versus after-save. A before-save flow, labeled Fast Field Updates, changes fields on the triggering record before it's written to the database, so there's no extra DML and it's much faster. That's right for setting an authorization's status to Expiring Soon or stamping a priority on a care transition. An after-save flow, Actions and Related Records, runs once the record is saved and has an ID, so that's where I create related records, like follow-up tasks when a hospital discharge is logged, or send notifications. Record-triggered flows can also have scheduled paths, like running 30 days before an authorization's end date, and an asynchronous path for slower work like callouts.\n\nThen I design for failure. Every element that touches data gets a fault path, so instead of the user hitting an unhandled error and the admin getting a cryptic email, the flow logs what happened and notifies the right person. I use the Custom Error element when a flow needs to stop a save and tell the user why. Reusable logic, like finding a member's assigned coordinator, goes into an autolaunched subflow that several flows call, so it's fixed in one place. And I keep flows per object organized, with trigger order set, using Flow Trigger Explorer to see everything that fires on an object.\n\nI reach for Apex when the logic is too complex to maintain visually, when volume and performance matter, like processing tens of thousands of eligibility records, when an integration needs real error handling and retries, or when we're close to limits. Often the answer is both: a flow that calls an invocable Apex action for the one hard step. Apex also needs at least 75% test coverage across the org to deploy to production, which is a real cost to plan for.\n\nThe question I always ask is who maintains this a year from now. Either way, it's built bulk-safe and tested in a sandbox first.",
    "k": [
-    "Flow first; Workflow Rules and Process Builder are retired",
-    "Before-save for fast same-record field updates; after-save for related records and actions",
-    "Scheduled paths (30 days before end date) and async paths for callouts",
-    "Fault paths, Custom Error, reusable subflows, Flow Trigger Explorer",
-    "Apex for complexity, volume, integrations, limits; invocable Apex from Flow",
-    "75% coverage; who maintains it; bulk-safe and sandbox-tested"
+    "I go with Flow first, because admins can read and maintain it after go-live.",
+    "Flow handles record changes, guided screens and scheduled jobs.",
+    "I'd use Apex for very complex logic, high volumes or heavy integrations.",
+    "The question I always ask is who will maintain this a year from now.",
+    "Either way, it has to handle records in bulk and be tested in a sandbox first."
    ]
   },
   "t6": {
@@ -745,23 +739,21 @@ window.STUDY = {
   "p10": {
    "a": "War Room is a system I built so that what we decide in meetings actually turns into owned, tracked work, without anyone retyping notes.\n\nHere's how the chain works. Every weekday at 6 PM, an automated job finds that day's project meetings on Zoom and pulls the transcript from Zoom's meeting notes. If I couldn't record a meeting, teammates drop the transcript into a shared Google Drive folder and it gets picked up from there too. Claude writes a clean summary of each meeting into Notion, so there's one searchable record of what was discussed and decided.\n\nThen it pulls out the action items and adds them as rows on our team's master task list in Smartsheet, with an owner assigned based on who the work belongs to. Before anything is added, it checks the existing rows for the same item said a different way, so a request mentioned in three meetings becomes one task, not three. At the end it drafts one summary email to the team. If a meeting's transcript is missing, it goes on a transcript checklist in War Room so nothing falls through.\n\nWar Room itself is the team's working view on top of Smartsheet. Teammates can acknowledge items, link them to the week's priorities, tag each other, and log in-person visits and trainings. Every weekday morning it posts one digest in Notion that tags each person with their deadlines coming up in three days, one day, today, or already overdue, and Notion emails it to them. It's built so the same reminder never goes out twice.\n\nOn the technical side it's a web app on Vercel with a Postgres database, serverless functions that talk to the Smartsheet, Notion, Zoom and Google Calendar APIs, and Claude for the summaries and extraction. Smartsheet doesn't allow direct browser calls, so the app proxies those calls server-side, and teammates use a team token instead of anyone's personal API key.\n\nThe point for Careforth is the mindset: keep the system of record the team already uses, which was Smartsheet for us and would be Salesforce for you, and automate the busywork around it so the record stays current without extra effort.",
    "k": [
-    "Meetings become owned, tracked work automatically",
-    "Zoom notes and shared Drive transcripts, Claude summary in Notion",
-    "Action items to the Smartsheet master list with owners and duplicate checks",
-    "One team email; missing transcripts go on a checklist",
-    "Daily Notion digest tags people on deadlines; never double-sends",
-    "Keep the system of record, automate around it"
+    "I built War Room so decisions in meetings become tracked work without anyone retyping notes.",
+    "Every weekday, it pulls that day's Zoom transcripts and Claude summarizes them into Notion.",
+    "Action items go onto our Smartsheet task list with an owner and a check against duplicates.",
+    "A morning digest tags each person on deadlines that are coming up or overdue.",
+    "We kept Smartsheet as the system of record, and for you that would be Salesforce."
    ]
   },
   "p11": {
    "a": "The program dashboards came from a simple problem: leaders and client programs wanted to know where their work stood, and the answer lived in a status deck someone rebuilt by hand every month. It was always out of date.\n\nSo I built dashboards that rebuild themselves. Our master task list in Smartsheet is the single source of truth. Every 10 minutes, an automated job pulls the sheet, filters out anything marked internal only, groups the work by program, and generates a separate dashboard for each one: what's in progress, what was recently completed, a feed of what changed built from the sheet's cell history and comments, and a roll-up of open tech support tickets.\n\nEach program gets its own private link with a random token, so one program can never see another program's work. The summary text at the top of each dashboard can be edited without touching code, and every item has a link back to its row in Smartsheet, so if a note needs correcting, it gets fixed at the source and the dashboard catches up on the next refresh.\n\nThe status data stays current on its own, too. Every night, a reconciliation job takes the platform vendor's outstanding ticket report, which comes in by email, and matches it against our task list, first by ticket number and then by title. It fills in missing ticket numbers, syncs statuses, adds new tickets as rows, and marks closed tickets completed. Meeting action items flow in from the War Room pipeline. So the dashboards are fed by meetings, tickets and the team's own updates, without anyone building a slide.\n\nThat covers 11 programs, and it changed the conversations. Instead of debating whose slide was right, leaders could see live status and spend the time on the programs that actually needed help.\n\nIn Salesforce terms, this is reports and dashboards on top of clean data, with the data kept clean by automation and integrations. That's exactly how I'd think about operational reporting for care coordination or growth at Careforth.",
    "k": [
-    "Problem: hand-built monthly decks, always stale",
-    "Smartsheet master list as the source of truth",
-    "Every 10 minutes: filter internal, group by program, generate dashboards",
-    "Private link per program; editable copy; links back to the source row",
-    "Nightly ticket reconciliation keeps status current",
-    "11 programs; the Salesforce parallel"
+    "Leaders were relying on status decks someone rebuilt by hand every month, so they were always out of date.",
+    "I made our Smartsheet master task list the single source of truth.",
+    "Every 10 minutes, dashboards for 11 programs rebuild themselves, and each program has its own private link.",
+    "A nightly job matches the vendor's ticket report to our list, so status stays current.",
+    "Leaders stopped debating whose slide was right and focused on the programs that needed help."
    ]
   },
   "p12": {
@@ -854,11 +846,11 @@ window.STUDY = {
   "s12": {
    "a": "Caregivers are the people I've worked with most closely outside my day job, and they're a big reason this role means something to me.\n\nMy mom has owned a home care agency and a CNA school for 20 years, so I've been around caregivers for a long time. I've seen people come through her school to get certified and go on to care for clients, and I've seen what the agency deals with day to day. I've also helped her make the business more efficient. [Add what you did for her, and a real person or moment that stuck with you.]\n\nWhat I've learned is that caregivers are doing some of the hardest and most important work there is, and they're usually stretched thin. They're in someone's home, often alone, managing a person's daily care, and every minute they spend fighting paperwork or confusing tools is a minute taken from the person they're caring for.\n\nSo I think about the small things that make a big difference to them. Can a caregiver do this on a phone? Is their pay right, including travel time? Do they get a warning before a certification lapses, so they aren't pulled off a client they know? Those details decide whether a good caregiver stays.\n\nThat's why Careforth's model resonates with me. Your caregivers are family members doing this out of love, and Structured Family Caregiving recognizes that with real pay, coaching and support. The systems behind that support matter, because the easier the technology is for a caregiver, the more energy they have for their family member. That's the lens I'd bring to every story I write here: does this make a caregiver's day easier, or harder?",
    "k": [
-    "Mom's home care agency and CNA school, 20 years; around caregivers a long time [add a real moment]",
-    "Helped her make the business more efficient",
-    "Caregivers are stretched thin; paperwork steals care time",
-    "Small things matter: phone-friendly, correct pay, warnings before anything lapses",
-    "Careforth's caregivers are family: easier tech, more energy for care"
+    "My mom has owned a home care agency and a CNA school for 20 years, so I've been around caregivers for a long time.",
+    "I've seen people come through her school, get certified and go on to care for clients. [Add a real moment.]",
+    "Caregivers do some of the hardest work there is, and every minute spent on paperwork is a minute taken from the person they care for.",
+    "So I think about the small things: can they do it on a phone, is their pay right, and do they get a warning before a certification lapses?",
+    "At Careforth, I'd ask of every story whether it makes a caregiver's day easier or harder."
    ]
   },
   "p14": {
