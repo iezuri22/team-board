@@ -562,16 +562,32 @@ function renderReport(entries, fb, keepBusy){
 }
 var reader = new Audio(), readingBtn = null;
 function stopReading(){ try { reader.pause(); } catch (e) {} if (readingBtn) { readingBtn.textContent = "Listen"; readingBtn.disabled = false; } readingBtn = null; }
+// The voice service takes about 1,900 characters per request, so long answers play as a queue of paragraph-sized clips
+function chunksOf(text, max){
+  max = max || 1600; var out = [], cur = "";
+  String(text).split(/\n\n+/).forEach(function(p){
+    var parts = p.length > max ? p.match(/[^.!?]+[.!?]+["')\]]*\s*|[^.!?]+$/g) || [p] : [p];
+    parts.forEach(function(x){ x = x.trim(); if (!x) return; if (cur && (cur + " " + x).length > max) { out.push(cur); cur = x; } else cur = cur ? cur + (p.length > max ? " " : "\n\n") + x : x; });
+  });
+  if (cur) out.push(cur); return out;
+}
 function listenBtn(text, pickId){
   var b = el("button", { class: "link listen", type: "button", text: "Listen" });
   b.onclick = function(){
     if (readingBtn === b) return stopReading();
     stopReading(); readingBtn = b; b.textContent = "Loading"; b.disabled = true;
-    clip(text, $(pickId || "readVoice").value).then(function(url){
+    var parts = chunksOf(text), voice = $(pickId || "readVoice").value, i = 0;
+    function playNext(){
       if (readingBtn !== b) return;
-      b.disabled = false; b.textContent = "Stop"; reader.src = url; reader.onended = stopReading;
-      reader.play().catch(stopReading);
-    }).catch(function(){ if (readingBtn === b) { stopReading(); b.textContent = "Couldn't load the voice"; setTimeout(function(){ b.textContent = "Listen"; }, 2500); } });
+      if (i >= parts.length) return stopReading();
+      var cur = clip(parts[i], voice); if (i + 1 < parts.length) clip(parts[i + 1], voice).catch(function(){}); // load the next piece while this one plays
+      cur.then(function(url){
+        if (readingBtn !== b) return;
+        b.disabled = false; b.textContent = "Stop"; reader.src = url; reader.onended = function(){ i++; playNext(); };
+        reader.play().catch(stopReading);
+      }).catch(function(){ if (readingBtn === b) { stopReading(); b.textContent = "Couldn't load the voice"; setTimeout(function(){ b.textContent = "Listen"; }, 2500); } });
+    }
+    playNext();
   };
   return b;
 }
