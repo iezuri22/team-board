@@ -88,6 +88,7 @@ window.STUDY = {
   ],
   "mindset": [
    "Your superpower: you spot patterns. Same question twice, and you're already closing the gap or automating the answer. Say that when they ask what makes you different.",
+   "Your AI line: you love AI and move fast, but sensitive data stays in trusted infrastructure like Salesforce and SharePoint. AI drafts, people decide.",
    "Slow down for the first 15 seconds of every answer. Calm reads as senior.",
    "Lead with the answer, then the proof. Never warm up.",
    "Say your numbers out loud and stress them. They're the most impressive thing you'll say.",
@@ -772,14 +773,14 @@ window.STUDY = {
    ]
   },
   "p12": {
-   "a": "I use AI the way I've always tried to work: find the repetitive part of a job and take it off people's plates, so their time goes to the parts that need judgment.\n\nI was doing that before AI tools existed. When I was on support, I noticed we answered the same questions over and over, so I wrote email templates for the common support tickets. Answers got faster and more consistent, and that later grew into the self-service intake with templated answers and self-booked consultations.\n\nToday, a few examples. Meeting transcripts from Zoom are summarized into Notion automatically, and the action items land on our Smartsheet task list with owners, checked so the same item isn't added twice. Every morning, people get a digest of their upcoming and overdue deadlines without anyone sending it. Directors get AI-drafted monthly delivery reports instead of someone writing them from scratch. And on the home care platform, an AI receptionist answers calls, and AI drafts outreach that still has to pass a compliance check before anything is sent.\n\nThe rule I follow is that AI drafts and people decide. Summaries are reviewed, action items can be edited before they matter, and anything that touches a client or a compliance rule goes through a check that AI can't skip.\n\nFor a BSA at Careforth, that shows up in practical ways: faster first drafts of user stories and test cases, meeting notes that turn into backlog items the same day, and quick prototypes so stakeholders can react to something real instead of a description. And I'm careful about data, especially health information. Nothing sensitive goes into a tool that isn't approved for it.",
+   "a": "I use AI the way I've always tried to work: find the repetitive part of a job and take it off people's plates, so their time goes to the parts that need judgment.\n\nI was doing that before AI tools existed. When I was on support, I noticed we answered the same questions over and over, so I wrote email templates for the common support tickets. Answers got faster and more consistent, and that later grew into the self-service intake with templated answers and self-booked consultations.\n\nToday, a few examples. Meeting transcripts from Zoom are summarized into Notion automatically, and the action items land on our Smartsheet task list with owners, checked so the same item isn't added twice. Every morning, people get a digest of their upcoming and overdue deadlines without anyone sending it. Directors get AI-drafted monthly delivery reports instead of someone writing them from scratch. And on the home care platform, an AI receptionist answers calls, and AI drafts outreach that still has to pass a compliance check before anything is sent.\n\nThe rule I follow is that AI drafts and people decide. Summaries are reviewed, action items can be edited before they matter, and anything that touches a client or a compliance rule goes through a check that AI can't skip.\n\nFor a BSA at Careforth, that shows up in practical ways: faster first drafts of user stories and test cases, meeting notes that turn into backlog items the same day, and quick prototypes so stakeholders can react to something real instead of a description. And I'm careful about where data lives. I like moving fast, but sensitive data belongs in trusted infrastructure like Salesforce and SharePoint, with real access control and audit trails. AI works around that data through approved tools. It doesn't pull it out into somewhere new.",
    "k": [
     "Same instinct before AI: support email templates",
     "Zoom to Notion to Smartsheet, deduped",
     "Daily deadline digests; AI-drafted director reports",
     "AI drafts, people decide; compliance checks AI can't skip",
     "BSA uses: story and test drafts, same-day backlog, prototypes",
-    "Careful with health data"
+    "Fast, but data stays in trusted infrastructure (Salesforce, SharePoint)"
    ]
   },
   "b12": {
@@ -847,6 +848,17 @@ window.STUDY = {
     "Dashboards, the meeting-to-task system, the training library",
     "Repeated questions and workarounds show where a system fails",
     "At Careforth: listen for patterns, pick the right fix"
+   ]
+  },
+  "t33": {
+   "a": "I'm a big believer in AI, and I use it every day, but I don't think speed and security are a trade-off you make with people's data. My rule is simple: move fast in how the work gets done, and keep the data in trusted infrastructure.\n\nFor an organization like Careforth, that trusted infrastructure is Salesforce and the Microsoft environment, like SharePoint. They have the things that matter when you're holding health information: real identity and access control, audit trails, encryption, retention policies, and the business associate agreements HIPAA requires. A clever tool that copies member data somewhere else, even with good intentions, breaks all of that.\n\nYou can see that in how I build. On the internal status reporting app, the data lives in SharePoint, not in the app. It's read and written through Microsoft Graph with the Sites.Selected permission, so the app can only touch its one site. Sign-in is Entra ID, and roles come from security groups that IT already manages. AI summaries are generated on the server, and the API key never reaches a browser. On War Room, I kept Smartsheet as the system of record instead of moving the team's data into my own tool, and AI just drafts the summaries and action items around it. On the home care platform, signed documents and compliance records file themselves into the agency's own SharePoint.\n\nSo when I bring AI into a process, I ask a few questions first. Where does the data live, and does it stay there? Is the tool approved for this kind of data? Who can see the output? Is there a human checking before anything reaches a client or a record? AI drafts, people decide.\n\nIn Salesforce, that's actually easier to do well, because the platform has built the guardrails in. Salesforce's Einstein Trust Layer, for example, is designed so prompts can be grounded in your data with masking, and the model provider doesn't retain it. I'd always look at what's approved and built in first before reaching for anything outside.\n\nSo I'm flexible and I like moving fast, but I'll always do it on infrastructure the organization trusts and can audit.",
+   "k": [
+    "Move fast on the work; keep data in trusted infrastructure",
+    "Salesforce and SharePoint: identity, audit, encryption, retention, BAAs",
+    "Proof: status app data in SharePoint via Graph, Sites.Selected, Entra roles",
+    "War Room kept Smartsheet as the record; home care docs file into SharePoint",
+    "Questions first: where does data live, is the tool approved, who sees output, human check",
+    "Einstein Trust Layer: built-in guardrails first"
    ]
   }
  },
@@ -1200,6 +1212,17 @@ window.STUDY = {
     "Agile: sprints, for evolving needs.",
     "Most teams blend them.",
     "Your CAPM, and the city rollout done in iterations."
+   ]
+  },
+  {
+   "id": "t33",
+   "q": "How do you balance using AI and moving fast with data security?",
+   "why": "Healthcare data. They need someone who is fast with AI but careful about where member information goes.",
+   "hit": [
+    "Move fast on the work, keep data in trusted infrastructure.",
+    "Salesforce and SharePoint have identity, audit, encryption and BAAs.",
+    "Proof from what you built.",
+    "AI drafts, people decide; use built-in guardrails first."
    ]
   }
  ],
