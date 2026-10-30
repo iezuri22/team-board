@@ -105,46 +105,42 @@ window.STUDY = {
   "s1": {
    "a": "Sure. I'm a CRM and AI consultant based in Chicago. I'm a Salesforce Certified Administrator, I hold the CAPM, and my degree is in Industrial Engineering from the University of Illinois at Chicago, which is really where I learned to look at a process, find where it breaks, and redesign it.\n\nToday I'm at William Everett, a government technology consulting firm, where I lead delivery of the CRM for a major U.S. city. It's 15 departments, more than 2,000 users and over 200,000 records on one system, and I also oversee that CRM's integration with Salesforce.\n\nMost of my week is the work this role describes. I run requirements sessions with department leaders, turn what they tell me into user stories with acceptance criteria, write the QA test plans, and stay with the developers until it ships. When a data or integration issue comes up, I work through it with them. Then I train people. I took more than 2,000 users live through demos, admin training, written guides and video walkthroughs, and engagement went up 23 percent after launch. I also rebuilt our support model from a single phone line into self-service intake with templated answers and self-booked consultations, and I built dashboards for 11 programs that rebuild automatically from the master task list, so directors stopped waiting on manual status decks.\n\nI also worked on the 2020 Census in Cook County, using population and geospatial data to decide where outreach should go, and I designed the grading scale used to award grants to 22 agencies.\n\nHealthcare is also personal for me. My mom has owned a home care agency and a CNA school for 20 years, so I've been around this business for a long time, and I've helped her run it more efficiently. [One specific thing you did for her.] So I know care at home from the inside, not just from a requirements document.\n\nThat combination is why this role stood out to me. It's the same analyst work I do every day, focused on Salesforce, in the space I've been building for.",
    "k": [
-    "Credentials up front: Salesforce Admin, CAPM, Industrial Engineering at UIC",
-    "Scope: city CRM, 15 departments, 2,000+ users, 200,000+ records, Salesforce integration",
-    "The BSA work: requirements, stories, QA plans, developers, training; 23% engagement lift",
-    "Extras: self-service support, 11 auto-built dashboards, Census data work",
-    "Home care platform: referral to billing, caregiver compliance = their world",
-    "Land it on why this role"
+    "CRM and AI consultant in Chicago; Salesforce Certified Admin, CAPM, Industrial Engineering at UIC",
+    "Lead the CRM for a major U.S. city: 15 departments, 2,000+ users, 200,000+ records",
+    "Oversee its integration with Salesforce",
+    "Requirements, user stories, QA plans, training; engagement up 23%",
+    "Mom has owned a home care agency and CNA school for 20 years; helped her run it more efficiently",
+    "That's why this role fits"
    ]
   },
   "s2": {
    "a": "Two things, really: the work itself and the role.\n\nOn the work, Careforth pays, coaches and supports family caregivers so people can stay at home, and that's a world I know. My mom has owned a home care agency and a CNA school for 20 years, so I've been around caregivers, clients and the day-to-day of this business for a long time. I've helped her make the operation more efficient, so I've seen firsthand how much of this work runs on paperwork, follow-up and people remembering things. [One specific example.] So when I read care transitions and eligibility in the posting, I didn't just see requirements. I thought about the people on the other end of them.\n\nI also pay attention to the fact that your programs are funded by state agencies and health plans. That means eligibility, authorizations and compliance can't be an afterthought in the systems, and that's the kind of problem I enjoy. Every time a program expands, like Structured Family Caregiving in Ohio in 2025, there are new rules to configure, new reporting and new people to train.\n\nOn the role, it's the part of my job I enjoy most. I like sitting between the people doing the work and the people building the system, and making sure what gets built is what the business actually needs. On the city CRM I do that across 15 departments: requirements sessions, user stories and acceptance criteria, QA with the developers, and training. Doing that on Salesforce, with growth, clinical, care coordination and operations teams, is a very direct fit for how I already work.\n\nAnd the remote-first setup matters to me. A lot of my best work has happened with distributed teams, and I'm comfortable running requirements sessions, demos and training over video, keeping a remote session focused, and making sure people leave able to use what we built.",
    "k": [
-    "You've built software for care at home: referrals, intake, plans, visits, billing",
-    "You know the payer vs relationship split and why it matters",
-    "State and health plan funding means eligibility and compliance live in the system",
-    "The role is your favorite part of the job: the bridge between business and build",
-    "Remote-first fits how you already work",
-    "Keep it about the work, not mission flattery"
+    "Care at home is personal: mom's agency and CNA school, 20 years",
+    "Helped her be more efficient [your example]",
+    "You like sitting between the business and the developers",
+    "This role = that work, on Salesforce, for caregivers"
    ]
   },
   "s3": {
    "a": "I'm looking to go deeper on two things: Salesforce and healthcare workflows.\n\nOn Salesforce, I've spent my current role leading the CRM for a major U.S. city and overseeing its integration with Salesforce. That work put me right at the boundary between the two systems, figuring out what each side owns and what happens when records don't line up, and it made me want to spend more of my time on the Salesforce side itself. That's why I earned my Salesforce Administrator certification. I want my day to be about the core platform: the data model, Flow, the security model, and getting the requirements right before anything gets built.\n\nOn healthcare, it's personal. My mom has owned a home care agency and a CNA school for 20 years, and being around that showed me how much the systems behind care matter. In most businesses, a bad workflow costs people time. In care at home, a bad workflow can mean a caregiver shows up without the right paperwork, a visit doesn't get documented, or a referral sits too long. Getting those details right actually affects someone's care, and I find that work really satisfying.\n\nI've had a good experience at William Everett. Leading a rollout across 15 departments and more than 2,000 users taught me a lot, and that's exactly the experience I'd bring here. But this role puts both of the things I want to grow in into one place. It's Salesforce-focused analyst work, at an organization doing care at home, alongside clinical, care coordination and operations teams. So for me it's a natural next step, not a change of direction.",
    "k": [
-    "Toward, not away: Salesforce and healthcare workflows",
-    "The integration work pulled you toward the Salesforce side; hence the cert",
-    "Home care showed you a workflow mistake affects someone's care",
-    "Say something good about William Everett; never knock it",
-    "This role = both in one place; a next step, not a pivot",
-    "Land it and stop"
+    "Toward, not away",
+    "Go deeper on Salesforce: certified, want more of it",
+    "Go deeper on healthcare: grew up around it through your mom",
+    "In care at home, a bad workflow affects someone's care",
+    "Never knock your employer; then stop"
    ]
   },
   "s4": {
    "a": "I'm a Salesforce Certified Administrator, and I want to be precise about what I've done, because the split matters.\n\nOn the job, the city CRM I lead isn't Salesforce, but I oversee its integration with Salesforce. So my Salesforce work there is on the boundary: how data moves between the two systems, which side owns which records, how matching works, and what happens when something doesn't line up. When there's a data or integration issue, I work through it with the developers, figure out whether it's a mapping problem, a timing problem or a bad source record, and write it up so it gets fixed properly instead of patched.\n\nI've also done Salesforce work internally at William Everett. [Say what you built or configured there, in a sentence or two.]\n\nOn the platform itself, the certification covers the core admin skills, and I'm comfortable with them: custom objects and fields, relationships, record types, page layouts and Dynamic Forms, validation rules, reports and dashboards, and the security model, meaning profiles, permission sets and permission set groups, roles and sharing rules. For automation I think Flow first, since Flow has replaced Workflow Rules and Process Builder, and I know when something should go to a developer as Apex instead. A lot of my CRM work is configuring objects, workflows and permission models to meet compliance requirements, and that thinking carries straight over. In a healthcare setting, who can see what is one of the first questions I ask.\n\nThe posting mentions custom work that doesn't rely on cloud license features, with Shield, Conga and e-signature as a plus. I haven't used Shield or Conga, so those are what I'd ramp up on. But the problems they solve, encryption, audit and document generation, are ones I already think about, from configuring permission models for compliance on the city CRM to setting up least-privilege access to SharePoint on our internal status reporting app.\n\nWhere I add the most is the analyst part. I understand what a team actually needs, turn it into stories with clear acceptance criteria, and test that what gets built works for every type of user. I'd be the person making sure the Salesforce team builds the right thing, and that people actually use it.",
    "k": [
-    "Certified Administrator; be precise about built vs overseen",
-    "City CRM isn't Salesforce: you oversee the integration and resolve data issues",
-    "Core platform: objects, record types, Dynamic Forms, security model, Flow first, Apex when needed",
-    "Compliance-driven permission models carry straight over",
-    "Shield and Conga: honest ramp-up, paired with your SharePoint filing, SSN handling, redaction",
-    "Your edge: the analyst side",
-    "Your internal Salesforce work at William Everett [fill in]"
+    "Salesforce Certified Administrator",
+    "Oversee the city CRM's integration with Salesforce (the city CRM isn't Salesforce)",
+    "Internal Salesforce work at William Everett [fill in]",
+    "Know: objects, record types, Dynamic Forms, validation rules, reports, profiles, permission sets, sharing, Flow",
+    "Shield and Conga: honest, you'd ramp up",
+    "Your edge: the analyst side"
    ]
   },
   "s5": {
@@ -159,53 +155,52 @@ window.STUDY = {
   "s6": {
    "a": "I have a dedicated home office with a reliable connection, and remote work is normal for me. Most of my requirements sessions, demos and trainings already happen over Teams, so I'm comfortable running a whole working session on video, sharing my screen to walk through a process map or a user story, and keeping people engaged when nobody's in the same room.\n\nI'm in Chicago on Central time, so overlapping with Boston is easy. I'm only an hour behind Eastern, so I can start early to catch the morning, and I'm used to working with people across time zones.\n\nOn habits, I'm responsive on chat during the day, and I'm careful about writing things down. When a team is remote, the written record matters more than the meeting. So decisions from a session go into the story or the shared documentation the same day, with clear acceptance criteria, so a developer or a Product Manager can pick it up without needing to catch me live. QA works the same way: test plans written out and results recorded, so nothing depends on someone remembering a conversation.",
    "k": [
-    "Dedicated office, solid connection",
-    "You already run sessions, demos and training over video",
-    "Central time, one hour behind Eastern, easy overlap",
-    "Remote habits: responsive on chat, decisions written down the same day",
-    "Short and confident"
+    "Dedicated home office, solid connection",
+    "Already run sessions and training over video",
+    "Central time; easy overlap with Eastern"
    ]
   },
   "s7": {
    "a": "I'd want to give my current team a normal notice period, so about two weeks after an offer. I'm leading delivery on an active project, and I want to leave it in good shape, with open items documented and the right people briefed.\n\nAs for other conversations, yes, I'm talking with a few companies. I'm being selective, though, and Careforth is one I'm most interested in. The role lines up closely with what I already do: requirements sessions, user stories and acceptance criteria, QA with developers, and training. It's focused on Salesforce, which is where I want to go deeper, and it's in care at home, which is the space I've been building software for. And the mix of teams, growth, clinical, care coordination and operations, is the kind of cross-department work I already do every week. That combination is hard to find.\n\nI'm happy to move at whatever pace works for your process, and I can be flexible on scheduling the next rounds. If anything changes on my side with another process, I'll let you know right away so there are no surprises.",
    "k": [
-    "About two weeks; leave current work in good shape",
-    "Yes, a few conversations; no company names",
-    "Careforth is a top choice, and why: the work, Salesforce, care at home",
-    "Flexible on their pace; you'll flag any changes"
+    "About two weeks' notice",
+    "A few conversations; no names",
+    "Careforth is a top choice because of the fit",
+    "Flexible on their pace"
    ]
   },
   "s8": {
    "a": "Yes, I have a few.\n\nI'd like to understand who I'd be translating between, so first: how is the Salesforce team set up today? Is it in-house developers, a partner, or both, and where does the BSA sit between them and the clinical, care coordination and operations teams?\n\nThis role partners with four different groups, so the answer to this one tells me a lot about the day to day: how does work get prioritized across growth, clinical, care coordination and operations? Is there one backlog the Product Managers own, or do requests come straight to the analyst?\n\nThe posting mentions custom work that doesn't rely on cloud license features, so I'm curious about the org itself: what does the current Salesforce setup look like, and how much of the care workflow, things like eligibility, authorizations and care transitions, lives in Salesforce versus other systems?\n\nI want to know what success looks like early, so: what would a strong first 90 days look like for this role, and is there a big project on the horizon, like a new program launch, a new state, or a migration?\n\nSince I'd be supporting QA and training, I'd like to know how releases work here: how often does the team release, how are testing and user training handled when something goes live, and is there production support or after-hours coverage for this role?\n\nAnd finally, so I can prepare well: what are the next steps in the process, and who would I meet next?",
    "k": [
-    "Team setup: in-house, partner, or both; where the BSA sits",
-    "Prioritization across four groups (tells you the workload)",
-    "The Salesforce org: how much of eligibility and authorizations lives there",
-    "First 90 days and the big project (new program, new state, migration)",
-    "Release rhythm, QA, training, after-hours coverage",
-    "Next steps and who you'd meet"
+    "How is the Salesforce team set up: in-house, partner, or both?",
+    "How is work prioritized across departments?",
+    "How many BSAs? Any after-hours support?",
+    "What does a strong first 90 days look like?",
+    "Biggest project in the next six months?",
+    "Next steps, and who would I meet?"
    ]
   },
   "s9": {
    "a": "Careforth has been supporting family caregivers for about 25 years. It was founded in 2000 and started as Seniorlink and Caregiver Homes, and in 2023 those brands, along with the Vela app, came together under the Careforth name. You're based in Boston, you're remote-first, and you've served caregivers in around 30 states.\n\nThe core of what you do is making it possible for people to stay at home with family caring for them. Through Structured Family Caregiving, family caregivers get paid, coached and supported. That support comes through in-person home visits, remote coaching, and the Careforth app, which is HITRUST certified and HIPAA secure. That certification told me something about how you treat data, because HITRUST isn't something an organization gets by accident.\n\nWhat I find compelling is the model. It improves outcomes for the person getting care. It gives caregivers real financial support for work they're often already doing. And it saves money for the state agencies and health plans that fund these programs, which is what makes it sustainable. Those goals usually pull against each other, and here they work together.\n\nBecause the programs are funded by states and health plans, I'd imagine the systems behind them carry a lot of weight. Each caregiver and each person in care has to move through eligibility, authorization, enrollment, visits, coaching and reporting back to the payer, and each state program has its own rules. That's exactly where a BSA makes a difference. And I've seen the paperwork and compliance side of home care up close through my mom's agency, so I know what's at stake when any of that falls behind.\n\nI also saw you expanded Structured Family Caregiving in Ohio in 2025. Every new state or program brings systems work with it: new eligibility rules, new reporting, new people to train. That's the part of the business I'd want to help with.",
    "k": [
-    "About 25 years (founded 2000); formerly Seniorlink and Caregiver Homes, plus Vela; Careforth since 2023",
-    "Boston, remote-first; caregivers served in around 30 states",
-    "Structured Family Caregiving: paid, coached, supported; home visits, remote coaching, the app (HITRUST, HIPAA)",
-    "Model: better outcomes, caregiver financial support, savings for states and health plans",
-    "State and health plan funding means eligibility and authorizations in the systems; tie to your platform",
-    "Ohio expansion in 2025: new programs mean systems work"
+    "About 25 years; formerly Seniorlink and Caregiver Homes; Careforth since 2023",
+    "Based in Boston; caregivers served in about 30 states",
+    "Structured Family Caregiving: pays, coaches and supports family caregivers",
+    "Home visits, remote coaching, the Careforth app (HITRUST, HIPAA)",
+    "Win-win: better outcomes, caregiver income, savings for states and health plans",
+    "Expanded in Ohio; every new state means systems work"
    ]
   },
   "s10": {
    "a": "As I understand it, the Business Systems Analyst II is the link between product, the developers and the business. It reports to the VP of Product and Strategy, and the key focus is Salesforce, including custom work on the core platform that doesn't depend on cloud license features.\n\nDay to day, that means partnering with growth, clinical, care coordination and operations to understand their needs and pain points, and documenting the requirements. Then working with the Product Managers and the Salesforce team to turn those into user stories, validate them, support the backlog and help with QA. It also means translating healthcare workflows like care transitions and eligibility into solutions that scale, analyzing data to improve processes, and training people when new features go live. The team works in Scrum, with Jira, Confluence and Lucidchart for stories, documentation and process maps.\n\nSo the heart of the role is making sure what the Salesforce team builds actually solves the problem the care teams have, and that people use it once it's live.\n\nThat's what I do today on the city CRM. I run requirements sessions with leaders across 15 departments, turn them into user stories with acceptance criteria and QA test plans, work through data and integration issues with the developers, and I trained more than 2,000 users through demos, admin training, written guides and video walkthroughs. The data side carries over too. I built dashboards for 11 programs that rebuild automatically from the master task list, and on the 2020 Census in Cook County I used population and geospatial data to decide where outreach should go.\n\nThe healthcare side I know from being around my mom's home care agency and CNA school for years. And the workflow mapping is what I do on the city CRM every week, across 15 departments. A care transition or an eligibility check is the same kind of work: find who does what, what information they need, where the hand-offs happen, and what the rules require.\n\nThe difference here is that it's Salesforce, and it's care at home, which are the two areas I most want to focus on.\n\nOne thing I'd like to understand better is how the work splits between the BSA and the Product Managers, and which internal tools beyond Salesforce would fall under this role.",
    "k": [
-    "Link between product, developers and the business; reports to the VP of Product and Strategy",
-    "Salesforce focus, including custom core-platform work",
-    "Stakeholders, stories with PMs, backlog, QA, care transitions, eligibility, data, training; Scrum, Jira, Confluence, Lucidchart",
-    "Map it to the city CRM: 15 departments, stories, QA, 2,000+ trained, 11 dashboards",
-    "Map it to the home care lifecycle and its rules",
-    "End with a smart question about scope"
+    "The link between product, developers and the business",
+    "Reports to the VP of Product and Strategy; Salesforce focus",
+    "Partners with growth, clinical, care coordination, operations",
+    "User stories, backlog, QA, training; Jira, Confluence, Lucidchart; Scrum",
+    "Care transitions and eligibility workflows",
+    "Same work you do on the city CRM",
+    "Ask how work splits between the BSA and Product Managers"
    ]
   },
   "p1": {
@@ -407,12 +402,11 @@ window.STUDY = {
   "b10": {
    "a": "When I built the internal reporting platform on Microsoft 365, I needed to learn Microsoft Graph and how to use SharePoint Lists as a data store, neither of which I had built with before. The platform needed single sign-on, roles driven by security groups, and a place to keep data without standing up a separate database.\n\nMy approach is to learn by building something small first. I didn't try to read all of Graph's documentation, which is enormous. I read exactly what I needed for the first slice: how sign-in works, how to read a user's security groups, and how to read and write list items. Then I built one small piece end to end: a user signs in, the app checks their group, and they see only the data they're allowed to see. That way I hit the real problems early instead of reading about them in the abstract.\n\nOnce that slice worked, I scaled it up to more lists, more roles and the actual reporting views. Within [how long, for example a few weeks] the platform was working with single sign-on, roles from security groups, and SharePoint Lists behind it through Graph.\n\nI've used the same approach on other things I've built outside work, learning integrations like QuickBooks and a phone system as I went. And for Salesforce, I earned the Salesforce Certified Administrator credential, which gave me the platform foundation.\n\nSo for tools I haven't used yet, like Conga or Salesforce Shield, I'd be honest that I'm new to them, and I'd ramp up the same way: a sandbox, the documentation for the exact use case, one small working piece, then scale. Shield maps to things I already think about, like encrypting sensitive fields and keeping an audit trail of who changed what, which matters for health data at Careforth. I don't wait to know everything before I start being useful.",
    "k": [
-    "Microsoft Graph and SharePoint Lists, both new to me",
-    "Read only what the first slice needed",
-    "Built one small piece end to end, then scaled",
-    "Platform live: SSO, roles from security groups, lists via Graph",
-    "Same approach: QuickBooks, Twilio and Retell, Graph to SharePoint",
-    "Conga and Shield: honest, sandbox first, ramp fast"
+    "Had to learn Microsoft Graph and SharePoint Lists for the reporting platform",
+    "Read only what you needed, built a small working slice first",
+    "Live with SSO, roles from security groups, lists through Graph",
+    "Certified on Salesforce the same way",
+    "Would ramp on Conga and Shield the same way"
    ]
   },
   "b11": {
@@ -440,12 +434,11 @@ window.STUDY = {
   "t2": {
    "a": "I'd start with the people doing the work, not with Salesforce. Take a care transition, like a member being discharged from the hospital back home. I'd sit with the care coordinators, the clinical team and whoever handles intake, and map the current process in Lucidchart as a swimlane: who learns about the discharge and how, what they do next, what information they need at each step, and where the hand-offs between teams happen. Eligibility gets the same treatment: referral, eligibility check, assessment, the authorization from the state agency or health plan, and enrollment.\n\nThat map usually shows where the pain is: double entry, information sitting in someone's inbox, or a step that depends on someone remembering. Then I'd define the future state and the rules behind it, written down precisely: what makes someone eligible, what triggers a transition, which follow-ups are required and in what time window, and what the compliance and audit requirements are.\n\nIn Salesforce I'd translate that into the data model first: a member record, an eligibility determination, an authorization with payer, units and dates, a care transition with type, facility, discharge date and status, and the care plan. Master-detail where a record can't exist without its parent, lookup where it can. Then automation in Flow: a record-triggered flow that creates follow-up tasks when a transition is logged, a scheduled path that escalates if the follow-up is overdue, and a screen flow that walks a coordinator through the transition checklist. Then permissions, so clinical details are visible only to the roles that need them. If a health plan sends admission and discharge notices, that becomes its own integration story. Declarative first, Apex only where Flow can't handle the logic or the volume.\n\nThen I'd validate with the actual users before building, release in phases, often one program or region first, train, and measure whether follow-up time actually improved.\n\nI do this kind of mapping across 15 departments on the city CRM. And I've been around care-at-home work for years through my mom's home care agency, so I know what coordinators and caregivers actually deal with. Different stack, same thinking.",
    "k": [
-    "Start with the people; current-state swimlane in Lucidchart",
-    "Write the rules down: eligibility, triggers, follow-up windows, compliance",
-    "Data model first: member, eligibility, authorization, care transition, care plan",
-    "Flow: record-triggered tasks, scheduled-path escalation, screen-flow checklist",
-    "Permissions for clinical data; integrations as their own stories",
-    "Validate, phase by program or region, train, measure; home care platform example"
+    "Start with the people; swimlane in Lucidchart",
+    "Find hand-offs, data needs, rules",
+    "Data model first, then Flow, then permissions; declarative first",
+    "Validate with users, phase, train, measure",
+    "You do this across 15 departments; you know care at home through your mom"
    ]
   },
   "t3": {
@@ -517,12 +510,10 @@ window.STUDY = {
   "t9": {
    "a": "I'd treat it in layers: who can see the data, how it's protected, and how we prove it.\n\nFirst, access on the core platform. Private org-wide defaults on anything with health information, field-level security on sensitive fields like diagnoses or Medicaid IDs, and access granted through permission sets and permission set groups based on what each role needs. Restriction rules can hide especially sensitive records even from people who'd otherwise get them through sharing. I'd keep View All Data and Modify All Data to a very small group, and review access on a schedule, because permissions creep. Then the org basics: multi-factor authentication, which Salesforce requires anyway, session timeout and login IP settings, Health Check in Setup to compare settings against Salesforce's baseline, Setup Audit Trail for configuration changes, and field history tracking on key fields.\n\nOn top of that, Shield adds three main tools. Platform Encryption encrypts sensitive fields and files at rest, with a choice between probabilistic encryption, which is stronger, and deterministic, which still lets you filter and match on the field. Some features behave differently on encrypted fields, so it needs testing. Event Monitoring logs who logged in, viewed and exported what, including report exports and API calls, and Transaction Security policies can block or alert on risky activity in real time, like a large export. Field Audit Trail keeps field history for up to ten years instead of the standard 18 months, which matters for audits.\n\nThere's also the process side. A business associate agreement with Salesforce covering the services that store PHI. Masking data in sandboxes, because a full sandbox copy of production is still PHI. Watching reports and exports, since that's where data usually walks out. And training people on handling information.\n\nI'll be straight about where I'm coming from. I haven't administered Shield. I've configured permission models to meet compliance requirements on the city CRM, and on our internal status reporting app I set up Entra roles and least-privilege access to SharePoint. Shield is something I'd ramp up on quickly, starting with how Careforth has encryption and monitoring configured today and what your state and health plan partners require in an audit.",
    "k": [
-    "Least privilege: Private OWD, FLS, permission set groups, restriction rules",
-    "Org basics: MFA, session and IP settings, Health Check, Setup Audit Trail",
-    "Shield Platform Encryption: probabilistic vs deterministic; test feature impact",
-    "Event Monitoring + Transaction Security; Field Audit Trail up to ten years",
-    "BAA, masked sandboxes, watch exports, train users",
-    "Honest: hasn't run Shield; real compliance work on the city CRM and home care platform"
+    "Least privilege: private org-wide defaults, field-level security, permission sets",
+    "Shield: Platform Encryption, Event Monitoring, Field Audit Trail",
+    "BAA with Salesforce; review access regularly; watch exports",
+    "Honest: haven't run Shield; compliance permission models on the city CRM; would ramp fast"
    ]
   },
   "t10": {
@@ -655,12 +646,11 @@ window.STUDY = {
   "t22": {
    "a": "I start with the business questions. Which system is the source of truth for each piece of data? What moves, in which direction, and how fast: the moment it changes, or nightly? What happens when something fails?\n\nTake a Careforth example: a health plan sends eligibility and authorization data so care coordinators see current status before a visit. The health plan owns eligibility, Salesforce owns care plans and visits, and each field has one owner.\n\nThen the pattern. For record-level, near real-time work, the REST API, often with the Composite API to bundle related calls. For large volumes, like a nightly eligibility file of tens of thousands of members, Bulk API 2.0, which processes records as asynchronous jobs built for volume. For pushing changes out of Salesforce, Platform Events are custom messages you define and publish from Flow, Apex or an outside system, like \"care transition opened.\" Change Data Capture publishes automatically when records on selected objects are created, updated, deleted or undeleted, including which fields changed. Subscribers use the Pub/Sub API, and events are kept for 72 hours, so a subscriber that was down can replay what it missed. Middleware like MuleSoft makes sense when many systems are involved.\n\nOn security, outbound callouts use Named Credentials, with External Credentials holding the authentication, so nothing is hardcoded and access is granted through permission sets. Inbound, the other system connects through OAuth as a dedicated integration user with only the permissions it needs, which matters with PHI.\n\nFor matching, I use external IDs and upserts, so a member matches on the health plan's member ID and sending a record twice updates it instead of duplicating it. I define error handling up front: where failed records go, how retries work, who gets alerted, and a daily reconciliation.\n\nThis is close to my day job. I oversee the city CRM's integration with Salesforce, so I deal with these questions regularly: who owns which record, how matching works, and what happens when a sync fails. Outside of that, I've built integrations with Microsoft Graph for SharePoint, QuickBooks and a phone system, so I understand the mechanics as well as the business side.",
    "k": [
-    "Source of truth per field, direction, timing, failure plan",
-    "REST and Composite for real time; Bulk API 2.0 for volume",
-    "Platform Events (custom) vs Change Data Capture (automatic); 72-hour replay",
-    "Named and External Credentials; least-privilege integration user",
-    "External IDs and upserts; retries, alerts, reconciliation",
-    "You oversee the CRM-to-Salesforce integration; QuickBooks, HHAeXchange, SharePoint, Twilio"
+    "First: source of truth, direction, timing, what happens on failure",
+    "REST for records, Bulk API 2.0 for volume",
+    "Platform Events (custom) vs Change Data Capture (automatic)",
+    "External IDs, named credentials, error handling, monitoring",
+    "You oversee the city CRM's Salesforce integration"
    ]
   },
   "t23": {
@@ -676,12 +666,11 @@ window.STUDY = {
   "t24": {
    "a": "Data quality is much easier to protect at entry than to fix later, so I start with the design. Picklists instead of free text wherever the values are known, restricted so imports can't sneak in new values, and global value sets when several objects share a list like state programs. Required fields only where the value truly matters, because requiring everything produces junk. Validation rules for logic, like an authorization end date after its start date, or a Medicaid ID in the right format.\n\nThen duplicate management, which matters a lot for members and caregivers. A matching rule defines what counts as a duplicate: each field uses exact or fuzzy matching, combined with logic. For members, I'd match on Medicaid ID exactly, or on fuzzy first name plus exact last name and date of birth, so Kate and Katherine Smith born the same day get flagged. A duplicate rule decides what happens when the matching rule fires on create or edit: allow with an alert, or block, and optionally log it so duplicates show up in reports. Conditions let you treat sources differently, like blocking users but letting an integration load through for review.\n\nFor records already in the system, duplicate jobs run a matching rule across the whole object and group suspected duplicates into duplicate record sets, in editions that include them. Someone with context, usually a data owner in operations, reviews and merges, because merging the wrong two members is worse than leaving a duplicate. Integrations should upsert on an external ID so they don't create duplicates at all.\n\nAfter that, monitoring. Exception reports surface problems: members with no care coordinator, active members without a current authorization, records untouched in 90 days. Each report gets an owner and a spot on a dashboard, so cleanup is part of someone's week.\n\nOn a project outside my day job, every lead from web forms, ad platforms and phone calls goes through one path that normalizes it, dedupes by phone and email, and matches it to existing people before anything else happens. That taught me to dedupe at the door.\n\nAnd training matters more than people think. If users know a field feeds a state report or a health plan invoice, they fill it in carefully. I've seen that on the city CRM.",
    "k": [
-    "Protect at entry: restricted picklists, sparing required fields, validation rules",
-    "Matching rules: exact or fuzzy fields plus logic (Medicaid ID, or name and DOB)",
-    "Duplicate rules: alert or block, report, conditions by source",
-    "Duplicate jobs for existing data; careful human merges; upsert on external ID",
-    "Exception reports with owners; training on why data matters",
-    "Your one-path lead dedupe on the home care platform"
+    "Protect at entry: picklists, required fields, validation rules",
+    "Matching rules + duplicate rules (warn or block)",
+    "Exception reports with named owners",
+    "Dedupe at the door",
+    "Train people on why the data matters"
    ]
   },
   "t25": {
@@ -717,22 +706,20 @@ window.STUDY = {
   "t28": {
    "a": "HIPAA is the federal law that protects health information. The key term is PHI, protected health information: any health information that can be tied to a specific person, like a diagnosis, a care plan, a Medicaid ID, or even a visit date linked to a name. The Privacy Rule governs how PHI is used and disclosed, the Security Rule requires administrative, physical and technical safeguards for electronic PHI, and the Breach Notification Rule sets what happens if it's exposed.\n\nFor design, minimum necessary is the principle I lean on most: people see only the PHI their job requires. In Salesforce, that means private org-wide defaults on member and care plan objects, role hierarchy and sharing rules so coordinators see their own caseload, field-level security through permission sets and permission set groups for sensitive fields like diagnoses, and limits on who can export reports. Billing may need authorized units but not clinical notes.\n\nBusiness associate agreements come next. Depending on the contract, Careforth works as a covered entity or a business associate for the state agencies and health plans it serves, and every vendor that touches PHI on its behalf, Salesforce included, needs a BAA. Salesforce signs a BAA covering specific services, so part of the BSA work is confirming that a new AppExchange package, integration or e-signature tool is covered before data flows to it.\n\nAudit is how you prove all of this. Setup Audit Trail logs configuration changes, Field History Tracking logs changes to chosen fields, and login history shows access. Salesforce Shield adds Event Monitoring to see who viewed or exported records, Field Audit Trail for longer retention, and Platform Encryption for data at rest. I haven't administered Shield myself, so that's something I'd ramp up on, but I understand what each piece does and when it's worth it.\n\nPHI also leaks through exports, emails, report subscriptions, file sharing and sandboxes holding production copies, so those are part of every design.\n\nFor a BSA, it shapes every story: who needs to see this, what's the minimum, how is it logged, and where else does it go. On the city CRM, I configured permission models to meet compliance needs. And being around my mom's home care agency, I've seen how seriously this business has to take client information.",
    "k": [
-    "PHI defined; Privacy, Security and Breach Notification Rules",
-    "Minimum necessary: private OWDs, sharing, FLS via permission set groups",
-    "BAAs with every vendor touching PHI, Salesforce included",
-    "Audit: Setup Audit Trail, field history, login history; Shield (honest: would ramp up)",
-    "Watch exports, emails, files, sandboxes",
-    "Your SSN handling, redaction, single dispatch gate, permission models"
+    "HIPAA protects PHI: health information tied to a person",
+    "Minimum necessary access",
+    "Audit trails, encryption, BAAs with vendors",
+    "Watch exports, reports, email and sandboxes",
+    "Every story: who sees it, what's the minimum, how is it logged?"
    ]
   },
   "t29": {
    "a": "Conga, mainly Conga Composer for this kind of work, is a document generation tool that runs from Salesforce. You build a template in Word, Excel or PowerPoint with merge fields, and Conga pulls data from the record and its related records, using queries for things like a list of every active authorization, then produces a finished document, often a PDF. The output can be attached to the record as a file, emailed, or handed straight to e-signature. Conga also offers batch generation for running one template across many records, like monthly letters, plus Conga Sign and contract lifecycle tools.\n\nAt Careforth, I can picture it producing a care plan summary for a health plan, a caregiver agreement, a welcome letter to a new member, or a monthly report for a state program. It saves people from copying data into documents by hand, which is slow and where errors and privacy mistakes happen.\n\nE-signature tools like DocuSign, Adobe Acrobat Sign or Conga Sign send that document out, collect signatures, and write status back to Salesforce, such as sent, completed or declined, with the signed PDF filed on the record. Then Flow can act on it, like moving a caregiver's onboarding forward once the agreement is signed, or reminding the coordinator if a member's consent hasn't come back in five days.\n\nTogether they let a process like caregiver enrollment or member consent run end to end in Salesforce: generate, send, sign, store and report. The BSA questions are which fields each template pulls, so a document carries only the minimum PHI; who can generate and see the documents; whether the vendors are covered by a BAA; and how template changes are versioned and tested.\n\nTo be straightforward, I haven't configured Conga or a Salesforce e-signature package myself. The closest I've come is setting up forms and signed PDFs to file themselves into the right SharePoint folder through Microsoft Graph, with a daily check that flags missing documents. So I know the workflow and the compliance stakes, and I'd ramp up on Conga by learning Careforth's existing templates and Conga's own training material.",
    "k": [
-    "Conga Composer: templates plus record data and queries into Word or PDF",
-    "Output to the record, email or e-signature; batch for bulk",
-    "E-signature writes status and signed PDF back; Flow acts on it",
-    "BSA questions: minimum PHI, access, BAA, template versioning",
-    "Honest: haven't configured Conga; built auto-filing, document checks, first-visit gate"
+    "Conga: merges Salesforce data into document templates",
+    "E-signature: sends, signs, writes status back to the record",
+    "Together: intake or consent runs end to end in Salesforce",
+    "Honest: haven't configured them; have automated filing of signed docs to SharePoint"
    ]
   },
   "t31": {
@@ -847,33 +834,31 @@ window.STUDY = {
   "s11": {
    "a": "I'd say my biggest strength is finding patterns in problems. If I get the same question two or three times, I'm already thinking about why it keeps coming up, and whether there's a gap to close or a way to provide the answer automatically so nobody has to ask again.\n\nThat's shown up throughout my career, and it started long before AI tools. When I was on CRM support, I noticed most tickets were the same handful of questions, so I wrote email templates for the common ones. Answers got faster and more consistent, and the patterns told me what to fix in the system and what to cover in training. That eventually became a self-service intake process with templated answers and self-booked consultations, so users got help without waiting on a call.\n\nThe same instinct drives everything I've built since. When people kept asking which program dashboards were current, I built dashboards for 11 programs that refresh themselves every 10 minutes from our master task list. When action items kept slipping after meetings, I built a system that turns Zoom transcripts into Notion summaries and Smartsheet tasks automatically. When people kept asking how to do the same tasks, I built a training library of step-by-step guides and YouTube tutorials.\n\nFor a business systems analyst, I think that's exactly the right instinct, because repeated questions and workarounds are where a system is failing people. At Careforth, I'd be listening for those patterns with care coordinators, clinical and operations teams, and turning them into the right fix, whether that's a change in Salesforce, better training, or a process that runs itself.",
    "k": [
-    "Strength: finding patterns in problems",
-    "Same question twice means a gap to close or an answer to automate",
-    "Support email templates before AI, then self-service intake",
-    "Dashboards, the meeting-to-task system, the training library",
-    "Repeated questions and workarounds show where a system fails",
-    "At Careforth: listen for patterns, pick the right fix"
+    "You find patterns in problems",
+    "Same question twice: close the gap or automate the answer",
+    "Before AI: support email templates, then self-service intake",
+    "Then: 11 self-updating dashboards, meetings into tasks, a training library",
+    "Repeated questions show where a system fails people"
    ]
   },
   "t33": {
    "a": "I'm a big believer in AI, and I use it every day, but I don't think speed and security are a trade-off you make with people's data. My rule is simple: move fast in how the work gets done, and keep the data in trusted infrastructure.\n\nFor an organization like Careforth, that trusted infrastructure is Salesforce and the Microsoft environment, like SharePoint. They have the things that matter when you're holding health information: real identity and access control, audit trails, encryption, retention policies, and the business associate agreements HIPAA requires. A clever tool that copies member data somewhere else, even with good intentions, breaks all of that.\n\nYou can see that in how I build. On the internal status reporting app, the data lives in SharePoint, not in the app. It's read and written through Microsoft Graph with the Sites.Selected permission, so the app can only touch its one site. Sign-in is Entra ID, and roles come from security groups that IT already manages. AI summaries are generated on the server, and the API key never reaches a browser. On War Room, I kept Smartsheet as the system of record instead of moving the team's data into my own tool, and AI just drafts the summaries and action items around it.\n\nSo when I bring AI into a process, I ask a few questions first. Where does the data live, and does it stay there? Is the tool approved for this kind of data? Who can see the output? Is there a human checking before anything reaches a client or a record? AI drafts, people decide.\n\nIn Salesforce, that's actually easier to do well, because the platform has built the guardrails in. Salesforce's Einstein Trust Layer, for example, is designed so prompts can be grounded in your data with masking, and the model provider doesn't retain it. I'd always look at what's approved and built in first before reaching for anything outside.\n\nSo I'm flexible and I like moving fast, but I'll always do it on infrastructure the organization trusts and can audit.",
    "k": [
     "Move fast on the work; keep data in trusted infrastructure",
-    "Salesforce and SharePoint: identity, audit, encryption, retention, BAAs",
-    "Proof: status app data in SharePoint via Graph, Sites.Selected, Entra roles",
-    "War Room kept Smartsheet as the record; home care docs file into SharePoint",
-    "Questions first: where does data live, is the tool approved, who sees output, human check",
-    "Einstein Trust Layer: built-in guardrails first"
+    "Salesforce and SharePoint: access control, audit, encryption, BAAs",
+    "Status app: data stays in SharePoint, Entra roles, least privilege",
+    "War Room kept Smartsheet as the system of record",
+    "AI drafts, people decide; use built-in guardrails first"
    ]
   },
   "s12": {
    "a": "Caregivers are the people I've worked with most closely outside my day job, and they're a big reason this role means something to me.\n\nMy mom has owned a home care agency and a CNA school for 20 years, so I've been around caregivers for a long time. I've seen people come through her school to get certified and go on to care for clients, and I've seen what the agency deals with day to day. I've also helped her make the business more efficient. [Add what you did for her, and a real person or moment that stuck with you.]\n\nWhat I've learned is that caregivers are doing some of the hardest and most important work there is, and they're usually stretched thin. They're in someone's home, often alone, managing a person's daily care, and every minute they spend fighting paperwork or confusing tools is a minute taken from the person they're caring for.\n\nSo I think about the small things that make a big difference to them. Can a caregiver do this on a phone? Is their pay right, including travel time? Do they get a warning before a certification lapses, so they aren't pulled off a client they know? Those details decide whether a good caregiver stays.\n\nThat's why Careforth's model resonates with me. Your caregivers are family members doing this out of love, and Structured Family Caregiving recognizes that with real pay, coaching and support. The systems behind that support matter, because the easier the technology is for a caregiver, the more energy they have for their family member. That's the lens I'd bring to every story I write here: does this make a caregiver's day easier, or harder?",
    "k": [
-    "20 years around it: your mom's home care agency and CNA school [add a real detail]",
-    "You've helped her make the business more efficient",
+    "Mom's home care agency and CNA school, 20 years; around caregivers a long time [add a real moment]",
+    "Helped her make the business more efficient",
     "Caregivers are stretched thin; paperwork steals care time",
-    "The small things: phone-friendly, correct pay, warnings before anything lapses",
-    "Careforth: family caregivers; easier tech means more energy for care"
+    "Small things matter: phone-friendly, correct pay, warnings before anything lapses",
+    "Careforth's caregivers are family: easier tech, more energy for care"
    ]
   },
   "p14": {
