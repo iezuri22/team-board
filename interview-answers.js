@@ -84,6 +84,10 @@ window.STUDY = {
    [
     "The home care platform",
     "Their world. Caregiver, client and caseworker portals, compliance checks, QuickBooks billing, licensing rules. Use it for healthcare workflows, learning fast, integrations and why Careforth."
+   ],
+   [
+    "Caregivers first",
+    "You hire, onboard, train and support caregivers, and you designed the platform around their day: phone onboarding, clock-in, correct pay for travel time, early warnings before anything expires. Use it for why Careforth and anything about users."
    ]
   ],
   "mindset": [
@@ -860,6 +864,28 @@ window.STUDY = {
     "Questions first: where does data live, is the tool approved, who sees output, human check",
     "Einstein Trust Layer: built-in guardrails first"
    ]
+  },
+  "s12": {
+   "a": "Caregivers are the people I've worked with most closely outside my day job, and they're a big reason this role means something to me.\n\nAt the home care agency, I'm hands-on with caregivers across their whole journey: recruiting them, hiring and onboarding, training, scheduling, supporting them on the job, and making sure they're paid correctly. [Add a real detail here: how many caregivers you've worked with, or a moment with one that stuck with you.]\n\nWhat I've learned is that caregivers are doing some of the hardest and most important work there is, and they're usually stretched thin. They're in someone's home, often alone, managing a person's daily care, and every minute they spend fighting paperwork or confusing tools is a minute taken from the person they're caring for. So when I built the platform the agency runs on, I designed it around them.\n\nThey can apply and finish their onboarding from their phone, with reminders that show how far along they are. They sign their offer and policies electronically. Training is online, with the supervised hours tracked for them. They clock in and out of visits on their phone, log their travel and mileage, and the system splits their time correctly into visit hours, paid travel time and overtime, so they're paid for all the work they do. And it reminds them well before a document or training expires, so they never get pulled off a client because something lapsed without warning.\n\nThat's why Careforth's model resonates with me. Your caregivers are family members doing this out of love, and Structured Family Caregiving recognizes that with real pay, coaching and support. The systems behind that support matter, because the easier the technology is for a caregiver, the more energy they have for their family member. That's the lens I'd bring to every story I write here: does this make a caregiver's day easier, or harder?",
+   "k": [
+    "Hands-on with caregivers across the journey [add a real detail]",
+    "Caregivers are stretched thin; paperwork steals care time",
+    "Designed the platform around them: phone onboarding, e-signing, online training",
+    "Phone clock-in, travel and mileage, correct pay split",
+    "Renewal reminders so nobody is pulled off a client",
+    "Careforth: family caregivers; easier tech means more energy for care"
+   ]
+  },
+  "p14": {
+   "a": "I designed the platform around one question: what does a caregiver need to do their job well, and what's getting in their way? Most home care tools are built for the office. I wanted the caregiver's side to be just as good.\n\nIt starts before they're hired. Applicants go through a six-step application they can finish from their phone, including documents and the fingerprinting step, and if they stall, they get reminders telling them how far along they are and what's left. When they're hired, the offer letter and contract are generated and signed electronically, and so are the agency's policies.\n\nThen there's the caregiver portal. They see their schedule, clock in and out of visits from their phone, and record the tasks they did, with the client confirming the visit. They log travel between clients and mileage. That matters because those are two different legal obligations: travel time is paid as hours worked, and mileage is a reimbursable expense under Illinois law. The system splits their time into visit hours, paid travel hours and overtime based on the agency's signed travel time policy, so payroll is right without anyone doing math by hand.\n\nTraining lives in the portal too. It knows which courses each person owes and when, tracks online hours and supervised hours a supervisor logs, and records the competency evaluation before a first assignment. A renewals view shows anything expiring, and reminders go out early, because the worst outcome is a caregiver being pulled from a client they know because a certificate lapsed without warning. Care notes are generated weekly and monthly from the visit records, so documentation doesn't become a second job.\n\nOn the office side, there's one overview per caregiver that answers the real question, can this person work with this client today, by pulling together their visits, background check, registry status, training and expiring documents.\n\nFor Careforth, the parallel is direct. Your family caregivers use your app to connect with their coach and manage care. The same principles apply: make the caregiver's tasks fast on a phone, never surprise them with a compliance problem, make sure pay is accurate and on time, and keep documentation as light as the rules allow. I'd bring that lens to every Salesforce story that touches a caregiver.",
+   "k": [
+    "Built around the caregiver, not just the office",
+    "Phone application with progress reminders; e-signed offer and policies",
+    "Portal: schedule, phone clock-in, tasks, client confirmation",
+    "Travel time paid as hours, mileage reimbursed; correct pay split",
+    "Training, competency, renewals with early reminders; auto care notes",
+    "One caregiver overview for the office; the Careforth parallel"
+   ]
   }
  },
  "extraScreen": [
@@ -872,6 +898,17 @@ window.STUDY = {
     "Same question twice: close the gap or automate the answer.",
     "Proof: templates, self-service intake, dashboards, the meeting-to-task system, the training library.",
     "Why it matters for a BSA."
+   ]
+  },
+  {
+   "id": "s12",
+   "q": "Tell me about your experience working with caregivers.",
+   "why": "Careforth's whole business is supporting caregivers. Showing you understand them sets you apart from other analysts.",
+   "hit": [
+    "Hands-on across the caregiver journey [add a real detail].",
+    "They're stretched thin; tools should give time back.",
+    "You designed the platform around them.",
+    "Careforth's model resonates: easier tech, more energy for care."
    ]
   },
   {
@@ -1032,6 +1069,17 @@ window.STUDY = {
     "Entra ID only; roles from security groups.",
     "SharePoint through Graph with Sites.Selected.",
     "Claude summaries server-side; reminders without Mail.Send."
+   ]
+  },
+  {
+   "id": "p14",
+   "q": "How did you design the platform around caregivers?",
+   "why": "Shows empathy turned into system design, the core of a BSA at a caregiving company.",
+   "hit": [
+    "Phone application, e-signing, portal with clock-in.",
+    "Travel time and mileage paid correctly.",
+    "Training, renewals with early warning, auto care notes.",
+    "The parallel to Careforth's family caregivers."
    ]
   }
  ],
