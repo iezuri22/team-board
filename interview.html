@@ -7,6 +7,13 @@
 <script>var t="light";try{if(localStorage.getItem("tb-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js/+esm",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+  "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.7.0/modules/talkinghead.mjs"
+} }
+</script>
 <style>
 /* A call screen, not a worksheet: the interviewer's words large, a live level trace, your words underneath */
 :root {
@@ -53,14 +60,24 @@ select { font: 16px var(--sans); color: var(--ink); background: var(--field); bo
 /* live */
 .live { padding-top: 40px; }
 .lhead { display: flex; justify-content: space-between; gap: 16px; font: 400 15px var(--mono); color: var(--muted); }
-.status { display: flex; align-items: center; gap: 10px; margin-top: 44px; font-size: 16px; color: var(--muted); }
+.status { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 16px; color: var(--muted); }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); }
 .status.listening .dot { background: var(--live); }
 .status.speaking .dot { background: var(--accent); }
 @media (prefers-reduced-motion: no-preference) { .status.listening .dot, .status.thinking .dot { animation: pulse 1.2s ease-in-out infinite; } }
 @keyframes pulse { 50% { opacity: .3; } }
-.question { font: 500 clamp(30px, 3.6vw, 46px)/1.22 var(--sans); letter-spacing: -.02em; margin: 14px 0 0; max-width: 34ch; text-wrap: balance; min-height: 2.5em; }
-canvas.trace { display: block; width: 100%; height: 84px; margin: 34px 0 18px; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 64vh; margin-top: 18px; border-radius: 12px; overflow: hidden; background: radial-gradient(120% 90% at 50% 35%, #4a4d52 0%, #2a2c30 55%, #17181b 100%); outline: 3px solid transparent; outline-offset: -3px; transition: outline-color .2s; }
+.stage.speaking { outline-color: #3ccf72; }
+.stage #avatar { position: absolute; inset: 0; }
+.stage .tag { position: absolute; left: 14px; bottom: 12px; background: rgba(0,0,0,.55); color: #fff; font: 500 14px var(--sans); padding: 4px 10px; border-radius: 6px; }
+.self { position: absolute; right: 14px; bottom: 14px; width: 22%; min-width: 150px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000; outline: 3px solid transparent; outline-offset: -3px; box-shadow: 0 4px 18px rgba(0,0,0,.35); }
+.self.on { outline-color: #3ccf72; }
+.self video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+.self .tag { left: 8px; bottom: 6px; font-size: 12.5px; padding: 2px 8px; }
+.avload { position: absolute; inset: 0; display: grid; place-items: center; color: #c9cbcf; font-size: 16px; }
+.question { font: 500 clamp(22px, 2.2vw, 28px)/1.35 var(--sans); letter-spacing: -.01em; margin: 10px 0 0; max-width: 60ch; text-wrap: balance; min-height: 1.4em; }
+canvas.trace { display: block; width: 100%; height: 40px; margin: 18px 0 12px; }
+@media (max-width: 700px) { .stage { aspect-ratio: 4 / 3; } .self { width: 34%; min-width: 0; } }
 .heard { font-size: 21px; line-height: 1.55; color: var(--muted); min-height: 3.2em; margin: 0; max-width: 70ch; }
 .heard b { color: var(--ink); font-weight: 400; }
 .controls { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; margin-top: 30px; }
@@ -100,7 +117,7 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
 
   <section id="setup">
     <h1>Mock interview</h1>
-    <p class="lede">A recruiter asks the questions out loud and listens to your answers, with follow-ups when you stay vague. Answer like it's the real call. You get a debrief at the end.</p>
+    <p class="lede">A recruiter on a video call asks the questions out loud and listens to your answers, with follow-ups when you stay vague. Your camera shows in the corner like Zoom. Answer like it's the real call. You get a debrief at the end.</p>
     <p class="note warn" id="warn" hidden></p>
     <div class="types" role="radiogroup" aria-label="Interview type">
       <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">7 questions</span><span class="desc">Friday's call with the recruiter: background, why Careforth, Salesforce, salary, logistics.</span></label>
@@ -110,15 +127,20 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
     </div>
     <div class="opts">
       <label><input type="checkbox" id="fu" checked> Follow-up questions</label>
-      <label>Interviewer voice <select id="voice" aria-label="Interviewer voice"></select></label>
+      <label>Voice <select id="voice" aria-label="Interviewer voice"></select></label>
       <button class="link" id="hear" type="button">Hear it</button>
     </div>
-    <button class="btn" id="go" type="button">Start interview</button>
+    <button class="btn" id="go" type="button">Start interview</button> <span class="hint" id="avstate" style="margin-left:14px"></span>
     <p class="note" style="margin-top:18px">Use Chrome or Safari with headphones if you can, and allow the microphone when asked. <button class="link" id="lastBtn" type="button" hidden>See your last debrief</button></p>
   </section>
 
   <section id="live" class="live" hidden>
     <div class="lhead"><span id="prog"></span><button class="link" id="end" type="button">End interview</button></div>
+    <div class="stage" id="stage">
+      <div class="avload" id="avload">Loading the interviewer</div>
+      <div class="tag" id="avtag">Recruiter · Careforth</div>
+      <div class="self" id="self" hidden><video id="selfcam" autoplay muted playsinline></video><div class="tag">You</div></div>
+    </div>
     <div class="status" id="status"><span class="dot"></span><span id="stext"></span></div>
     <p class="question" id="q"></p>
     <canvas class="trace" id="trace" aria-hidden="true"></canvas>
@@ -132,6 +154,7 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
 
   <section id="report" hidden></section>
 </div>
+<div id="avpark" style="position:fixed;left:-10000px;top:0;width:960px;height:540px;pointer-events:none" aria-hidden="true"><div id="avatar" style="width:100%;height:100%"></div></div>
 
 <script>
 var API = "https://team-board-api.iezuri22.workers.dev";
@@ -239,6 +262,15 @@ function sysSpeak(text){
   });
 }
 function speak(text){
+  if (window.AV && AV.ready && auraSpeaker()) {
+    return clip(text).then(function(url){ return fetch(url).then(function(r){ return r.arrayBuffer(); }); })
+      .then(function(ab){ return Promise.race([AV.say(ab, text), new Promise(function(r){ setTimeout(r, 6000 + words(text) * 550); })]); })
+      .then(function(){ return new Promise(function(r){ setTimeout(r, 250); }); })
+      .catch(function(){ return speakPlain(text); });
+  }
+  return speakPlain(text);
+}
+function speakPlain(text){
   return clip(text).then(function(url){
     return new Promise(function(res){
       var done = false, fin = function(){ if (!done) { done = true; clearTimeout(guard); player.onended = player.onerror = null; setTimeout(res, 300); } };
@@ -248,7 +280,7 @@ function speak(text){
     });
   }).catch(function(){ return sysSpeak(text); });
 }
-function hush(){ try { player.pause(); } catch (e) {} try { synth && synth.cancel(); } catch (e) {} }
+function hush(){ try { player.pause(); } catch (e) {} try { synth && synth.cancel(); } catch (e) {} try { window.AV && AV.stop(); } catch (e) {} }
 
 // ---------- mic, level trace, measurements ----------
 var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -348,7 +380,11 @@ function measure(A){
   return { tx: tx, m: { seconds_speaking: +span.toFixed(1), words: w, words_per_minute: w ? Math.round(w / (span / 60)) : null, first_word_after_s: +first.toFixed(1), pauses_over_0_7s: gaps.length, pauses_over_2s: gaps.filter(function(g){ return g >= 2; }).length, longest_pause_s: gaps.length ? +Math.max.apply(null, gaps).toFixed(1) : 0, fillers_heard: fillers, fillers_total: ft, fillers_per_minute: +(ft / (span / 60)).toFixed(1), pitch_variety_semitones: +semis.toFixed(1), ending_volume_vs_median: +(tailAvg / lmed).toFixed(2) } };
 }
 
-function setStatus(kind, text){ $("status").className = "status " + kind; $("stext").textContent = text; }
+function setStatus(kind, text){
+  $("status").className = "status " + kind; $("stext").textContent = text;
+  $("stage").classList.toggle("speaking", kind === "speaking"); $("self").classList.toggle("on", kind === "listening");
+  if (kind === "listening" && window.AV) AV.look();
+}
 
 // ---------- the interview ----------
 function ask(text){ S.mode = "speaking"; setStatus("speaking", "Recruiter"); $("q").textContent = text; $("heard").textContent = ""; $("done").disabled = true; return speak(text).then(function(){ if (S && !S.ended) startListening(); }); }
@@ -359,6 +395,10 @@ function run(type){
   $("setup").hidden = true; $("report").hidden = true; $("live").hidden = false; window.scrollTo(0, 0);
   setStatus("thinking", "Connecting the microphone"); $("q").textContent = ""; $("prog").textContent = "";
   var CLOSE_Q = "That's everything I had for you. What questions do you have for me?", BYE = "Thanks so much for your time, Ifeanyi. We'll be in touch about next steps.";
+  var av = $("avatar"); if (av.parentNode !== $("stage")) $("stage").prepend(av);
+  $("avload").hidden = !!(window.AV && AV.ready);
+  if (window.AV) AV.resume();
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: "user" } }).then(function(v){ if (!S || S.ended) { v.getTracks().forEach(function(t){ t.stop(); }); return; } S.cam = v; $("selfcam").srcObject = v; $("self").hidden = false; }).catch(function(){ $("self").hidden = true; });
   openMic().then(function(){
     var intro = type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at Careforth, and I'd love to learn more about you. Let's get started." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
     preload([intro].concat(plan.map(function(x){ return x.q; }), [CLOSE_Q, BYE]));
@@ -393,7 +433,8 @@ function run(type){
 function stopAll(){
   if (!S) return; S.ended = true; hush(); stopReading();
   if (S.cur) { try { S.cur.recog && S.cur.recog.stop(); } catch (e) {} try { S.cur.rec && S.cur.rec.state !== "inactive" && S.cur.rec.stop(); } catch (e) {} }
-  clearInterval(S.tick); try { S.stream && S.stream.getTracks().forEach(function(t){ t.stop(); }); } catch (e) {} try { S.ctx && S.ctx.close(); } catch (e) {}
+  clearInterval(S.tick); try { S.stream && S.stream.getTracks().forEach(function(t){ t.stop(); }); } catch (e) {}
+  try { S.cam && S.cam.getTracks().forEach(function(t){ t.stop(); }); $("selfcam").srcObject = null; $("self").hidden = true; } catch (e) {} try { S.ctx && S.ctx.close(); } catch (e) {}
 }
 
 function finish(){
@@ -487,6 +528,44 @@ var themeBtn = $("theme");
 function paintTheme(){ themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "Light mode" : "Dark mode"; }
 paintTheme();
 themeBtn.onclick = function(){ var t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"; document.documentElement.setAttribute("data-theme", t); try { localStorage.setItem("tb-theme", t); } catch (e) {} paintTheme(); };
+</script>
+<script type="module">
+// The interviewer on screen: a 3D person (TalkingHead) lip-synced to the Aura voice. If WebGL or the model fails, the page just uses the voice.
+import { TalkingHead } from "talkinghead";
+const BASE = "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.8.0/avatars/";
+const PEOPLE = {
+  woman: { url: BASE + "avaturn.glb", body: "F", baseline: { headRotateX: -0.05, eyeBlinkLeft: 0.15, eyeBlinkRight: 0.15 }, voice: "aura:thalia" }
+};
+const state = (t) => { const a = document.getElementById("avstate"), b = document.getElementById("avload"); if (a) a.textContent = t; if (b) b.textContent = t; };
+let head = null, current = "";
+async function load(who) {
+  const p = PEOPLE[who] || PEOPLE.woman; current = who; window.AV.ready = false;
+  try {
+    if (!head) head = new TalkingHead(document.getElementById("avatar"), { lipsyncModules: ["en"], lipsyncLang: "en", cameraView: "upper", cameraRotateEnable: false, avatarIdleEyeContact: 0.6, avatarSpeakingEyeContact: 0.7, modelFPS: 30, lightAmbientIntensity: 2.2 });
+    state("Loading the interviewer");
+    await head.showAvatar({ url: p.url, body: p.body, avatarMood: "neutral", lipsyncLang: "en", baseline: p.baseline }, (ev) => { if (ev && ev.lengthComputable && current === who) state("Loading the interviewer " + Math.round(ev.loaded / ev.total * 100) + "%"); });
+    if (current !== who) return;
+    head.setView("upper", { cameraDistance: -0.25 }); // head and shoulders, like a webcam
+    window.AV.ready = true; state("Interviewer ready"); const b = document.getElementById("avload"); if (b) b.hidden = true;
+  } catch (e) { state("The 3D interviewer couldn't load here, so it'll be voice only."); }
+}
+window.AV = {
+  ready: false,
+  resume() { try { head && head.audioCtx && head.audioCtx.resume(); } catch (e) {} },
+  stop() { try { head && head.stopSpeaking(); } catch (e) {} },
+  look() { try { head && head.makeEyeContact(30000); } catch (e) {} },
+  head: () => head,
+  async say(ab, text) {
+    const buf = await head.audioCtx.decodeAudioData(ab);
+    // Aura doesn't return word timings, so spread the words across the clip by length; close enough for natural lip movement
+    const words = text.split(/\s+/).filter(Boolean), weight = words.map((w) => w.replace(/[^A-Za-z0-9]/g, "").length + 2 + (/[.,?!:;]$/.test(w) ? 4 : 0));
+    const total = weight.reduce((a, b) => a + b, 0), span = Math.max(300, buf.duration * 1000 - 250);
+    let t = 120; const wtimes = [], wdurations = [];
+    weight.forEach((w) => { const d = span * w / total; wtimes.push(Math.round(t)); wdurations.push(Math.round(d * 0.85)); t += d; });
+    return new Promise((res) => { head.speakAudio({ audio: buf, words, wtimes, wdurations }, { lipsyncLang: "en" }); head.speakMarker(res); });
+  }
+};
+load("woman");
 </script>
 </body>
 </html>
