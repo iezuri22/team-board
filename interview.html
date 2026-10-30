@@ -135,6 +135,7 @@ h2.set { font: 600 clamp(26px, 2.6vw, 34px)/1.2 var(--sans); letter-spacing: -.0
 .keys li { margin: 3px 0; }
 .answer { margin-top: 14px; }
 .answer p { font-size: 18px; line-height: 1.65; margin: 0 0 12px; }
+.moreq { margin-top: 18px; font-size: 14.5px; }
 .qc { padding: 16px 0 14px; border-bottom: 1px solid var(--rule); }
 .qline { display: grid; grid-template-columns: 40px 1fr; align-items: baseline; }
 .qc .qtext { margin: 0; font: 600 18.5px/1.35 var(--sans); letter-spacing: -.01em; }
@@ -189,7 +190,7 @@ h2.eh { font: 600 22px/1.3 var(--sans); margin: 38px 0 10px; }
     <p class="lede">A recruiter on a video call asks the questions out loud and listens to your answers, with follow-ups when you stay vague. Your camera shows in the corner like Zoom. Answer like it's the real call. You get a debrief at the end.</p>
     <p class="note warn" id="warn" hidden></p>
     <div class="types" role="radiogroup" aria-label="Interview type">
-      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">9 questions</span><span class="desc">Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics.</span></label>
+      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">8 questions</span><span class="desc">Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics.</span></label>
       <label class="type"><input type="radio" name="type" value="beh"><span class="name">Tell me about a time</span><span class="count">5 questions</span><span class="desc">Behavioral questions a hiring manager asks. One real story each: situation, what you did, the result.</span></label>
       <label class="type"><input type="radio" name="type" value="tech"><span class="name">Technical</span><span class="count">5 questions</span><span class="desc">Salesforce and business systems analyst questions. Checked for accuracy.</span></label>
       <label class="type"><input type="radio" name="type" value="proj"><span class="name">Project deep dive</span><span class="count">7 questions</span><span class="desc">What you've built: the home care platform and its CRM side, War Room and the program dashboards, integrations, compliance, and how you use AI.</span></label>
@@ -284,6 +285,9 @@ if (window.STUDY) {
   QS.beh.items = QS.beh.items.concat(STUDY.extraBeh || []);
   QS.proj = { label: "Project deep dive", note: "", items: STUDY.projects || [] };
 }
+// The ones to study when time is short, in priority order
+var KEY_Q = { screen: ["s1", "s2", "s9", "s10", "s3", "s4", "s12", "s5", "s8"], beh: ["b1", "b5", "b7"], tech: ["t1", "t3", "t5", "t2"], proj: ["p10", "p11"] };
+function keyItems(set){ return (KEY_Q[set] || []).map(function(id){ return QS[set].items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
 function $(id){ return document.getElementById(id); }
 function el(tag, attrs, kids){ var n = document.createElement(tag); attrs = attrs || {}; for (var k in attrs) { if (k === "text") n.textContent = attrs[k]; else if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); } [].concat(kids || []).forEach(function(c){ if (c != null) n.append(c); }); return n; }
 function fmt(s){ s = Math.max(0, s || 0); return Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0"); }
@@ -300,7 +304,7 @@ var ROUNDS = {
 };
 function planFor(type){
   var sc = QS.screen.items.filter(function(x){ return x.id !== "s8"; });
-  if (type === "screen") return sc;
+  if (type === "screen") return keyItems("screen").filter(function(x){ return x.id !== "s8"; });
   if (type === "beh") return shuffle(QS.beh.items).slice(0, 5);
   if (type === "tech") return shuffle(QS.tech.items).slice(0, 5);
   if (type === "proj" && QS.proj) { var pick = ["p1", "p2", "p10", "p11", "p13", "p4", "p12"]; return pick.map(function(id){ return QS.proj.items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
@@ -623,11 +627,11 @@ function renderStudy(){
   if (!window.STUDY) { st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "The study guide didn't load. Refresh the page." })); return; }
   var H = STUDY.hype, A = STUDY.answers;
   var SETS = [["edge", "Your edge", ""], ["screen", "Recruiter screen", "Today's call. Say each in 60 to 90 seconds."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Fill in the [brackets] with real details."], ["tech", "Technical", "Salesforce and analyst craft. Be accurate and concrete, and honest about what you'd ramp up on."], ["proj", "Your projects", "The home care platform you built, checked against the actual code. Expect a hiring manager to dig in here. Fill in the [brackets] yourself."]];
-  var tab = "edge"; try { tab = localStorage.getItem("tb-study-tab") || "edge"; } catch (e) {}
+  var tab = "screen"; try { tab = localStorage.getItem("tb-study-tab") || "screen"; } catch (e) {}
 
   // one toolbar: sections on the left, search and voice on the right
   var tabs = el("div", { class: "stabs", role: "tablist", "aria-label": "Study sections" });
-  SETS.forEach(function(x){ var b = el("button", { class: "stab", role: "tab", type: "button", "data-tab": x[0], text: x[1] + (x[0] === "edge" ? "" : "  " + QS[x[0]].items.length) }); b.onclick = function(){ show(x[0]); window.scrollTo(0, 0); }; tabs.append(b); });
+  SETS.forEach(function(x){ var b = el("button", { class: "stab", role: "tab", type: "button", "data-tab": x[0], text: x[1] + (x[0] === "edge" ? "" : "  " + keyItems(x[0]).length) }); b.onclick = function(){ show(x[0]); window.scrollTo(0, 0); }; tabs.append(b); });
   var voiceSel = el("select", { id: "studyVoice", "aria-label": "Voice for reading answers" }), keepV = "thalia"; try { keepV = localStorage.getItem("tb-mock-readvoice") || "thalia"; } catch (e) {}
   voiceSel.className = "vsel";
   AURA.forEach(function(v){ var o = el("option", { value: v[0], text: "Voice: " + v[1] }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
@@ -643,7 +647,9 @@ function renderStudy(){
     var set = SETS.find(function(x){ return x[0] === t; });
     var list = el("div", { class: "qlist" });
     body.append(el("p", { class: "setnote", text: set[2] }), list);
-    QS[t].items.forEach(function(item, i){ list.append(card(t, item, i)); });
+    keyItems(t).forEach(function(item, i){ list.append(card(t, item, i)); });
+    var rest = QS[t].items.filter(function(x){ return KEY_Q[t].indexOf(x.id) < 0; });
+    if (rest.length) { var allBtn = el("button", { class: "link moreq", type: "button", text: "Show " + rest.length + " more" }); allBtn.onclick = function(){ rest.forEach(function(item, i){ list.append(card(t, item, KEY_Q[t].length + i)); }); allBtn.remove(); }; body.append(allBtn); }
   }
   function card(set, item, i){
     var a = A[item.id] || {}, d = el("div", { class: "qc", id: "q-" + item.id });
