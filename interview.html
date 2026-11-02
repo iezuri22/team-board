@@ -109,7 +109,26 @@ ol.pri li, ul.plain li { margin: 6px 0; }
 .ans summary { cursor: pointer; }
 audio { margin-top: 12px; height: 36px; max-width: 100%; }
 .busy { color: var(--muted); font-size: 18px; }
-.nav { display: flex; gap: 22px; align-items: baseline; }
+.nav { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; justify-content: flex-end; }
+.nav .link { white-space: nowrap; }
+.tl { display: flex; gap: 18px; align-items: baseline; min-width: 0; flex-wrap: wrap; }
+.tl .link { color: var(--ink); text-decoration: none; font-weight: 500; }
+.jobsel { appearance: none; -webkit-appearance: none; border: 0; background: none; padding: 0; font: 600 15px var(--sans); color: var(--ink); cursor: pointer; max-width: min(56vw, 560px); text-overflow: ellipsis; }
+.jobsel:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.prepnote { color: var(--muted); font-size: 16px; margin: 6px 0 18px; }
+.three { margin: 0 0 8px; padding-left: 24px; font-size: 19px; line-height: 1.55; max-width: 80ch; }
+.three li { margin: 6px 0; }
+.knows { margin: 0; padding-left: 20px; color: var(--ink); font-size: 17px; max-width: 85ch; }
+.practiced { font-size: 13.5px; color: var(--faint); }
+/* progress */
+.ptable { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+.ptable th { text-align: left; font: 500 13px var(--sans); color: var(--muted); padding: 0 14px 8px 0; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.ptable td { padding: 12px 14px 12px 0; border-bottom: 1px solid var(--rule); vertical-align: top; font-variant-numeric: tabular-nums; }
+.ptable .pv { color: var(--muted); font-size: 14.5px; margin-top: 3px; max-width: 60ch; }
+.trend { display: block; width: 100%; max-width: 520px; height: 90px; }
+.qcount { columns: 2 320px; column-gap: 40px; padding-left: 0; list-style: none; margin: 0; }
+.qcount li { break-inside: avoid; padding: 6px 0; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; gap: 14px; font-size: 15.5px; }
+.qcount b { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 500; }
 .navb.on { color: var(--ink); font-weight: 600; text-decoration-color: var(--ink); }
 /* study guide */
 .big { font: 500 clamp(20px, 2vw, 25px)/1.5 var(--sans); max-width: 62ch; margin: 0 0 26px; letter-spacing: -.01em; }
@@ -183,14 +202,14 @@ h2.eh { font: 600 22px/1.3 var(--sans); margin: 38px 0 10px; }
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><span><b>Careforth</b> · Business Systems Analyst II</span><span class="nav"><button class="link navb" id="navMock" type="button">Mock interview</button><button class="link navb" id="navStudy" type="button">Study guide</button><button class="link" id="theme" type="button">Dark mode</button></span></div>
+  <div class="top"><span class="tl"><a class="link" href="index.html">&larr; Apply Yourself</a><select id="jobPick" class="jobsel" aria-label="Job you're prepping for"><option value="">Careforth · Business Systems Analyst II</option></select></span><span class="nav"><button class="link navb" id="navMock" type="button">Mock interview</button><button class="link navb" id="navStudy" type="button">Study guide</button><button class="link navb" id="navProg" type="button">Progress</button><button class="link" id="theme" type="button">Dark mode</button></span></div>
 
   <section id="setup">
     <h1>Mock interview</h1>
     <p class="lede">A recruiter on a video call asks the questions out loud and listens to your answers, with follow-ups when you stay vague. Your camera shows in the corner like Zoom. Answer like it's the real call. You get a debrief at the end.</p>
     <p class="note warn" id="warn" hidden></p>
     <div class="types" role="radiogroup" aria-label="Interview type">
-      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count">8 questions</span><span class="desc">Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics.</span></label>
+      <label class="type"><input type="radio" name="type" value="screen" checked><span class="name">Recruiter screen</span><span class="count" id="screenCount">8 questions</span><span class="desc" id="screenDesc">Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics.</span></label>
       <label class="type"><input type="radio" name="type" value="beh"><span class="name">Tell me about a time</span><span class="count">5 questions</span><span class="desc">Behavioral questions a hiring manager asks. One real story each: situation, what you did, the result.</span></label>
       <label class="type"><input type="radio" name="type" value="tech"><span class="name">Technical</span><span class="count">5 questions</span><span class="desc">Salesforce and business systems analyst questions. Checked for accuracy.</span></label>
       <label class="type"><input type="radio" name="type" value="proj"><span class="name">Project deep dive</span><span class="count">7 questions</span><span class="desc">What you've built: the home care platform and its CRM side, War Room and the program dashboards, integrations, compliance, and how you use AI.</span></label>
@@ -225,6 +244,7 @@ h2.eh { font: 600 22px/1.3 var(--sans); margin: 38px 0 10px; }
 
   <section id="report" hidden></section>
   <section id="study" hidden></section>
+  <section id="progress" hidden></section>
 </div>
 <div id="avpark" style="position:fixed;left:-10000px;top:0;width:960px;height:540px;pointer-events:none" aria-hidden="true"><div id="avatar" style="width:100%;height:100%"></div></div>
 
@@ -285,8 +305,12 @@ if (window.STUDY) {
   QS.beh.items = QS.beh.items.concat(STUDY.extraBeh || []);
   QS.proj = { label: "Project deep dive", note: "", items: STUDY.projects || [] };
 }
+var CAREFORTH = { screen: QS.screen.items.slice(), role: ROLE, key: null };
+var CUR = { id: "", company: "Careforth", role: "Business Systems Analyst II", careforth: true, prep: null };
+function co(){ return CUR.company; }
 // The ones to study when time is short, in priority order
 var KEY_Q = { screen: ["s1", "s2", "s9", "s10", "s3", "s4", "s12", "s5", "s8"], beh: ["b1", "b5", "b7"], tech: ["t1", "t3", "t5", "t2"], proj: ["p10", "p11"] };
+CAREFORTH.key = KEY_Q.screen.slice();
 function keyItems(set){ return (KEY_Q[set] || []).map(function(id){ return QS[set].items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
 function $(id){ return document.getElementById(id); }
 function el(tag, attrs, kids){ var n = document.createElement(tag); attrs = attrs || {}; for (var k in attrs) { if (k === "text") n.textContent = attrs[k]; else if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); } [].concat(kids || []).forEach(function(c){ if (c != null) n.append(c); }); return n; }
@@ -302,6 +326,7 @@ var ROUNDS = {
   full: "Longer mock interview at Careforth mixing recruiter, behavioral and technical questions. For technical answers, check accuracy",
   proj: "Hiring manager deep dive at Careforth into the home care operations platform he built and how it relates to CRM and Salesforce work. Probe technical depth and judgment"
 };
+function roundOf(type){ return String(ROUNDS[type] || "").replace(/Careforth/g, co()); }
 function planFor(type){
   var sc = QS.screen.items.filter(function(x){ return x.id !== "s8"; });
   if (type === "screen") return keyItems("screen").filter(function(x){ return x.id !== "s8"; });
@@ -487,7 +512,7 @@ function run(type, only){
   if (window.AV) AV.resume();
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: "user" } }).then(function(v){ if (!S || S.ended) { v.getTracks().forEach(function(t){ t.stop(); }); return; } S.cam = v; $("selfcam").srcObject = v; $("self").hidden = false; }).catch(function(){ $("self").hidden = true; });
   openMic().then(function(){
-    var intro = only ? "Okay, let's practice this one." : type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at Careforth, and I'd love to learn more about you. Let's get started." : type === "proj" ? "Thanks for joining. I saw the home care platform on your resume, and I'd like to dig into it. Let's start there." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
+    var intro = only ? "Okay, let's practice this one." : type === "screen" || type === "full" ? "Hi Ifeanyi, thanks for making time today. I'm with the talent team at " + co() + ", and I'd love to learn more about you. Let's get started." : type === "proj" ? "Thanks for joining. I saw the home care platform on your resume, and I'd like to dig into it. Let's start there." : type === "tech" ? "Thanks for joining. I want to dig into some of the technical side of the role today. Let's jump in." : "Thanks for joining. I'd like to hear about some real situations you've handled. Let's jump in.";
     preload([intro].concat(plan.map(function(x){ return x.q; }), [CLOSE_Q, BYE]));
     return speak(intro).then(function(){ next(); });
   }).catch(function(){ $("live").hidden = true; $("setup").hidden = false; warn("The microphone is blocked. Allow it in the browser's site settings, then start again."); S = null; });
@@ -500,7 +525,7 @@ function run(type, only){
     S.onAnswer = function(A){
       entry.main = A;
       if (!followups || !A.transcript || !tok()) return wrap("");
-      post("/api/coach/turn", { round: ROUNDS[type], question: item.q, answer: A.transcript }).then(function(d){
+      post("/api/coach/turn", { round: roundOf(type), question: item.q, answer: A.transcript }).then(function(d){
         var ack = d.ack || "Okay.";
         if (d.followup) { entry.followup = d.followup; S.onAnswer = function(B){ entry.fu = B; wrap(""); }; return speak(ack).then(function(){ return ask(d.followup); }); }
         wrap(ack);
@@ -529,12 +554,12 @@ function finish(){
   stopAll(); $("live").hidden = true;
   var rep = $("report"); rep.hidden = false; rep.textContent = ""; window.scrollTo(0, 0);
   if (!entries.length) { rep.append(el("h1", { text: "Nothing to review" }), el("p", { class: "lede", text: "No answers came through. Check that the microphone works and that you're using Chrome or Safari." }), newBtn()); return; }
-  var payload = { round: ROUNDS[type], role: ROLE, background: BACKGROUND, answers: entries.map(function(e){ return { question: e.question, followup: e.followup || "", transcript: e.main.transcript, followupAnswer: e.fu ? e.fu.transcript : "", metrics: e.main.metrics }; }) };
+  var payload = { type: type, jobId: CUR.id, company: co(), round: roundOf(type), role: ROLE, background: BACKGROUND, answers: entries.map(function(e){ return { question: e.question, followup: e.followup || "", transcript: e.main.transcript, followupAnswer: e.fu ? e.fu.transcript : "", metrics: e.main.metrics }; }) };
   rep.append(el("h1", { text: "Debrief" }), el("p", { class: "busy", id: "busy", text: "Reviewing the whole interview. This takes about a minute." }));
   if (!tok()) { $("busy").textContent = "Sign in to your board first so the debrief can run. Your measurements are below."; renderReport(entries, null); return; }
   post("/api/coach/review", payload).then(function(d){
     try { localStorage.setItem("tb-mock-last", JSON.stringify({ at: Date.now(), entries: entries.map(strip), fb: d.feedback })); } catch (e) {}
-    renderReport(entries, d.feedback);
+    SESS = null; renderReport(entries, d.feedback);
   }).catch(function(e){ $("busy").textContent = (e && e.error) || "The debrief didn't come back. Your measurements are below."; renderReport(entries, null, true); });
 }
 function strip(e){ return { question: e.question, followup: e.followup, main: { transcript: e.main.transcript, metrics: e.main.metrics }, fu: e.fu ? { transcript: e.fu.transcript } : null }; }
@@ -610,23 +635,28 @@ function listenBtn(text, pickId){
 }
 function newBtn(){ var b = el("button", { class: "btn", type: "button", text: "New interview" }); b.onclick = function(){ stopReading(); $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); }; return b; }
 
-function setNav(v){ $("navMock").classList.toggle("on", v === "mock"); $("navStudy").classList.toggle("on", v === "study"); }
+function setNav(v){ $("navMock").classList.toggle("on", v === "mock"); $("navStudy").classList.toggle("on", v === "study"); $("navProg").classList.toggle("on", v === "progress"); }
 function showView(v){
   if (S && !S.ended) return;
-  stopReading(); ["setup", "live", "report", "study"].forEach(function(id){ $(id).hidden = true; });
+  stopReading(); ["setup", "live", "report", "study", "progress"].forEach(function(id){ $(id).hidden = true; });
   document.body.classList.toggle("studying", v === "study");
-  if (v === "study") { if (!$("study").firstChild) renderStudy(); $("study").hidden = false; } else { $("setup").hidden = false; showLast(); }
-  setNav(v); try { history.replaceState(null, "", v === "study" ? "#study" : location.pathname); } catch (e) {}
+  if (v === "study") { if (!$("study").firstChild) renderStudy(); $("study").hidden = false; }
+  else if (v === "progress") { renderProgress(); $("progress").hidden = false; }
+  else { $("setup").hidden = false; showLast(); }
+  setNav(v); try { history.replaceState(null, "", v === "study" ? "#study" : v === "progress" ? "#progress" : location.pathname); } catch (e) {}
   window.scrollTo(0, 0);
 }
 $("navMock").onclick = function(){ showView("mock"); };
 $("navStudy").onclick = function(){ showView("study"); };
+$("navProg").onclick = function(){ showView("progress"); };
 
 function renderStudy(){
   var st = $("study"); st.textContent = "";
+  if (!SESS && tok()) loadSessions().then(function(){ if (!$("study").hidden) renderStudy(); }).catch(function(){});
   if (!window.STUDY) { st.append(el("h1", { text: "Study guide" }), el("p", { class: "lede", text: "The study guide didn't load. Refresh the page." })); return; }
-  var H = STUDY.hype, A = STUDY.answers;
-  var SETS = [["edge", "Your edge", ""], ["screen", "Recruiter screen", "Today's call. Say each in 60 to 90 seconds."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Fill in the [brackets] with real details."], ["tech", "Technical", "Salesforce and analyst craft. Be accurate and concrete, and honest about what you'd ramp up on."], ["proj", "Your projects", "The home care platform you built, checked against the actual code. Expect a hiring manager to dig in here. Fill in the [brackets] yourself."]];
+  var H = STUDY.hype, A = {};
+  Object.keys(STUDY.answers).forEach(function(k){ A[k] = ansFor(k); });
+  var SETS = [["edge", "Your edge", ""], ["screen", CUR.careforth ? "Recruiter screen" : "This job", CUR.careforth ? "Today's call. Say each in 60 to 90 seconds." : "Written for " + co() + " from the posting. Say each in 60 to 90 seconds."], ["beh", "Tell me about a time", "One real story each: the situation, what you did, the result. Fill in the [brackets] with real details."], ["tech", "Technical", "Salesforce and analyst craft. Be accurate and concrete, and honest about what you'd ramp up on."], ["proj", "Your projects", "The home care platform you built, checked against the actual code. Expect a hiring manager to dig in here. Fill in the [brackets] yourself."]];
   var tab = "screen"; try { tab = localStorage.getItem("tb-study-tab") || "screen"; } catch (e) {}
 
   // one toolbar: sections on the left, search and voice on the right
@@ -659,21 +689,129 @@ function renderStudy(){
     d.append(el("div", { class: "qline" }, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("h3", { class: "qtext", text: item.q })]),
       el("div", { class: "qbody" }, [
         el("ul", { class: "keys" }, (a.k || item.hit || []).map(function(k){ return el("li", { text: k }); })),
-        el("div", { class: "sqbar" }, [more, a.a ? listenBtn(a.a, "studyVoice") : null, pr]),
+        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null]),
         full
       ]));
     return d;
   }
   function edge(){
-    body.append(el("p", { class: "big", text: H.lede }));
+    if (!CUR.careforth && CUR.prep) {
+      body.append(el("h2", { class: "eh", text: "Your 3 things for " + co() }), el("ol", { class: "three" }, (CUR.prep.three || []).map(function(x){ return el("li", { text: x }); })));
+      if ((CUR.prep.know || []).length) body.append(el("h2", { class: "eh", text: "What to know about " + co() }), el("ul", { class: "knows" }, CUR.prep.know.map(function(x){ return el("li", { text: x }); })));
+      body.append(el("h2", { class: "eh", text: "Your numbers" }));
+    } else body.append(el("p", { class: "big", text: H.lede }));
     body.append(el("div", { class: "facts edgefacts" }, H.numbers.map(function(n){ return el("div", { class: "fact" }, [el("div", { class: "v", text: n[0] }), el("div", { class: "k", text: n[1] })]); })));
-    var tb = el("table", { class: "proof" }); tb.append(el("tr", {}, [el("th", { text: "What they asked for" }), el("th", { text: "What you've already done" })]));
-    H.proof.forEach(function(r){ tb.append(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] })])); });
-    body.append(el("h2", { class: "eh", text: "The job, matched to your work" }), el("div", { style: "overflow-x:auto" }, tb));
+    if (CUR.careforth) { var tb = el("table", { class: "proof" }); tb.append(el("tr", {}, [el("th", { text: "What they asked for" }), el("th", { text: "What you've already done" })]));
+      H.proof.forEach(function(r){ tb.append(el("tr", {}, [el("td", { text: r[0] }), el("td", { text: r[1] })])); });
+      body.append(el("h2", { class: "eh", text: "The job, matched to your work" }), el("div", { style: "overflow-x:auto" }, tb)); }
     body.append(el("h2", { class: "eh", text: "Your go-to stories" }), el("div", { class: "stories" }, H.stories.map(function(x){ return el("p", {}, [el("b", { text: x[0] + ". " }), x[1]]); })));
     body.append(el("h2", { class: "eh", text: "On the call" }), el("ol", { class: "pri" }, H.mindset.map(function(x){ return el("li", { text: x }); })));
   }
   show(SETS.some(function(x){ return x[0] === tab; }) ? tab : "edge");
+}
+
+// ---------- which job you're prepping for ----------
+var JOBS = [], SESS = null;
+function isCareforth(j){ return /careforth/i.test((j && j.company) || ""); }
+function loadJobs(){
+  if (!tok()) return;
+  fetch(API + "/api/state", { headers: { "Authorization": "Bearer " + tok() } }).then(function(r){ return r.json(); }).then(function(d){
+    var rank = { interview: 0, heard: 1, applied: 2 };
+    JOBS = (d.jobs || []).filter(function(j){ return j.status in rank; }).sort(function(a, b){ return (rank[a.status] - rank[b.status]) || String(b.appliedAt || b.addedAt || "").localeCompare(String(a.appliedAt || a.addedAt || "")); });
+    var sel = $("jobPick"); sel.textContent = "";
+    JOBS.forEach(function(j){ sel.append(el("option", { value: j.id, text: j.company + " · " + j.role + (j.status === "interview" ? "  (interviewing)" : j.status === "heard" ? "  (heard back)" : "") })); });
+    var keep = ""; try { keep = localStorage.getItem("tb-prep-job") || ""; } catch (e) {}
+    var pick = JOBS.find(function(j){ return j.id === keep; }) || JOBS[0];
+    if (pick) { sel.value = pick.id; selectJob(pick.id); }
+  }).catch(function(){});
+}
+$("jobPick").onchange = function(){ try { localStorage.setItem("tb-prep-job", this.value); } catch (e) {} selectJob(this.value); };
+function ansFor(id){
+  var a = STUDY.answers[id] || {};
+  if (CUR.careforth || /^g/.test(id)) return a;
+  // the general answers were written for Careforth; for any other job, leave out the lines about Careforth
+  return { a: String(a.a || "").split(/\n\n+/).filter(function(p){ return !/Careforth/.test(p); }).join("\n\n"), k: (a.k || []).filter(function(k){ return !/Careforth/.test(k); }) };
+}
+function setJobLabels(){
+  $("screenDesc").textContent = CUR.careforth ? "Friday's call with the recruiter: background, what you know about Careforth and the role, Salesforce, salary, logistics." : "The first call for " + co() + ": your background, why " + co() + ", what you know about them, the role and salary.";
+  $("screenCount").textContent = keyItems("screen").filter(function(x){ return !/^(s8|gask)$/.test(x.id); }).length + " questions";
+}
+function selectJob(id){
+  var j = JOBS.find(function(x){ return x.id === id; }); if (!j) return;
+  CUR = { id: j.id, company: String(j.company || "").replace(/,?\s*(inc\.?|llc)$/i, ""), role: j.role, careforth: isCareforth(j), prep: null };
+  if (CUR.careforth) { QS.screen.items = CAREFORTH.screen.slice(); KEY_Q.screen = CAREFORTH.key.slice(); ROLE = CAREFORTH.role; setJobLabels(); if (!$("study").hidden) renderStudy(); else $("study").textContent = ""; return; }
+  ROLE = j.role + " at " + j.company + (j.pay ? " (" + j.pay + ")" : "") + ". From the posting: " + String(j.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 2400);
+  var cached = null; try { cached = JSON.parse(localStorage.getItem("tb-prep-" + id) || "null"); } catch (e) {}
+  if (cached) return usePrep(cached);
+  QS.screen.items = []; KEY_Q.screen = []; setJobLabels();
+  $("study").textContent = ""; if (!$("study").hidden) $("study").append(el("p", { class: "prepnote", text: "Writing your prep for " + co() + " from the posting. This takes about 30 seconds and only happens once per job." }));
+  $("screenDesc").textContent = "Writing your prep for " + co() + "...";
+  post("/api/coach/prep", { jobId: id, background: BACKGROUND }).then(function(p){
+    try { localStorage.setItem("tb-prep-" + id, JSON.stringify(p)); } catch (e) {}
+    if (CUR.id === id) usePrep(p);
+  }).catch(function(e){ if (CUR.id !== id) return; $("screenDesc").textContent = (e && e.error) || "Couldn't write the prep for this job. Pick it again to retry."; if (!$("study").hidden) { $("study").textContent = ""; $("study").append(el("p", { class: "prepnote", text: (e && e.error) || "Couldn't write the prep for this job. Pick it again to retry." })); } });
+}
+function usePrep(p){
+  CUR.prep = p;
+  var items = (p.questions || []).map(function(x, i){ STUDY.answers["g" + i] = { a: "", k: x.k || [] }; return { id: "g" + i, q: x.q, why: x.why, hit: x.k || [] }; });
+  STUDY.answers.gask = { a: "", k: p.ask || [] };
+  items.push({ id: "gask", q: "What questions do you have for me?", why: "Always have two good questions.", hit: p.ask || [] });
+  QS.screen.items = items; KEY_Q.screen = items.map(function(x){ return x.id; });
+  setJobLabels();
+  if (!$("study").hidden) renderStudy(); else $("study").textContent = "";
+}
+
+// ---------- progress ----------
+function sessStats(sx){
+  var ans = sx.kind === "mock" ? (sx.answers || []) : [{ question: sx.question, metrics: sx.metrics || {} }];
+  var M = ans.map(function(a){ return a.metrics || {}; });
+  var av = function(k){ var v = M.map(function(m){ return m[k]; }).filter(function(x){ return typeof x === "number"; }); return v.length ? v.reduce(function(a, b){ return a + b; }, 0) / v.length : null; };
+  return { n: ans.length, len: av("seconds_speaking"), pace: av("words_per_minute"), fpm: av("fillers_per_minute"), longP: M.reduce(function(a, m){ return a + (m.pauses_over_2s || 0); }, 0), pitch: av("pitch_variety_semitones"), qs: ans.map(function(a){ return a.question; }) };
+}
+function loadSessions(){
+  if (SESS) return Promise.resolve(SESS);
+  return fetch(API + "/api/coach/sessions", { headers: { "Authorization": "Bearer " + tok() } }).then(function(r){ return r.json(); }).then(function(d){ SESS = (d.sessions || []).slice().sort(function(a, b){ return String(a.at).localeCompare(String(b.at)); }); return SESS; });
+}
+function practicedN(q){ if (!SESS) return 0; var n = 0; SESS.forEach(function(sx){ sessStats(sx).qs.forEach(function(x){ if (x === q) n++; }); }); return n; }
+function trendSvg(vals, label){
+  var v = vals.filter(function(x){ return typeof x === "number"; }); if (v.length < 2) return null;
+  var W = 520, H = 90, max = Math.max.apply(null, v) || 1, min = Math.min.apply(null, v), span = (max - min) || 1;
+  var pts = v.map(function(x, i){ return [8 + i * (W - 16) / (v.length - 1), H - 14 - (x - min) / span * (H - 32)]; });
+  var NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 " + W + " " + H); svg.setAttribute("class", "trend"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", label);
+  var pl = document.createElementNS(NS, "polyline"); pl.setAttribute("points", pts.map(function(p){ return p.join(","); }).join(" ")); pl.setAttribute("fill", "none"); pl.setAttribute("stroke", "var(--accent)"); pl.setAttribute("stroke-width", "2"); svg.append(pl);
+  pts.forEach(function(p, i){ if (i === pts.length - 1) { var c = document.createElementNS(NS, "circle"); c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", "4"); c.setAttribute("fill", "var(--accent)"); svg.append(c); } });
+  return svg;
+}
+function renderProgress(){
+  var P = $("progress"); P.textContent = ""; P.append(el("h1", { text: "Progress" }), el("p", { class: "busy", text: "Loading your practice history." }));
+  if (!tok()) { P.lastChild.textContent = "Sign in to your board first, then come back."; return; }
+  loadSessions().then(function(list){
+    P.textContent = ""; P.append(el("h1", { text: "Progress" }));
+    if (!list.length) { P.append(el("p", { class: "lede", text: "No practice yet. Run a mock interview and it shows up here, with your pace, filler words and pauses over time." })); return; }
+    var st = list.map(sessStats), answers = st.reduce(function(a, x){ return a + x.n; }, 0), last = st[st.length - 1];
+    var avg = function(k){ var v = st.map(function(x){ return x[k]; }).filter(function(x){ return typeof x === "number"; }); return v.length ? v.reduce(function(a, b){ return a + b; }, 0) / v.length : 0; };
+    P.append(el("p", { class: "lede", text: list.length + (list.length === 1 ? " practice session, " : " practice sessions, ") + answers + (answers === 1 ? " answer" : " answers") + " out loud." }));
+    P.append(el("div", { class: "facts" }, [
+      fact("Pace, last session", last.pace ? Math.round(last.pace) + " wpm" : "n/a", last.pace && (last.pace > 175 || last.pace < 115)),
+      fact("Fillers, last session", last.fpm != null ? last.fpm.toFixed(1) + " / min" : "n/a", last.fpm > 4),
+      fact("Fillers, average", avg("fpm").toFixed(1) + " / min", avg("fpm") > 4),
+      fact("Answer length, average", fmt(avg("len")), avg("len") > 130),
+      fact("Pitch variety, average", avg("pitch") ? avg("pitch").toFixed(1) + " st" : "n/a", avg("pitch") && avg("pitch") < 1.5)
+    ]));
+    var t1 = trendSvg(st.map(function(x){ return x.fpm; }), "Filler words per minute over time"), t2 = trendSvg(st.map(function(x){ return x.len; }), "Answer length over time");
+    if (t1) P.append(el("h2", { text: "Filler words per minute, oldest to newest" }), t1);
+    if (t2) P.append(el("h2", { text: "Answer length, oldest to newest" }), t2);
+    var TYPE = { screen: "Recruiter screen", beh: "Tell me about a time", tech: "Technical", proj: "Project deep dive", full: "Full mock" };
+    var tb = el("tbody");
+    list.slice().reverse().forEach(function(sx){ var x = sessStats(sx), fb = sx.feedback || {};
+      tb.append(el("tr", {}, [el("td", { text: new Date(sx.at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) }),
+        el("td", {}, [el("div", { text: (sx.company || (/Careforth/.test(sx.round || "") ? "Careforth" : "")) + (sx.kind === "mock" ? " · " + (TYPE[sx.type] || "Mock interview") : " · One question") }), fb.verdict ? el("div", { class: "pv", text: fb.verdict }) : null]),
+        el("td", { text: String(x.n) }), el("td", { text: x.len ? fmt(x.len) : "" }), el("td", { text: x.pace ? Math.round(x.pace) + " wpm" : "" }), el("td", { text: x.fpm != null ? x.fpm.toFixed(1) : "" }), el("td", { text: String(x.longP) }), el("td", { text: x.pitch ? x.pitch.toFixed(1) + " st" : "" })])); });
+    P.append(el("h2", { text: "Every session" }), el("div", { style: "overflow-x:auto" }, el("table", { class: "ptable" }, [el("thead", {}, el("tr", {}, ["Date", "Session", "Answers", "Avg length", "Pace", "Fillers / min", "Long pauses", "Pitch variety"].map(function(h){ return el("th", { text: h }); }))), tb])));
+    var cnt = {}; st.forEach(function(x){ x.qs.forEach(function(q){ if (q) cnt[q] = (cnt[q] || 0) + 1; }); });
+    var qs = Object.keys(cnt).sort(function(a, b){ return cnt[b] - cnt[a]; });
+    if (qs.length) P.append(el("h2", { text: "Questions you've practiced" }), el("ul", { class: "qcount" }, qs.map(function(q){ return el("li", {}, [el("span", { text: q }), el("b", { text: cnt[q] + "x" })]); })));
+  }).catch(function(){ P.textContent = ""; P.append(el("h1", { text: "Progress" }), el("p", { class: "lede", text: "Couldn't load your practice history. Check your connection and try again." })); });
 }
 
 function warn(t){ var w = $("warn"); w.textContent = t; w.hidden = false; }
@@ -692,7 +830,8 @@ if (!tok()) warn("Open your board and sign in first, so follow-ups and the debri
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) warn("This browser can't use the microphone here. Open this page in Chrome or Safari.");
 else if (!SR) warn("This browser can't write down speech, so the debrief will only have your delivery numbers. Chrome or Safari work best.");
 showLast(); drawTrace();
-if (location.hash === "#study") showView("study"); else setNav("mock");
+if (location.hash === "#study") showView("study"); else if (location.hash === "#progress") showView("progress"); else setNav("mock");
+loadJobs();
 
 var themeBtn = $("theme");
 function paintTheme(){ themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "Light mode" : "Dark mode"; }
