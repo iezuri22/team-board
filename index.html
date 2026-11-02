@@ -1437,7 +1437,11 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
   function openAsks(thread){return allMsgs().filter(function(m){return m.from!=="owner"&&m.status==="open"&&(!thread||m.thread===thread)})}
   function unseenMsgs(thread){return allMsgs().filter(function(m){return !m.seen&&(S.isOwner?m.from!=="owner":m.from==="owner")&&(!thread||m.thread===thread)}).length}
   function mates(){return Object.keys(S.people).filter(function(k){var p=S.people[k];return k!=="owner"&&!p.owner&&p.name&&!/^Teammate \d/.test(p.name)})}
-  function openJob(id){if(!S.jobs.find(function(j){return j.id===id})){toast("That job isn't on your list");return}S.tab="apps";S.scope="mine";S.status="all";$("f-status").value="all";S.open=id;render();setTimeout(function(){var r=document.querySelector('.ap-row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})},60)}
+  function openJob(id){if(!S.jobs.find(function(j){return j.id===id})){toast("That job isn't on your list");return}S.tab="apps";S.scope="mine";S.status="all";$("f-status").value="all";S.open=id;
+    // clear anything that could hide it, and draw far enough down the list to include it
+    S.who="all";if($("f-who"))$("f-who").value="all";S.jtype="";if($("f-type"))$("f-type").value="";S.q="";if($("search"))$("search").value="";
+    var ix=filtered().findIndex(function(j){return j.id===id});if(ix>=S.limit)S.limit=Math.ceil((ix+1)/150)*150;
+    try{localStorage.setItem("ay-tab","apps")}catch(e){}render();window.scrollTo(0,0);setTimeout(function(){var r=document.querySelector('.ap-row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})},60)}
   function whoName(id){return id==="owner"?"Ifeanyi":nameOf(id).replace(" (you)","")}
   function msgCard(m,compact,cont){
     var mine=S.isOwner?m.from==="owner":m.from===S.uid,j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId}),ask=m.from!=="owner",open=ask&&m.status==="open";
