@@ -1117,7 +1117,11 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function printHTML(html){
     var f=document.createElement("iframe");f.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(f);
     var d=f.contentDocument;d.open();d.write(html);d.close();
-    setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast("Couldn't open the print dialog")}setTimeout(function(){f.remove()},60000)},350);
+    // Chrome names the saved PDF after the top page's title, not the iframe's, so borrow it while the dialog is open
+    var was=document.title;if(d.title)document.title=d.title;
+    function back(){document.title=was;window.removeEventListener("afterprint",back);f.contentWindow&&f.contentWindow.removeEventListener("afterprint",back)}
+    window.addEventListener("afterprint",back);f.contentWindow.addEventListener("afterprint",back);
+    setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){back();toast("Couldn't open the print dialog")}setTimeout(function(){back();f.remove()},60000)},350);
   }
   var RESUME_EXTRA=".sk{margin:0 0 3.2pt;font-size:9.4pt;line-height:1.4}.sk b{font-weight:600;color:#1f4e79}.role .sub{font-weight:400;color:#4a4d55;margin-left:5pt}";
   function printResume(md,title){printHTML(printShell(RESUME_CSS+RESUME_EXTRA,bodyOf(md),title,"0.5in","0.62in"))}
