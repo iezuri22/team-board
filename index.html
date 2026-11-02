@@ -522,6 +522,13 @@ body{background:var(--page)}
 .msgchip{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-wash);border-radius:99px;padding:2px 8px;vertical-align:middle}
 .mg-ev{display:flex;align-items:center;gap:8px;justify-self:center;max-width:92%;border:0;background:var(--green-wash);color:var(--fg);border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;text-align:left}
 .mg-ev .mg-time{color:var(--faint);font-size:12px;margin-left:4px}
+.mg-evg{justify-self:center;display:grid;justify-items:center;gap:6px;margin:10px 0 4px;max-width:92%}
+.mg-evg-h{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:4px 8px;cursor:pointer;text-align:left}
+.mg-evg-h:hover{color:var(--fg)}
+.mg-evg-t{color:var(--accent);font-weight:600;margin-left:2px}
+.mg-evg-b{display:none;gap:6px;justify-items:center}
+.mg-evg.open .mg-evg-b{display:grid}
+.mg-evg .mg-ev{margin:0}
 .mg-subfilter{display:flex;gap:14px;margin-top:-6px}.mg-subfilter .linkish{text-decoration:none;color:var(--muted);font-size:13px;font-weight:600}.mg-subfilter .linkish.on{color:var(--accent)}
 .mg-rail-t2{margin-top:16px}
 .mg-av.all{background:var(--soft2);color:var(--fg)}
@@ -1543,13 +1550,29 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
       if(!multi)setTimeout(function(){ta.focus()},0)}
     document.body.appendChild(wrap);document.addEventListener("keydown",key);draw();
   }
-  function timeline(list){var box=el("div",{class:"mg-tl"}),day="",prev=null;
+  function evRow(m){return el("button",{type:"button",class:"mg-ev",onclick:function(){openJob(m.j.id)}},[el("span",{class:"c-out-dot"}),el("span",{},[el("b",{text:whoName(m.by)})," reached out to ",el("b",{text:m.c.name}),(m.c.title?", "+m.c.title:"")+" "+viaText(m.via)+" \u00b7 "+m.j.company]),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})])}
+  // Outreach logged between messages folds into one quiet line so it doesn't bury the conversation (2026-11-02)
+  function evGroup(run){
+    if(run.length===1)return evRow(run[0]);
+    var key=run[0].at+"|"+run.length;S.evOpen=S.evOpen||{};
+    var cos=[];run.forEach(function(m){if(cos.indexOf(m.j.company)<0)cos.push(m.j.company)});
+    var who=[];run.forEach(function(m){var n=whoName(m.by).split(" ")[0];if(who.indexOf(n)<0)who.push(n)});
+    var list=cos.length>4?cos.slice(0,3).join(", ")+" and "+(cos.length-3)+" more":cos.length>1?cos.slice(0,-1).join(", ")+" and "+cos[cos.length-1]:cos[0];
+    var wrap=el("div",{class:"mg-evg"+(S.evOpen[key]?" open":"")});
+    var head=el("button",{type:"button",class:"mg-evg-h","aria-expanded":S.evOpen[key]?"true":"false",onclick:function(){S.evOpen[key]=!S.evOpen[key];wrap.classList.toggle("open",S.evOpen[key]);head.setAttribute("aria-expanded",S.evOpen[key]?"true":"false");tog.textContent=S.evOpen[key]?"Hide":"Show"}},
+      [el("span",{class:"c-out-dot"}),el("span",{text:who.join(" and ")+" reached out to "+run.length+" people at "+list}),el("span",{class:"mg-evg-t",text:S.evOpen[key]?"Hide":"Show"})]);
+    var tog=head.lastChild;
+    wrap.appendChild(head);wrap.appendChild(el("div",{class:"mg-evg-b"},run.map(evRow)));return wrap}
+  function timeline(list){var box=el("div",{class:"mg-tl"}),day="",prev=null,run=[];
+    function flush(){if(run.length){box.appendChild(evGroup(run));run=[]}}
     if(!list.length)box.appendChild(el("div",{class:"mg-empty"},[el("b",{text:"No messages yet"}),el("span",{text:S.isOwner?"Questions, interview requests and updates from the team show up here.":"Ask a question, flag an interview or send an update. Ifeanyi gets a text and an email."})]));
     list.forEach(function(m){var d=new Date(m.at).toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
-      if(d!==day){day=d;prev=null;box.appendChild(el("div",{class:"mg-day"},[el("span",{text:d})]))}
-      if(m.ev){prev=null;box.appendChild(el("button",{type:"button",class:"mg-ev",onclick:function(){openJob(m.j.id)}},[el("span",{class:"c-out-dot"}),el("span",{},[el("b",{text:whoName(m.by)})," reached out to ",el("b",{text:m.c.name}),(m.c.title?", "+m.c.title:"")+" "+viaText(m.via)+" \u00b7 "+m.j.company]),el("span",{class:"mg-time",text:new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})})]));return}
+      if(d!==day){flush();day=d;prev=null;box.appendChild(el("div",{class:"mg-day"},[el("span",{text:d})]))}
+      if(m.ev){prev=null;run.push(m);return}
+      flush();
       var cont=prev&&prev.from===m.from&&(new Date(m.at)-new Date(prev.at))<10*60000;
       box.appendChild(msgCard(m,false,cont));prev=m});
+    flush();
     return box}
   function renderMessages(){
     var V=$("messages-view"),a=document.activeElement;if(a&&/^mg-/.test(a.id||"")&&V.contains(a))return;V.textContent="";
