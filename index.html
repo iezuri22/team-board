@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <script>var t="light";try{if(localStorage.getItem("tb-theme")==="dark")t="dark"}catch(e){}document.documentElement.setAttribute("data-theme",t)</script>
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}.rs-name{font-weight:600}.rs-sub{color:var(--muted);font-size:14px;margin-top:2px}
+</style>
 <title>Apply Yourself</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -1809,7 +1810,21 @@ button.wk-chip{border:0;cursor:pointer;font-family:inherit;color:var(--fg)}butto
     var tab=TABS.find(function(t){return t[0]===S.rcTab});
     if(tab[2])V.appendChild(el("p",{class:"rc-how",text:tab[2]}));
     var body=el("div");V.appendChild(body);
+    function drawSearch(q2){var tabName={},where={};TABS.forEach(function(t){tabName[t[0]]=t[1]});all.forEach(function(t){if(t.c)where[t.c.id]=tabName[t.tab]||""});
+      var hits=[];S.jobs.forEach(function(j){var cs=j.contacts||[],jt=norm(j.company+" "+j.role);
+        cs.forEach(function(c){if(norm(c.name+" "+(c.title||"")+" "+(c.email||c.emailGuess||"")).indexOf(q2)>=0||jt.indexOf(q2)>=0)hits.push({j:j,c:c})});
+        if(!cs.length&&jt.indexOf(q2)>=0)hits.push({j:j,c:null})});
+      body.appendChild(el("p",{class:"rc-how",text:hits.length?(hits.length===1?"1 match":hits.length+" matches")+" across every tab, including people you've finished with. Click one to open its job.":"No one matches. Try part of a name or the company."}));
+      if(!hits.length)return;
+      var tb=el("tbody");hits.slice(0,200).forEach(function(h,i){var c=h.c,j=h.j,last=c?(c.outreach||[]).slice(-1)[0]:null;
+        var st=!c?"No one found yet":c.leftAt?"Left the company":c.repliedAt?"Replied":where[c.id]||"Done";
+        tb.appendChild(el("tr",{class:"pg-row",onclick:function(){openJob(j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),
+          el("td",{},[el("div",{class:"rs-name",text:c?c.name:shortCo(j.company)}),el("div",{class:"rs-sub",text:(c&&c.title?c.title+" · ":"")+shortCo(j.company)+" · "+j.role})]),
+          el("td",{text:st}),el("td",{text:last?({email:"Email",linkedin:"LinkedIn"}[String(last.via||"").toLowerCase()]||last.via||"Contacted")+" "+fmtD(last.at):"Not contacted yet"}),el("td",{text:L[j.status]||j.status||""})]))});
+      body.appendChild(el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["#","Person","Where they are","Last contact","Application"].map(function(x){return el("th",{text:x})}))]),tb]))}
     function drawBody(){body.textContent="";S.rcOrder=[];var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
+      // a search looks at everyone who has ever been on the board, not just this tab
+      if(q2){drawSearch(q2);return}
       // LinkedIn goes first now, so nothing waits in "Up next"
       if(S.rcTab==="track"){drawTrack(all.filter(pass).filter(reached));return}
       if(S.rcTab==="cant"){var nobody=list.filter(function(t){return !t.c});list=list.filter(function(t){return t.c});
