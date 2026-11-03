@@ -570,6 +570,8 @@ body{background:var(--page)}
 .mg-inputrow{display:flex;gap:10px;align-items:flex-end}
 .mg-inputrow textarea{flex:1;min-height:44px;max-height:180px;border-radius:14px;padding:11px 14px}
 .mg-sendbtn{height:44px;padding:0 20px}
+.jm-compose{margin-top:12px;gap:8px;padding:12px}
+.jm-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .mg-hint{font-size:11.5px;color:var(--faint)}
 .mg-crow select{max-width:300px}
 .mg-empty{margin:auto}
@@ -1633,7 +1635,31 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     var wrap=el("div",{class:"block"},[bhead("Messages about this job",acts)]);
     if(list.length){var b=el("div",{class:"mg-tl compact"});list.slice(-4).forEach(function(m){b.appendChild(msgCard(m,true))});wrap.appendChild(b)}
     else wrap.appendChild(el("p",{class:"muted-line",text:"Tell "+whoName(j.addedBy).split(" ")[0]+" what you think of this one. It lands here and in their email."}));
+    if(list.length)wrap.appendChild(jobReply(j,list));
     return wrap}
+  // Reply right under a job's messages instead of hopping to the Inbox (2026-11-02)
+  function jobReply(j,list){
+    var last=list[list.length-1],thread=S.isOwner?(j.addedBy&&j.addedBy!=="owner"?j.addedBy:last.thread):S.uid;
+    if(!thread||(S.isOwner&&!S.people[thread]))return null;
+    var first=S.isOwner?whoName(thread).split(" ")[0]:"Ifeanyi";
+    var ask=S.isOwner?list.filter(function(m){return m.from!=="owner"&&m.status==="open"}).pop():null;
+    S.jDraft=S.jDraft||{};
+    var ta=el("textarea",{id:"jm-text-"+j.id,rows:"2",placeholder:ask?"Reply to "+first+"...":"Write to "+first+"..."});ta.value=S.jDraft[j.id]||"";
+    ta.addEventListener("input",function(){S.jDraft[j.id]=ta.value});
+    ta.addEventListener("focus",function(){S.jFocus=j.id});ta.addEventListener("blur",function(){setTimeout(function(){if(ta.isConnected&&document.activeElement!==ta&&S.jFocus===j.id)S.jFocus=null},0)});
+    ta.addEventListener("keydown",function(e){if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});
+    var quick=S.isOwner?["Done, thanks.","I'll take it from here.","Yes, go ahead.","Skip this one."]:[];
+    var chips=quick.length?el("div",{class:"mg-quick"},quick.map(function(q){return el("button",{type:"button",text:q,onclick:function(){ta.value=(ta.value?ta.value.trim()+" ":"")+q;S.jDraft[j.id]=ta.value;ta.focus()}})})):null;
+    var send=el("button",{class:"btn accent mg-sendbtn",type:"submit",text:"Send"});
+    var markDone=ask?el("button",{class:"linkish",type:"button",text:"Mark done without replying",onclick:function(){api("PATCH","/api/messages/"+ask.id,{status:"done"}).then(function(){ask.status="done";render()},fail)}}):null;
+    var form=el("form",{class:"mg-compose jm-compose",onsubmit:function(e){e.preventDefault();var body=ta.value.trim();if(!body){ta.focus();return}send.disabled=true;
+      var done=function(r){delete S.jDraft[j.id];S.jFocus=null;send.disabled=false;if(r&&r.message)S.messages.push(r.message);if(ask)ask.status="done";
+        toast(S.isOwner?(r&&r.emailed?"Sent. Emailed "+first+".":"Sent on the board. No email on file for "+first+"."):"Sent. Ifeanyi got a text and an email.");render();refresh()};
+      if(S.isOwner)api("POST","/api/messages",{to:thread,body:body,kind:"reply",jobId:j.id,closes:ask?ask.id:null}).then(done,function(err){send.disabled=false;fail(err)});
+      else api("POST","/api/ping",{message:body,jobId:j.id,kind:"update"}).then(done,function(err){send.disabled=false;fail(err)})}},
+      [chips,el("div",{class:"mg-inputrow"},[ta,send]),el("div",{class:"jm-foot"},[el("span",{class:"mg-hint",text:S.isOwner?"Goes to "+first+" here and by email.":"Ifeanyi gets a text and an email."}),markDone])]);
+    if(S.jFocus===j.id)setTimeout(function(){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},0);
+    return form}
 
 
   // Interview date and time, set right from a row
