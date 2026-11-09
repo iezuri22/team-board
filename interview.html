@@ -132,6 +132,14 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
 .addq-msg { color: var(--muted); font-size: 14.5px; }
 .qtag { display: inline-block; margin-left: 10px; font: 500 12.5px var(--sans); color: var(--accent); letter-spacing: 0; vertical-align: 2px; }
 .qc.fresh .qtext { color: var(--accent); }
+.qedit { margin: 16px 0 6px; display: grid; gap: 12px; max-width: 92ch; }
+.qedit textarea { font: 17px/1.55 var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; resize: vertical; width: 100%; box-sizing: border-box; }
+.qedit textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.qedit-note { margin: 0; color: var(--muted); font-size: 14.5px; }
+.polish { margin-top: 6px; padding: 4px 0 4px 18px; border-left: 3px solid var(--accent); display: grid; gap: 8px; }
+.polish .answer { margin-top: 0; }
+.pnotes { margin: 0; padding-left: 18px; color: var(--muted); font-size: 15px; }
+.pnotes li { margin: 3px 0; }
 .hidq { margin-top: 26px; font-size: 14.5px; color: var(--muted); }
 .hidq-list { margin-top: 10px; }
 .hidq-row { display: flex; justify-content: space-between; gap: 18px; padding: 9px 0; border-top: 1px solid var(--rule); }
@@ -761,13 +769,54 @@ function renderStudy(){
     var pr = el("button", { class: "link", type: "button", text: "Practice" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(set, item); };
     var hide = tok() ? el("button", { class: "link", type: "button", text: "Hide" }) : null;
     if (hide) hide.onclick = function(){ hide.disabled = true; stopReading(); bankOp("hide", hidKey(item.id)).then(function(){ d.remove(); setJobLabels(); hiddenList(set); }, function(){ hide.disabled = false; }); };
+    var edit = tok() ? el("button", { class: "link", type: "button", text: "Edit" }) : null, ed = el("div", { class: "qedit", hidden: "" });
+    if (edit) edit.onclick = function(){ if (!ed.hidden) { ed.hidden = true; return; } stopReading(); openEditor(set, item, a, ed); };
     d.append(el("div", { class: "qline" }, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("h3", { class: "qtext" }, [item.q, item.mine ? el("span", { class: "qtag", text: item.mine }) : null])]),
       el("div", { class: "qbody" }, [
         el("ul", { class: "keys" }, (a.k || item.hit || []).map(function(k){ return el("li", { text: k }); })),
-        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null, hide]),
-        full
+        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null, edit, hide]),
+        full, ed
       ]));
     return d;
+  }
+  // edit an answer in his own words, then save it as is or have AI polish it first (nothing saves until he picks)
+  function openEditor(set, item, a, ed){
+    ed.textContent = ""; ed.hidden = false;
+    var ta = el("textarea", { rows: "11", "aria-label": "Your answer to: " + item.q }); ta.value = a.a || (a.k || item.hit || []).join(" ");
+    var save = el("button", { class: "btn", type: "button", text: "Save" }), pol = el("button", { class: "btn quiet", type: "button", text: "Polish with AI" });
+    var cancel = el("button", { class: "link", type: "button", text: "Cancel" }), msg = el("span", { class: "addq-msg" }), sug = el("div", { class: "polish", hidden: "" }), last = null;
+    var own = /^u/.test(item.id), jobOnly = /^g/.test(item.id) || (CUR.careforth && set === "screen");
+    cancel.onclick = function(){ ed.hidden = true; };
+    function busy(on){ save.disabled = pol.disabled = on; }
+    function commit(text, k){
+      text = String(text || "").trim(); if (!text) { ta.focus(); return; }
+      busy(true); save.textContent = "Saving"; msg.textContent = "";
+      post("/api/coach/bank", { op: "edit", id: item.id, a: text, k: k || null, q: item.q, why: item.why || "", type: set, jobId: jobOnly ? CUR.id : "", company: co(), hideKey: hidKey(item.id), oldK: a.k || item.hit || [] }).then(function(r){
+        BANK = r.bank; delete A[item.id]; setJobLabels(); show(set);
+        var c = $("q-" + r.item.id); if (c) { c.classList.add("fresh"); c.scrollIntoView({ block: "center" }); var f = c.querySelector(".answer"); if (f) { f.hidden = false; var m = c.querySelector(".fullbtn"); if (m) m.textContent = "Hide full answer"; } }
+      }).catch(function(e){ busy(false); save.textContent = "Save"; msg.textContent = (e && e.error) || "Couldn't save. Try again."; });
+    }
+    save.onclick = function(){ commit(ta.value, last && ta.value.trim() === last.a.trim() ? last.k : null); };
+    pol.onclick = function(){
+      var text = ta.value.trim(); if (!text) { ta.focus(); return; }
+      busy(true); pol.textContent = "Polishing"; msg.textContent = "About 15 seconds."; sug.hidden = true;
+      post("/api/coach/polish", { q: item.q, why: item.why || "", a: text, role: ROLE, background: BACKGROUND }).then(function(p){
+        busy(false); pol.textContent = "Polish again"; msg.textContent = ""; sug.textContent = ""; sug.hidden = false;
+        var use = el("button", { class: "btn", type: "button", text: "Use this" }), tweak = el("button", { class: "link", type: "button", text: "Edit this version" }), keep = el("button", { class: "link", type: "button", text: "Keep mine" });
+        use.onclick = function(){ commit(p.a, p.k); };
+        tweak.onclick = function(){ last = p; ta.value = p.a; sug.hidden = true; ta.focus(); ta.scrollIntoView({ block: "center" }); };
+        keep.onclick = function(){ sug.hidden = true; };
+        sug.append(el("p", { class: "addq-l", text: "Polished" }), el("div", { class: "answer" }, String(p.a || "").split(/\n\n+/).map(function(x){ return el("p", { text: x }); })),
+          (p.notes || []).length ? el("p", { class: "addq-l", text: "What changed" }) : null,
+          (p.notes || []).length ? el("ul", { class: "pnotes" }, p.notes.map(function(x){ return el("li", { text: x }); })) : null,
+          el("div", { class: "addq-row" }, [use, tweak, keep]));
+        sug.scrollIntoView({ block: "nearest" });
+      }).catch(function(e){ busy(false); pol.textContent = "Polish with AI"; msg.textContent = (e && e.error) || "Couldn't polish it. Try again."; });
+    };
+    ed.append(el("p", { class: "addq-l", text: "Your answer" }),
+      own ? null : el("p", { class: "qedit-note", text: "Saving makes this your own copy" + (jobOnly ? " for " + co() : "") + ". The original gets hidden, and you can bring it back from Hidden questions." }),
+      ta, el("div", { class: "addq-row" }, [save, pol, cancel, msg]), sug);
+    ta.focus();
   }
   function edge(){
     if (!CUR.careforth && CUR.prep) {
