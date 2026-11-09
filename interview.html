@@ -340,7 +340,8 @@ CAREFORTH.key = KEY_Q.screen.slice();
 function keyItems(set){ return (KEY_Q[set] || []).map(function(id){ return QS[set].items.find(function(x){ return x.id === id; }); }).filter(function(x){ return x && !isHidden(x.id); }).concat(mine(set)); }
 // His own bank (GET /api/coach/bank): questions he added, standard for a type or just for one job, and questions he hid
 var BANK = { custom: [], hidden: [] };
-function hidKey(id){ return /^g/.test(id) ? CUR.id + ":" + id : id; }
+// built-in and generated questions hide per job (so a job can keep only its own); his own questions hide everywhere
+function hidKey(id){ return /^u/.test(id) ? id : CUR.id + ":" + id; }
 function isHidden(id){ return BANK.hidden.indexOf(hidKey(id)) >= 0; }
 function mine(set){ return BANK.custom.filter(function(u){ return u.type === set && (!u.jobId || u.jobId === CUR.id) && !isHidden(u.id); }).map(function(u){ if (window.STUDY) STUDY.answers[u.id] = { a: u.a, k: u.k }; return { id: u.id, q: u.q, why: u.why, hit: u.k, mine: u.jobId ? "Only for " + (u.company || "this job") : "Yours, standard" }; }); }
 function itemsOf(set){ return (QS[set] ? QS[set].items : []).filter(function(x){ return !isHidden(x.id); }).concat(mine(set)); }
@@ -362,13 +363,15 @@ var ROUNDS = {
 };
 function roundOf(type){ return String(ROUNDS[type] || "").replace(/Careforth/g, co()); }
 function planFor(type){
-  var sc = itemsOf("screen").filter(function(x){ return x.id !== "s8" && x.id !== "gask"; });
+  // the closing "what questions do you have for me" is asked at the end anyway, so it never goes in the plan
+  function notClose(x){ return x && x.id !== "s8" && x.id !== "gask" && !/questions do you have for (me|us)/i.test(x.q || ""); }
+  var sc = itemsOf("screen").filter(notClose);
   // his own standard questions are always asked; random ones from the bank fill the rest
   function pick5(set){ var own = mine(set); return own.concat(shuffle(itemsOf(set).filter(function(x){ return !x.mine; }))).slice(0, Math.max(5, own.length)); }
-  if (type === "screen") return keyItems("screen").filter(function(x){ return x.id !== "s8" && x.id !== "gask"; });
+  if (type === "screen") return keyItems("screen").filter(notClose);
   if (type === "beh") return pick5("beh");
   if (type === "tech") return pick5("tech");
-  if (type === "proj" && QS.proj) { var pick = ["p1", "p2", "p10", "p11", "p13", "p4", "p12"]; return pick.map(function(id){ return QS.proj.items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
+  if (type === "proj" && QS.proj) { var pick = ["p1", "p2", "p10", "p11", "p13", "p4", "p12"]; return pick.map(function(id){ return QS.proj.items.find(function(x){ return x.id === id; }); }).filter(function(x){ return x && !isHidden(x.id); }).concat(mine("proj")); }
   var know = sc.find(function(x){ return x.id === "s9"; });
   return [sc[0], know || sc[1]].concat(shuffle(itemsOf("beh")).slice(0, 2), shuffle(itemsOf("tech")).slice(0, 2), [sc[4]]).filter(Boolean);
 }
