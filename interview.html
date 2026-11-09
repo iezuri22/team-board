@@ -120,6 +120,22 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
 .three li { margin: 6px 0; }
 .knows { margin: 0; padding-left: 20px; color: var(--ink); font-size: 17px; max-width: 85ch; }
 .practiced { font-size: 13.5px; color: var(--faint); }
+.stools { display: flex; gap: 22px; align-items: center; flex: none; }
+.addq-btn { font-size: 13.5px; color: var(--ink); }
+.addq { margin: 18px 0 6px; padding: 18px 0 20px; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; max-width: 92ch; }
+.addq-l { font-size: 13.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.addq textarea { font: 17px/1.45 var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; resize: vertical; }
+.addq textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.addq-row { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; font-size: 15.5px; }
+.addq-r { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.addq-r input { accent-color: var(--ink); width: 16px; height: 16px; margin: 0; }
+.addq-msg { color: var(--muted); font-size: 14.5px; }
+.qtag { display: inline-block; margin-left: 10px; font: 500 12.5px var(--sans); color: var(--accent); letter-spacing: 0; vertical-align: 2px; }
+.qc.fresh .qtext { color: var(--accent); }
+.hidq { margin-top: 26px; font-size: 14.5px; color: var(--muted); }
+.hidq-list { margin-top: 10px; }
+.hidq-row { display: flex; justify-content: space-between; gap: 18px; padding: 9px 0; border-top: 1px solid var(--rule); }
+.hidq-acts { display: flex; gap: 16px; flex: none; }
 /* progress */
 .ptable { width: 100%; border-collapse: collapse; font-size: 15.5px; }
 .ptable th { text-align: left; font: 500 13px var(--sans); color: var(--muted); padding: 0 14px 8px 0; border-bottom: 1px solid var(--rule); white-space: nowrap; }
@@ -311,7 +327,15 @@ function co(){ return CUR.company; }
 // The ones to study when time is short, in priority order
 var KEY_Q = { screen: ["s1", "s2", "s9", "s10", "s3", "s4", "s12", "s5", "s8"], beh: ["b1", "b5", "b7"], tech: ["t1", "t3", "t5", "t2"], proj: ["p10", "p11"] };
 CAREFORTH.key = KEY_Q.screen.slice();
-function keyItems(set){ return (KEY_Q[set] || []).map(function(id){ return QS[set].items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
+function keyItems(set){ return (KEY_Q[set] || []).map(function(id){ return QS[set].items.find(function(x){ return x.id === id; }); }).filter(function(x){ return x && !isHidden(x.id); }).concat(mine(set)); }
+// His own bank (GET /api/coach/bank): questions he added, standard for a type or just for one job, and questions he hid
+var BANK = { custom: [], hidden: [] };
+function hidKey(id){ return /^g/.test(id) ? CUR.id + ":" + id : id; }
+function isHidden(id){ return BANK.hidden.indexOf(hidKey(id)) >= 0; }
+function mine(set){ return BANK.custom.filter(function(u){ return u.type === set && (!u.jobId || u.jobId === CUR.id) && !isHidden(u.id); }).map(function(u){ if (window.STUDY) STUDY.answers[u.id] = { a: u.a, k: u.k }; return { id: u.id, q: u.q, why: u.why, hit: u.k, mine: u.jobId ? "Only for " + (u.company || "this job") : "Yours, standard" }; }); }
+function itemsOf(set){ return (QS[set] ? QS[set].items : []).filter(function(x){ return !isHidden(x.id); }).concat(mine(set)); }
+function bankOp(op, id){ return post("/api/coach/bank", { op: op, id: id }).then(function(b){ BANK = b; return b; }); }
+function loadBank(){ if (!tok()) return Promise.resolve(); return fetch(API + "/api/coach/bank", { headers: { "Authorization": "Bearer " + tok() } }).then(function(r){ return r.ok ? r.json() : null; }).then(function(b){ if (b && b.custom) { BANK = b; setJobLabels(); if (!$("study").hidden) renderStudy(); else $("study").textContent = ""; } }).catch(function(){}); }
 function $(id){ return document.getElementById(id); }
 function el(tag, attrs, kids){ var n = document.createElement(tag); attrs = attrs || {}; for (var k in attrs) { if (k === "text") n.textContent = attrs[k]; else if (k === "class") n.className = attrs[k]; else n.setAttribute(k, attrs[k]); } [].concat(kids || []).forEach(function(c){ if (c != null) n.append(c); }); return n; }
 function fmt(s){ s = Math.max(0, s || 0); return Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0"); }
@@ -328,13 +352,15 @@ var ROUNDS = {
 };
 function roundOf(type){ return String(ROUNDS[type] || "").replace(/Careforth/g, co()); }
 function planFor(type){
-  var sc = QS.screen.items.filter(function(x){ return x.id !== "s8"; });
-  if (type === "screen") return keyItems("screen").filter(function(x){ return x.id !== "s8"; });
-  if (type === "beh") return shuffle(QS.beh.items).slice(0, 5);
-  if (type === "tech") return shuffle(QS.tech.items).slice(0, 5);
+  var sc = itemsOf("screen").filter(function(x){ return x.id !== "s8" && x.id !== "gask"; });
+  // his own standard questions are always asked; random ones from the bank fill the rest
+  function pick5(set){ var own = mine(set); return own.concat(shuffle(itemsOf(set).filter(function(x){ return !x.mine; }))).slice(0, Math.max(5, own.length)); }
+  if (type === "screen") return keyItems("screen").filter(function(x){ return x.id !== "s8" && x.id !== "gask"; });
+  if (type === "beh") return pick5("beh");
+  if (type === "tech") return pick5("tech");
   if (type === "proj" && QS.proj) { var pick = ["p1", "p2", "p10", "p11", "p13", "p4", "p12"]; return pick.map(function(id){ return QS.proj.items.find(function(x){ return x.id === id; }); }).filter(Boolean); }
   var know = sc.find(function(x){ return x.id === "s9"; });
-  return [sc[0], know || sc[1]].concat(shuffle(QS.beh.items).slice(0, 2), shuffle(QS.tech.items).slice(0, 2), [sc[4]]);
+  return [sc[0], know || sc[1]].concat(shuffle(itemsOf("beh")).slice(0, 2), shuffle(itemsOf("tech")).slice(0, 2), [sc[4]]).filter(Boolean);
 }
 
 // ---------- voice ----------
@@ -666,8 +692,38 @@ function renderStudy(){
   voiceSel.className = "vsel";
   AURA.forEach(function(v){ var o = el("option", { value: v[0], text: "Voice: " + v[1] }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
   voiceSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", voiceSel.value); } catch (e) {} stopReading(); };
-  st.append(el("div", { class: "stoolbar" }, [tabs, voiceSel]));
+  var addBtn = el("button", { class: "link addq-btn", type: "button", text: "Add a question" });
+  st.append(el("div", { class: "stoolbar" }, [tabs, el("div", { class: "stools" }, tok() ? [addBtn, voiceSel] : [voiceSel])]));
+  var adder = el("div", { class: "addq", hidden: "" }); st.append(adder);
   var body = el("div", { class: "sbody" }); st.append(body);
+  addBtn.onclick = function(){ if (!adder.hidden) { adder.hidden = true; return; } openAdder(); };
+
+  // add your own question: type it or describe it, AI writes the points and the answer from his real background
+  function openAdder(){
+    adder.textContent = ""; adder.hidden = false;
+    var NAMES = { screen: "Recruiter screen", beh: "Tell me about a time", tech: "Technical", proj: "Project deep dive" };
+    var ta = el("textarea", { id: "addqText", rows: "3", placeholder: "Type the question, or describe it. Like: a question about training users who resist a new system" });
+    var typeSel = el("select", { id: "addqType", "aria-label": "Interview type" });
+    Object.keys(NAMES).forEach(function(k){ var o = el("option", { value: k, text: NAMES[k] }); if (k === (tab === "edge" ? "screen" : tab)) o.selected = true; typeSel.append(o); });
+    var std = el("input", { type: "radio", name: "addqScope", value: "std", checked: "" }), one = el("input", { type: "radio", name: "addqScope", value: "job" });
+    var go = el("button", { class: "btn", type: "button", text: "Write it" }), cancel = el("button", { class: "link", type: "button", text: "Cancel" }), msg = el("span", { class: "addq-msg" });
+    cancel.onclick = function(){ adder.hidden = true; };
+    go.onclick = function(){
+      var text = ta.value.trim(); if (!text) { ta.focus(); return; }
+      go.disabled = true; go.textContent = "Writing"; msg.textContent = "About 15 seconds.";
+      var forJob = one.checked && !!CUR.id;
+      post("/api/coach/question", { prompt: text, type: typeSel.value, jobId: forJob ? CUR.id : "", company: co(), background: BACKGROUND, role: ROLE }).then(function(u){
+        BANK.custom.push(u); adder.hidden = true; setJobLabels(); show(u.type);
+        var c = $("q-" + u.id); if (c) { c.classList.add("fresh"); c.scrollIntoView({ block: "center" }); var f = c.querySelector(".answer"); if (f) { f.hidden = false; var m = c.querySelector(".fullbtn"); if (m) m.textContent = "Hide full answer"; } }
+      }).catch(function(e){ go.disabled = false; go.textContent = "Write it"; msg.textContent = (e && e.error) || "Couldn't write it. Try again."; });
+    };
+    adder.append(el("label", { class: "addq-l", for: "addqText", text: "Your question" }), ta,
+      el("div", { class: "addq-row" }, [typeSel,
+        el("label", { class: "addq-r" }, [std, "Standard for every interview of this type"]),
+        CUR.id ? el("label", { class: "addq-r" }, [one, "Only for " + co()]) : null]),
+      el("div", { class: "addq-row" }, [go, cancel, msg]));
+    ta.focus();
+  }
 
   function show(t){
     tab = t; try { localStorage.setItem("tb-study-tab", t); } catch (e) {}
@@ -677,19 +733,38 @@ function renderStudy(){
     var set = SETS.find(function(x){ return x[0] === t; });
     var list = el("div", { class: "qlist" });
     body.append(el("p", { class: "setnote", text: set[2] }), list);
-    keyItems(t).forEach(function(item, i){ list.append(card(t, item, i)); });
-    var rest = QS[t].items.filter(function(x){ return KEY_Q[t].indexOf(x.id) < 0; });
-    if (rest.length) { var allBtn = el("button", { class: "link moreq", type: "button", text: "Show " + rest.length + " more" }); allBtn.onclick = function(){ rest.forEach(function(item, i){ list.append(card(t, item, KEY_Q[t].length + i)); }); allBtn.remove(); }; body.append(allBtn); }
+    var key = keyItems(t); key.forEach(function(item, i){ list.append(card(t, item, i)); });
+    var rest = itemsOf(t).filter(function(x){ return !key.some(function(k){ return k.id === x.id; }); });
+    if (rest.length) { var allBtn = el("button", { class: "link moreq", type: "button", text: "Show " + rest.length + " more" }); allBtn.onclick = function(){ rest.forEach(function(item, i){ list.append(card(t, item, key.length + i)); }); allBtn.remove(); }; body.append(allBtn); }
+    hiddenList(t);
+  }
+  // hidden questions sit at the bottom of their tab, where he can bring them back (or delete his own for good)
+  function hiddenList(t){
+    var old = body.querySelector(".hidq"); if (old) old.remove();
+    var own = BANK.custom.filter(function(u){ return u.type === t && (!u.jobId || u.jobId === CUR.id); }).map(function(u){ return { id: u.id, q: u.q, mine: true }; });
+    var gone = (QS[t] ? QS[t].items : []).concat(own).filter(function(x){ return isHidden(x.id); });
+    if (!gone.length) return;
+    var box = el("div", { class: "hidq" }), rows = el("div", { class: "hidq-list", hidden: "" });
+    var tg = el("button", { class: "link", type: "button", text: "Hidden questions  " + gone.length }); tg.onclick = function(){ rows.hidden = !rows.hidden; };
+    gone.forEach(function(x){
+      var back = el("button", { class: "link", type: "button", text: "Bring back" }); back.onclick = function(){ back.disabled = true; bankOp("unhide", hidKey(x.id)).then(function(){ setJobLabels(); show(t); }, function(){ back.disabled = false; }); };
+      var del = x.mine ? el("button", { class: "link", type: "button", text: "Delete" }) : null;
+      if (del) del.onclick = function(){ if (!window.confirm("Delete this question for good?")) return; bankOp("delete", x.id).then(function(){ show(t); }); };
+      rows.append(el("div", { class: "hidq-row" }, [el("span", { text: x.q }), el("span", { class: "hidq-acts" }, [back, del])]));
+    });
+    box.append(tg, rows); body.append(box);
   }
   function card(set, item, i){
-    var a = A[item.id] || {}, d = el("div", { class: "qc", id: "q-" + item.id });
+    var a = A[item.id] || (A[item.id] = ansFor(item.id)), d = el("div", { class: "qc", id: "q-" + item.id });
     var full = el("div", { class: "answer", hidden: "" }, String(a.a || "").split(/\n\n+/).map(function(p){ return el("p", { text: p }); }));
-    var more = el("button", { class: "link", type: "button", text: "Full answer" }); more.onclick = function(){ full.hidden = !full.hidden; more.textContent = full.hidden ? "Full answer" : "Hide full answer"; if (full.hidden) stopReading(); };
+    var more = el("button", { class: "link fullbtn", type: "button", text: "Full answer" }); more.onclick = function(){ full.hidden = !full.hidden; more.textContent = full.hidden ? "Full answer" : "Hide full answer"; if (full.hidden) stopReading(); };
     var pr = el("button", { class: "link", type: "button", text: "Practice" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(set, item); };
-    d.append(el("div", { class: "qline" }, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("h3", { class: "qtext", text: item.q })]),
+    var hide = tok() ? el("button", { class: "link", type: "button", text: "Hide" }) : null;
+    if (hide) hide.onclick = function(){ hide.disabled = true; stopReading(); bankOp("hide", hidKey(item.id)).then(function(){ d.remove(); setJobLabels(); hiddenList(set); }, function(){ hide.disabled = false; }); };
+    d.append(el("div", { class: "qline" }, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("h3", { class: "qtext" }, [item.q, item.mine ? el("span", { class: "qtag", text: item.mine }) : null])]),
       el("div", { class: "qbody" }, [
         el("ul", { class: "keys" }, (a.k || item.hit || []).map(function(k){ return el("li", { text: k }); })),
-        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null]),
+        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null, hide]),
         full
       ]));
     return d;
@@ -728,7 +803,7 @@ function loadJobs(){
 $("jobPick").onchange = function(){ try { localStorage.setItem("tb-prep-job", this.value); } catch (e) {} selectJob(this.value); };
 function ansFor(id){
   var a = STUDY.answers[id] || {};
-  if (CUR.careforth || /^g/.test(id)) return a;
+  if (CUR.careforth || /^[gu]/.test(id)) return a;
   // the general answers were written for Careforth; for any other job, leave out the lines about Careforth
   return { a: String(a.a || "").split(/\n\n+/).filter(function(p){ return !/Careforth/.test(p); }).join("\n\n"), k: (a.k || []).filter(function(k){ return !/Careforth/.test(k); }) };
 }
@@ -831,7 +906,7 @@ if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) warn("This 
 else if (!SR) warn("This browser can't write down speech, so the debrief will only have your delivery numbers. Chrome or Safari work best.");
 showLast(); drawTrace();
 if (location.hash === "#study") showView("study"); else if (location.hash === "#progress") showView("progress"); else setNav("mock");
-loadJobs();
+loadJobs(); loadBank();
 
 var themeBtn = $("theme");
 function paintTheme(){ themeBtn.textContent = document.documentElement.getAttribute("data-theme") === "dark" ? "Light mode" : "Dark mode"; }
