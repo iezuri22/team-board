@@ -168,6 +168,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 @media (max-width:760px){.roster-row{grid-template-columns:80px minmax(0,1fr);}.roster-row .btn{grid-column:auto}}
 .nocontact{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:600;color:var(--amber);background:var(--amber-wash);border-radius:999px;padding:1px 8px;vertical-align:middle}
 .block{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.jdocs-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 18px;padding:10px 0}
+.jdocs-row+.jdocs-row{border-top:1px solid var(--line)}
+.jdocs-t{display:grid;gap:2px;min-width:0}.jdocs-t span{color:var(--muted);font-size:14px}
+.jdocs-row .acts{margin:0}
+.jdocs{min-width:0;max-width:100%}.jdocs .res-preview{min-width:0}.jdocs .paper-box{position:static;max-width:100%;box-sizing:border-box;overflow:hidden}
 .block h3{font-size:15px;margin-bottom:8px}
 .muted-line{color:var(--muted);font-size:14px}
 .desc{white-space:pre-wrap;font-size:14px;line-height:1.55;max-height:220px;overflow:auto;background:var(--soft);border-radius:10px;padding:12px 14px}
@@ -397,7 +402,7 @@ body{background:var(--page)}
 .steps{margin:0}
 /* type-led pass: sections are type and space, not boxes */
 .detail .block{background:none;border:0;border-radius:0;padding:0}
-.d-main{gap:30px}
+.d-main{gap:30px;grid-template-columns:minmax(0,1fr)}
 .bhead h3{font-size:17px;letter-spacing:-.015em}
 .d-side{gap:24px;border-left:1px solid var(--line);padding-left:22px}
 @media (max-width:900px){.d-side{border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:20px}}
@@ -2574,7 +2579,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
     var saved=j.status==="saved";
-    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),jobMessages(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&!j.cover?null:coverBlock(j),saved?null:resumeBlock(j)]);
+    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),saved?null:appBlock(j),jobMessages(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&j.cover?coverBlock(j):null]);
     var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
     return el("div",{class:"detail"},[main,side]);
   }
@@ -2840,13 +2845,21 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     }
     return wrap;
   }
-  function resumeBlock(j){
-    var wrap=el("div",{class:"block"},[el("h3",{text:"Resume for this job"})]);
-    if(j.tailoredAt)wrap.appendChild(el("p",{class:"muted-line",text:"Tailored by "+nameOf(j.tailoredBy).replace(" (you)","")+", "+rel(j.tailoredAt)+"."}));
-    else wrap.appendChild(el("p",{class:"muted-line",text:"Using the "+(j.resume||"Default")+" resume. Tailor a copy to match this posting's keywords."}));
-    if(S.uid)wrap.appendChild(el("div",{class:"acts"},[el("button",{class:"btn ghost small",type:"button",text:j.tailoredAt?"Open tailored resume":"Tailor for this job",onclick:function(){openEditor(j)}})]));
-    return wrap;
-  }
+  // after applying: the resume and cover letter that went out, near the top so they aren't buried under the description (2026-11-09)
+  function appBlock(j){
+    var pick=pickedRes(j),c=j.cover;
+    var B=function(t,fn){return el("button",{class:"btn ghost small",type:"button",text:t,onclick:fn})};
+    function row(label,sub,acts){return el("div",{class:"jdocs-row"},[el("div",{class:"jdocs-t"},[el("b",{text:label}),el("span",{text:sub})]),acts.length?el("div",{class:"acts"},acts):null])}
+    var wrap=el("div",{class:"block jdocs"},[el("h3",{text:"Resume and cover letter"}),
+      row("Resume",j.tailoredAt?"Tailored for this posting by "+nameOf(j.tailoredBy).replace(" (you)","")+", "+rel(j.tailoredAt):"The "+resLabel(pick)+" resume",!S.uid?[]:[
+        B(S.preview===j.id?"Hide preview":"Preview",function(){S.preview=S.preview===j.id?null:j.id;renderRows()}),
+        B("Download PDF",function(){mdFor(j,pick).then(function(md){printResume(md,fileTitle(j))},fail)}),
+        B(j.tailoredAt?"Edit":"Tailor a copy",function(){openEditor(j)})]),
+      row("Cover letter",c?(c.ai?"Written with AI by ":"Edited by ")+nameOf(c.by).replace(" (you)","")+", "+rel(c.at):"None for this one",!S.uid?[]:c?[
+        B("Open and edit",function(){openCoverEditor(j)}),B("Download PDF",function(){printCover(c.text,j)})]
+        :j.description?[aiBtn("Write with AI",function(){return api("POST","/api/ai/cover",{jobId:j.id}).then(function(){toast("Cover letter ready. Read it over.");refresh()})},true)]:[])]);
+    if(S.preview===j.id){var box=el("div",{class:"paper-box"});wrap.appendChild(el("div",{class:"res-preview"},[box]));mdFor(j,pick).then(function(md){previewInto(box,md);setTimeout(function(){window.dispatchEvent(new Event("resize"))},0)},fail)}
+    return wrap}
   function coverBlock(j){
     var wrap=el("div",{class:"block"},[el("h3",{text:"Cover letter"})]),c=j.cover,ta=null;
     if(!c)wrap.appendChild(el("p",{class:"muted-line",text:j.description?"AI fits Ifeanyi's template to this posting. Read it over before you send it.":"Paste the job description below first. Then AI can fit Ifeanyi's template to this posting."}));
