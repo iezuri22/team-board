@@ -132,6 +132,8 @@ audio { margin-top: 12px; height: 36px; max-width: 100%; }
 .addq-msg { color: var(--muted); font-size: 14.5px; }
 .qtag { display: inline-block; margin-left: 10px; font: 500 12.5px var(--sans); color: var(--accent); letter-spacing: 0; vertical-align: 2px; }
 .qc.fresh .qtext { color: var(--accent); }
+.answer.paraview { margin: 2px 0 8px; }
+.repbtns { display: inline-flex; gap: 12px; flex-wrap: wrap; }
 .qedit { margin: 16px 0 6px; display: grid; gap: 12px; max-width: 92ch; }
 .qedit textarea { font: 17px/1.55 var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; resize: vertical; width: 100%; box-sizing: border-box; }
 .qedit textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -667,18 +669,27 @@ function listenBtn(text, pickId){
   };
   return b;
 }
-function newBtn(){ var b = el("button", { class: "btn", type: "button", text: "New interview" }); b.onclick = function(){ stopReading(); $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); }; return b; }
+function newBtn(){
+  var b = el("button", { class: "btn" + (RETURN_TO ? " quiet" : ""), type: "button", text: "New interview" }); b.onclick = function(){ RETURN_TO = null; stopReading(); $("report").hidden = true; $("setup").hidden = false; showLast(); window.scrollTo(0, 0); };
+  if (!RETURN_TO) return b;
+  var back = el("button", { class: "btn", type: "button", text: "Back to the study guide" }); back.onclick = function(){ showView("study"); };
+  return el("span", { class: "repbtns" }, [back, b]);
+}
+// when he practices one question from the study guide, remember where he was so he lands back on that question
+var RETURN_TO = null;
 
 function setNav(v){ $("navMock").classList.toggle("on", v === "mock"); $("navStudy").classList.toggle("on", v === "study"); $("navProg").classList.toggle("on", v === "progress"); }
 function showView(v){
   if (S && !S.ended) return;
   stopReading(); ["setup", "live", "report", "study", "progress"].forEach(function(id){ $(id).hidden = true; });
   document.body.classList.toggle("studying", v === "study");
-  if (v === "study") { if (!$("study").firstChild) renderStudy(); $("study").hidden = false; }
+  var back = v === "study" ? RETURN_TO : null; RETURN_TO = null;
+  if (v === "study") { if (!$("study").firstChild || back) renderStudy(); $("study").hidden = false; }
   else if (v === "progress") { renderProgress(); $("progress").hidden = false; }
   else { $("setup").hidden = false; showLast(); }
   setNav(v); try { history.replaceState(null, "", v === "study" ? "#study" : v === "progress" ? "#progress" : location.pathname); } catch (e) {}
   window.scrollTo(0, 0);
+  if (back) setTimeout(function(){ var c = $("q-" + back.id); if (c) { window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 90); c.classList.add("fresh"); setTimeout(function(){ c.classList.remove("fresh"); }, 2500); } else window.scrollTo(0, back.y); }, 0);
 }
 $("navMock").onclick = function(){ showView("mock"); };
 $("navStudy").onclick = function(){ showView("study"); };
@@ -701,7 +712,10 @@ function renderStudy(){
   AURA.forEach(function(v){ var o = el("option", { value: v[0], text: "Voice: " + v[1] }); if (v[0] === keepV) o.selected = true; voiceSel.append(o); });
   voiceSel.onchange = function(){ try { localStorage.setItem("tb-mock-readvoice", voiceSel.value); } catch (e) {} stopReading(); };
   var addBtn = el("button", { class: "link addq-btn", type: "button", text: "Add a question" });
-  st.append(el("div", { class: "stoolbar" }, [tabs, el("div", { class: "stools" }, tok() ? [addBtn, voiceSel] : [voiceSel])]));
+  var paraOn = false; try { paraOn = localStorage.getItem("tb-study-read") === "para"; } catch (e) {}
+  var readBtn = el("button", { class: "link addq-btn", type: "button", "aria-pressed": String(paraOn), text: paraOn ? "Show as bullets" : "Show as paragraphs" });
+  readBtn.onclick = function(){ paraOn = !paraOn; try { localStorage.setItem("tb-study-read", paraOn ? "para" : "points"); } catch (e) {} readBtn.textContent = paraOn ? "Show as bullets" : "Show as paragraphs"; readBtn.setAttribute("aria-pressed", String(paraOn)); var y = window.scrollY; show(tab); window.scrollTo(0, y); };
+  st.append(el("div", { class: "stoolbar" }, [tabs, el("div", { class: "stools" }, tok() ? [readBtn, addBtn, voiceSel] : [readBtn, voiceSel])]));
   var adder = el("div", { class: "addq", hidden: "" }); st.append(adder);
   var body = el("div", { class: "sbody" }); st.append(body);
   addBtn.onclick = function(){ if (!adder.hidden) { adder.hidden = true; return; } openAdder(); };
@@ -766,16 +780,17 @@ function renderStudy(){
     var a = A[item.id] || (A[item.id] = ansFor(item.id)), d = el("div", { class: "qc", id: "q-" + item.id });
     var full = el("div", { class: "answer", hidden: "" }, String(a.a || "").split(/\n\n+/).map(function(p){ return el("p", { text: p }); }));
     var more = el("button", { class: "link fullbtn", type: "button", text: "Full answer" }); more.onclick = function(){ full.hidden = !full.hidden; more.textContent = full.hidden ? "Full answer" : "Hide full answer"; if (full.hidden) stopReading(); };
-    var pr = el("button", { class: "link", type: "button", text: "Practice" }); pr.onclick = function(){ stopReading(); unlockAudio(); run(set, item); };
+    var pr = el("button", { class: "link", type: "button", text: "Practice" }); pr.onclick = function(){ RETURN_TO = { id: item.id, y: window.scrollY }; stopReading(); unlockAudio(); run(set, item); };
     var hide = tok() ? el("button", { class: "link", type: "button", text: "Hide" }) : null;
     if (hide) hide.onclick = function(){ hide.disabled = true; stopReading(); bankOp("hide", hidKey(item.id)).then(function(){ d.remove(); setJobLabels(); hiddenList(set); }, function(){ hide.disabled = false; }); };
     var edit = tok() ? el("button", { class: "link", type: "button", text: "Edit" }) : null, ed = el("div", { class: "qedit", hidden: "" });
     if (edit) edit.onclick = function(){ if (!ed.hidden) { ed.hidden = true; return; } stopReading(); openEditor(set, item, a, ed); };
     d.append(el("div", { class: "qline" }, [el("span", { class: "qnum", text: String(i + 1).padStart(2, "0") }), el("h3", { class: "qtext" }, [item.q, item.mine ? el("span", { class: "qtag", text: item.mine }) : null])]),
       el("div", { class: "qbody" }, [
-        el("ul", { class: "keys" }, (a.k || item.hit || []).map(function(k){ return el("li", { text: k }); })),
-        el("div", { class: "sqbar" }, [a.a ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null, edit, hide]),
-        full, ed
+        paraOn ? el("div", { class: "answer paraview" }, String(a.a || (a.k || item.hit || []).join(" ")).split(/\n\n+/).map(function(p){ return el("p", { text: p }); }))
+          : el("ul", { class: "keys" }, (a.k || item.hit || []).map(function(k){ return el("li", { text: k }); })),
+        el("div", { class: "sqbar" }, [a.a && !paraOn ? more : null, (a.a || (a.k || []).length) ? listenBtn(a.a || (a.k || []).join(" "), "studyVoice") : null, pr, practicedN(item.q) ? el("span", { class: "practiced", text: "Practiced " + practicedN(item.q) + (practicedN(item.q) === 1 ? " time" : " times") }) : null, edit, hide]),
+        paraOn ? null : full, ed
       ]));
     return d;
   }
