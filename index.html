@@ -2347,10 +2347,10 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     var wk=Math.max(Date.now()-3*864e5,Date.parse("2026-11-10T17:22:00Z")),n=(S.notifs||[]).filter(function(x){return !x.read&&!S.popped[x.id]&&(x.kind==="interview"||x.kind==="reply")&&Date.parse(x.at)>wk}).sort(function(a,b){return String(a.at).localeCompare(String(b.at))})[0];if(!n)return;
     S.popped[n.id]=1;var j=n.jobId&&S.jobs.find(function(x){return x.id===n.jobId}),iv=n.kind==="interview";
     var close=function(){markRead([n.id]);$("post-slot").textContent="";renderAlertPop()};
-    var acts=[j?el("button",{class:"btn accent",type:"button",text:"Open the job",onclick:function(){close();openJob(j.id)}}):null,el("button",{class:"btn ghost",type:"button",text:"Got it",onclick:close})];
+    var acts=[n.link?el("a",{class:"btn ghost",href:n.link,target:"_blank",rel:"noopener",text:"Open the email \u2197",onclick:function(){markRead([n.id])}}):null,j?el("button",{class:"btn accent",type:"button",text:"Open the job",onclick:function(){close();openJob(j.id)}}):null,el("button",{class:"btn ghost",type:"button",text:"Got it",onclick:close})];
     var body=el("div",{class:"post-body"},[el("p",{class:"alert-snip",text:String(n.body||"")})]);
     postShell([el("p",{class:"post-kick"+(iv?" alert-iv":""),text:iv?"Interview request":"A company replied"}),el("h2",{text:iv?String(n.title).replace(/^Interview request from /,""):n.title}),el("p",{class:"post-date",text:new Date(n.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"})}),body,
-      el("p",{class:"post-hint",text:S.isOwner?"The team got this too.":"Don't reply to them. Ifeanyi has it and will follow up."}),el("div",{class:"post-acts"},acts)],close)}
+      el("p",{class:"post-hint",text:S.isOwner?"The team got this too.":"It's in "+SEND_FROM+". Don't reply to them. Ifeanyi has it and will follow up."}),el("div",{class:"post-acts"},acts)],close)}
   function postShell(kids,onBack){var slot=$("post-slot");slot.textContent="";
     var wrap=el("div",{class:"post-wrap",onclick:function(e){if(e.target===e.currentTarget&&onBack)onBack()}},[el("div",{class:"post",role:"dialog","aria-modal":"true"},kids)]);slot.appendChild(wrap);wrap.firstChild.scrollTop=0}
   function showPost(p,fromList){S.postRead=S.postRead||{};var unread=!postSeen(p)&&!S.postRead[p.id];
