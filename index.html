@@ -561,6 +561,13 @@ body{background:var(--page)}
 .mg-row.mine .mg-bubble{background:var(--accent);color:#fff;border-radius:18px 18px 6px 18px}
 .mg-row.mine.cont .mg-bubble{border-top-right-radius:6px}
 .mg-bubble.open{box-shadow:inset 0 0 0 1.5px var(--amber)}
+.mg-quote{display:grid;gap:2px;text-align:left;font:inherit;color:inherit;background:rgba(0,0,0,.05);border:0;border-left:3px solid var(--accent);border-radius:8px;padding:6px 10px;cursor:pointer;max-width:100%;min-width:0}
+.mg-row.mine .mg-quote{background:rgba(255,255,255,.16);border-left-color:rgba(255,255,255,.75)}
+.mg-quote:hover{background:rgba(0,0,0,.08)}.mg-row.mine .mg-quote:hover{background:rgba(255,255,255,.24)}
+.mg-quote:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.mg-quote-who{font-size:12px;font-weight:600;opacity:.85}
+.mg-quote-text{font-size:13px;line-height:1.4;opacity:.85;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mg-row.flash .mg-bubble{box-shadow:0 0 0 3px var(--amber);transition:box-shadow .3s}
 .mg-row.mine .mg-bubble.open{box-shadow:0 0 0 2px var(--amber-wash)}
 .mg-bubble .mg-kind{justify-self:start}
 .mg-row.mine .mg-kind{background:rgba(255,255,255,.22);color:#fff}
@@ -1467,7 +1474,10 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     var mine=S.isOwner?m.from==="owner":m.from===S.uid,j=m.jobId&&S.jobs.find(function(x){return x.id===m.jobId}),ask=m.from!=="owner",open=ask&&m.status==="open";
     var tm=new Date(m.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});
     var showKind=m.kind!=="reply"&&m.kind!=="note";
-    var bubble=el("div",{class:"mg-bubble"+(open?" open":"")},[
+    // a reply shows the message it answers; tapping the quote jumps back to it
+    var orig=m.replyTo&&allMsgs().find(function(x){return x.id===m.replyTo});
+    var quote=orig?el("button",{class:"mg-quote",type:"button",title:"Go to the message this answers",onclick:function(){var t=document.getElementById("mg-"+orig.id);if(t){t.scrollIntoView({behavior:"smooth",block:"center"});t.classList.add("flash");setTimeout(function(){t.classList.remove("flash")},1600)}}},[el("span",{class:"mg-quote-who",text:"Replying to "+(orig.from==="owner"?(S.isOwner?"you":"Ifeanyi"):(!S.isOwner&&orig.from===S.uid?"you":whoName(orig.from)))}),el("span",{class:"mg-quote-text",text:orig.body.replace(/\s+/g," ").slice(0,140)+(orig.body.length>140?"...":"")})]):null;
+    var bubble=el("div",{class:"mg-bubble"+(open?" open":"")},[quote,
       showKind?el("span",{class:"mg-kind k-"+m.kind,text:KIND_L[m.kind]||m.kind}):null,
       el("p",{class:"mg-body",text:m.body}),
       j?el("button",{class:"mg-job",type:"button",onclick:function(){openJob(j.id)}},[el("span",{class:"co-av",style:"--h:"+hue(j.company),text:initials(j.company)}),el("span",{},[el("b",{text:j.company}),el("span",{text:j.role})])]):null]);
@@ -1478,7 +1488,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
         if(S.isOwner){foot.push(el("button",{class:"mg-link",type:"button",text:"Reply",onclick:function(){S.replyTo=m.id;S.mKind="reply";S.mJob=m.jobId||"";renderMessages();var t=$("mg-text");if(t)t.focus()}}));
           foot.push(el("button",{class:"mg-link",type:"button",text:"Mark done",onclick:function(){api("PATCH","/api/messages/"+m.id,{status:"done"}).then(function(){m.status="done";render()},fail)}}))}}
       else foot.push(el("span",{class:"mg-state done",text:"\u2713 Answered"}))}
-    return el("div",{class:"mg-row "+(mine?"mine":"theirs")+(cont?" cont":"")},[
+    return el("div",{class:"mg-row "+(mine?"mine":"theirs")+(cont?" cont":""),id:"mg-"+m.id},[
       mine?null:el("span",{class:"mg-av sm",style:"--h:"+hue(whoName(m.from)),text:cont?"":initials(whoName(m.from))}),
       el("div",{class:"mg-col"},[cont?null:el("div",{class:"mg-meta"},[el("b",{text:mine?"You":whoName(m.from)}),el("span",{text:tm})]),bubble,foot.length?el("div",{class:"mg-foot"},foot):null])]);
   }
