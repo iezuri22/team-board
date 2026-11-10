@@ -1765,6 +1765,8 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
         // Turned down: anyone not reached yet still gets a note (for future roles); follow-ups to earlier notes stop; 21 days on, it's archived
         // turned down or already interviewing: outreach stops (a reply still waiting on him stays); it moves to Done
         if((rej||j.status==="interview"||j.status==="offer")&&cd.k!=="answer"){if(!S.isOwner)return;t.tab="done";t.what=rej?(archived?"Archived. Turned down "+fmtD(rejD):"Turned down "+fmtD(rejD)+". Outreach stopped"):"Interviewing. Outreach stopped";out.push(t);return}
+        // a bounced email takes the person off the to-do lists too (unless they replied)
+        if(c.emailBad&&cd.k!=="answer"){if(!S.isOwner)return;t.tab="done";t.what="Email bounced "+fmtD(c.emailBad)+". Removed";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. The 7am daily run does this; no email means the LinkedIn note goes right away.";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin){if(!S.isOwner)return;t.tab="cant";t.what=c.emailBad?"Email bounced and no LinkedIn":"No email and no LinkedIn";out.push(t);return}
         // the first email runs on its own track: unsent ones show under Email (and the team's Scheduled), sent ones under the team's Sent
@@ -2311,14 +2313,16 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     slot.appendChild(el("div",{class:"nt-wrap",onclick:function(e){if(e.target===e.currentTarget)close()}},[el("div",{class:"nt-panel",role:"dialog","aria-label":"Notifications"},[
       el("div",{class:"nt-head"},[el("b",{text:"Notifications"}),un.length?el("button",{type:"button",class:"linkish",text:"Mark all read",onclick:function(){markRead([],true);showNotifs();showNotifs()}}):null]),sub,list])]));
     if(S.isOwner&&!S.gmail)gmailStatus().then(function(){if(slot.querySelector(".nt-panel")){slot.textContent="";showNotifs()}})}
-  function postUnseen(){S.postRead=S.postRead||{};return S.isOwner?[]:(S.posts||[]).filter(function(p){return !p.seen&&!S.postRead[p.id]})}
+  // a new update pops up once for everyone, Ifeanyi included, while the board is open or the next time it opens
+  function postSeen(p){return S.isOwner?!!(p.seen&&p.seen.owner):!!p.seen}
+  function postUnseen(){S.postRead=S.postRead||{};return (S.posts||[]).filter(function(p){return !postSeen(p)&&!S.postRead[p.id]})}
   function renderPosts(){$("prep-link").hidden=!(S.db&&S.uid&&S.isOwner);var b=$("posts-btn"),slot=$("post-slot");if(!S.db||!S.uid){b.hidden=true;slot.textContent="";return}
     var un=postUnseen();b.hidden=!S.isOwner&&!(S.posts||[]).length;b.classList.toggle("dot",un.length>0);
     if(un.length&&!slot.firstChild)showPost(un[0])}
   function postShell(kids,onBack){var slot=$("post-slot");slot.textContent="";
     var wrap=el("div",{class:"post-wrap",onclick:function(e){if(e.target===e.currentTarget&&onBack)onBack()}},[el("div",{class:"post",role:"dialog","aria-modal":"true"},kids)]);slot.appendChild(wrap);wrap.firstChild.scrollTop=0}
-  function showPost(p,fromList){var unread=!S.isOwner&&!p.seen&&!(S.postRead||{})[p.id];
-    var done=function(){if(unread){S.postRead[p.id]=1;p.seen=true;api("POST","/api/posts/"+p.id+"/seen",{}).catch(function(){})}$("post-slot").textContent="";if(fromList)showPostList();else renderPosts()};
+  function showPost(p,fromList){S.postRead=S.postRead||{};var unread=!postSeen(p)&&!S.postRead[p.id];
+    var done=function(){if(unread){S.postRead[p.id]=1;if(S.isOwner){p.seen=p.seen||{};p.seen.owner=new Date().toISOString()}else p.seen=true;api("POST","/api/posts/"+p.id+"/seen",{}).catch(function(){})}$("post-slot").textContent="";if(fromList)showPostList();else renderPosts()};
     var body=el("div",{class:"post-body"});body.innerHTML=postHtml(p.body);
     // an attached job: its saved description, readable by everyone (the posting itself may be gone)
     if(p.job&&p.job.description){var jd=el("pre",{class:"post-jd",text:p.job.description,hidden:true});
@@ -2332,13 +2336,13 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function showPostList(){var ps=(S.posts||[]).slice().reverse(),close=function(){$("post-slot").textContent=""};
     var names=mates().map(function(k){return whoName(k).split(" ")[0]}).join(" and ")||"the team";
     var kids=[el("p",{class:"post-kick",text:"Updates"}),el("h2",{text:S.isOwner?"Updates for the team":"Updates from Ifeanyi"}),
-      el("p",{class:"post-date",text:S.isOwner?"A new update opens full screen the next time "+names+" open the board. Save these for important changes, not everyday notes.":"Important changes to how we work. New ones open when you open the board."}),
+      el("p",{class:"post-date",text:S.isOwner?"A new update pops up full screen for "+names+" and you, right away if the board is open or the next time it opens. Save these for important changes, not everyday notes.":"Important changes to how we work. New ones pop up on your screen."}),
       el("div",{class:"post-list"},ps.length?ps.map(function(p){return el("button",{type:"button",class:"post-item",onclick:function(){showPost(p,true)}},[el("b",{text:p.title}),el("span",{text:fmtD(p.at)})])}):[el("p",{class:"post-hint",text:"No updates yet."})])];
     var acts=[el("button",{class:"btn ghost",type:"button",text:"Close",onclick:close})];
     if(S.isOwner){var ti=el("input",{id:"po-title",placeholder:"Title, like: How emails work now"}),tx=el("textarea",{id:"po-body",placeholder:"Write the update. Short sections with bold labels read best."});
       kids.push(el("div",{class:"post-new"},[el("h3",{text:"New update",style:"margin:18px 0 0;font-size:16px"}),ti,tx,el("p",{class:"post-hint",text:"Formatting: **bold**, a line starting with - for bullets, 1. for steps, ## for a heading. Leave a blank line between sections."})]));
       acts.push(el("button",{class:"btn accent",type:"button",text:"Post to the team",onclick:function(e){var btn=e.currentTarget;if(!ti.value.trim()||!tx.value.trim()){toast("Add a title and the update");return}btn.disabled=true;
-        api("POST","/api/posts",{title:ti.value.trim(),body:tx.value}).then(function(p){S.posts=(S.posts||[]).concat([Object.assign({},p,{seen:{}})]);toast("Posted. "+names+" will see it next time they open the board.");showPostList()},function(err){btn.disabled=false;fail(err)})}}))}
+        api("POST","/api/posts",{title:ti.value.trim(),body:tx.value}).then(function(p){S.posts=(S.posts||[]).concat([Object.assign({},p,{seen:{}})]);toast("Posted. It pops up for "+names+" right away if the board is open, or the next time they open it.");showPostList()},function(err){btn.disabled=false;fail(err)})}}))}
     kids.push(el("div",{class:"post-acts"},acts));postShell(kids,close)}
   function renderMe(){var w=$("who-me");w.textContent="";if(!S.db||!S.uid)return;var n=S.isOwner?"Ifeanyi":(myName()||"Teammate");w.appendChild(document.createTextNode("Signed in as "));w.appendChild(el("b",{text:n}));w.appendChild(el("button",{type:"button",text:"Sign out",onclick:function(){setTok("");S.db=null;S.uid=null;S.jobs=[];render()}}))}
   function renderWelcome(){
