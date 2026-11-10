@@ -897,6 +897,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
 .am-chip button{border:0;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px}.am-chip button:hover{color:var(--red)}
 .am-sent{font-size:13.5px;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--green,#15803d) 10%,transparent);color:var(--fg)}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}.fu-chip.late b{color:#c2410c}.fu-chip.late.on{background:#c2410c;border-color:#c2410c}.fu-chip.late.on b{color:#fff}
+.alert-snip{white-space:pre-wrap;margin:0}.post-kick.alert-iv{color:var(--green)}
 .vf-name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .vf-li{font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}.vf-li:hover{text-decoration:underline;text-underline-offset:3px}
 .vf-none{font-size:12.5px;color:var(--faint)}
@@ -2273,7 +2274,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     if(S.db&&S.uid&&!S.isOwner&&(S.tab==="team"||(S.tab==="resume"&&!S.editorJob)))S.tab="apps";
     if(S.db&&S.uid){if(S.isOwner&&S.tab==="team")S.tab="weekly";if(S.isOwner&&S.mThread==="__all")S.mThread=null;if(S.isOwner&&S.mView==="people")S.mView="talk"}
     ["apps","messages","replies","team","weekly","reach","contacts","resume","brief"].forEach(function(t){$("tab-"+t).setAttribute("aria-selected",S.tab===t?"true":"false");$("view-"+t).hidden=S.tab!==t});
-    renderMe();renderWelcome();renderPing();renderPosts();renderNotifBtn();if(!S.db||!S.uid)return;
+    renderMe();renderWelcome();renderPing();renderPosts();renderNotifBtn();renderAlertPop();if(!S.db||!S.uid)return;
     $("tab-team").textContent="My week";$("tab-team").hidden=true;$("tab-resume").hidden=!S.isOwner;$("tab-reach").hidden=false;$("tab-brief").hidden=true;$("tab-contacts").hidden=true;
     if(S.isOwner){var rd=reachRows().filter(function(r){return r.due}).length,rb=$("reach-badge");rb.hidden=!rd;rb.textContent=String(rd)}if(S.tab==="contacts"){S.tab="messages";S.mThread=S.isOwner?"__all":S.uid}
     var flagged=S.jobs.filter(function(j){return j.needsIfeanyi}).length;var b=$("reply-badge");b.hidden=!flagged;b.textContent=flagged;
@@ -2341,6 +2342,15 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function renderPosts(){$("prep-link").hidden=!(S.db&&S.uid&&S.isOwner);var b=$("posts-btn"),slot=$("post-slot");if(!S.db||!S.uid){b.hidden=true;slot.textContent="";return}
     var un=postUnseen();b.hidden=!S.isOwner&&!(S.posts||[]).length;b.classList.toggle("dot",un.length>0);
     if(un.length&&!slot.firstChild)showPost(un[0])}
+  // an interview request or a reply from a company pops up once for everyone (updates from Ifeanyi go first)
+  function renderAlertPop(){var slot=$("post-slot");if(!S.db||!S.uid||slot.firstChild)return;S.popped=S.popped||{};
+    var wk=Math.max(Date.now()-3*864e5,Date.parse("2026-11-10T17:22:00Z")),n=(S.notifs||[]).filter(function(x){return !x.read&&!S.popped[x.id]&&(x.kind==="interview"||x.kind==="reply")&&Date.parse(x.at)>wk}).sort(function(a,b){return String(a.at).localeCompare(String(b.at))})[0];if(!n)return;
+    S.popped[n.id]=1;var j=n.jobId&&S.jobs.find(function(x){return x.id===n.jobId}),iv=n.kind==="interview";
+    var close=function(){markRead([n.id]);$("post-slot").textContent="";renderAlertPop()};
+    var acts=[j?el("button",{class:"btn accent",type:"button",text:"Open the job",onclick:function(){close();openJob(j.id)}}):null,el("button",{class:"btn ghost",type:"button",text:"Got it",onclick:close})];
+    var body=el("div",{class:"post-body"},[el("p",{class:"alert-snip",text:String(n.body||"")})]);
+    postShell([el("p",{class:"post-kick"+(iv?" alert-iv":""),text:iv?"Interview request":"A company replied"}),el("h2",{text:iv?String(n.title).replace(/^Interview request from /,""):n.title}),el("p",{class:"post-date",text:new Date(n.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"})}),body,
+      el("p",{class:"post-hint",text:S.isOwner?"The team got this too.":"Don't reply to them. Ifeanyi has it and will follow up."}),el("div",{class:"post-acts"},acts)],close)}
   function postShell(kids,onBack){var slot=$("post-slot");slot.textContent="";
     var wrap=el("div",{class:"post-wrap",onclick:function(e){if(e.target===e.currentTarget&&onBack)onBack()}},[el("div",{class:"post",role:"dialog","aria-modal":"true"},kids)]);slot.appendChild(wrap);wrap.firstChild.scrollTop=0}
   function showPost(p,fromList){S.postRead=S.postRead||{};var unread=!postSeen(p)&&!S.postRead[p.id];
