@@ -1759,12 +1759,12 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function reachTasks(){var out=[],coPeople={};S.jobs.forEach(function(j){if((j.contacts||[]).length)coPeople[companyKey(j.company)]=1});
     S.jobs.forEach(function(j){if(!SENT[j.status])return;var applied=sentAt(j)||j.addedAt,cs=j.contacts||[];
       var recent=daysSince(applied)<30,rej=j.status==="rejected",rejD=rej?rejAt(j):null,archived=rej&&daysSince(rejD)>=21;
-      if(!cs.length){if(!S.isOwner||rej||coPeople[companyKey(j.company)])return;var srch=j.peopleSearch||companySearch(j.company);
+      if(!cs.length){if(!S.isOwner||rej||j.status==="interview"||j.status==="offer"||coPeople[companyKey(j.company)])return;var srch=j.peopleSearch||companySearch(j.company);
         out.push(!srch&&recent?{j:j,c:null,tab:"waiting",wg:"finding",applied:applied,what:"Finding people. The 7am daily run does this."}:{j:j,c:null,tab:"cant",applied:applied});return}
       cs.forEach(function(c){var cd=cadence(c),o=outs(c),t={j:j,c:c,cd:cd,applied:applied},n;
         // Turned down: anyone not reached yet still gets a note (for future roles); follow-ups to earlier notes stop; 21 days on, it's archived
-        if(rej&&!/^(answer|talking|check)$/.test(cd.k)){var before=o.length&&String(o[0].at)<String(rejD);
-          if(archived||before||cd.k==="closed"){if(!S.isOwner)return;t.tab="done";t.what=archived?"Archived. Turned down "+fmtD(rejD):"Turned down "+fmtD(rejD)+". Follow-ups stopped";out.push(t);return}}
+        // turned down or already interviewing: outreach stops (a reply still waiting on him stays); it moves to Done
+        if((rej||j.status==="interview"||j.status==="offer")&&cd.k!=="answer"){if(!S.isOwner)return;t.tab="done";t.what=rej?(archived?"Archived. Turned down "+fmtD(rejD):"Turned down "+fmtD(rejD)+". Outreach stopped"):"Interviewing. Outreach stopped";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin&&!(c.email||c.emailGuess)&&!c.emailTried&&recent){if(!S.isOwner)return;t.tab="waiting";t.wg="finding";t.what="Looking for their email. The 7am daily run does this; no email means the LinkedIn note goes right away.";out.push(t);return}
         if((cd.k==="new"||cd.k==="li")&&!c.linkedin){if(!S.isOwner)return;t.tab="cant";t.what=c.emailBad?"Email bounced and no LinkedIn":"No email and no LinkedIn";out.push(t);return}
         // the first email runs on its own track: unsent ones show under Email (and the team's Scheduled), sent ones under the team's Sent
