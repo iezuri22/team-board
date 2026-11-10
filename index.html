@@ -897,7 +897,17 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
 .am-chip button{border:0;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px}.am-chip button:hover{color:var(--red)}
 .am-sent{font-size:13.5px;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--green,#15803d) 10%,transparent);color:var(--fg)}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}.fu-chip.late b{color:#c2410c}.fu-chip.late.on{background:#c2410c;border-color:#c2410c}.fu-chip.late.on b{color:#fff}
-.rc-verify{display:flex;gap:10px;justify-content:flex-end;white-space:nowrap}
+.vf-name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.vf-li{font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}.vf-li:hover{text-decoration:underline;text-underline-offset:3px}
+.vf-none{font-size:12.5px;color:var(--faint)}
+.vf-table td.vf-acts,.vf-table th.vf-acts{text-align:right;width:1%;white-space:nowrap}
+.vf-btns{display:inline-flex;align-items:center;gap:14px}
+.vf-yes{height:30px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:600 12.5px var(--font);cursor:pointer}
+.vf-yes:hover{border-color:var(--green);color:var(--green)}
+.vf-no{background:none;border:0;padding:0;color:var(--muted);font:500 12.5px var(--font);cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line)}
+.vf-no:hover{color:var(--red)}
+.vf-yes:disabled,.vf-no:disabled{opacity:.45;cursor:default}
+.vf-yes:focus-visible,.vf-no:focus-visible,.vf-li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .fu-done{color:#15803d;font-size:13px;white-space:nowrap}.fu-due{color:#c2410c;font-weight:600;font-size:13px;white-space:nowrap}.fu-bad{color:#b91c1c;font-weight:600;font-size:13px}.fu-rej{margin-left:6px;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px;background:#fde8e8;color:#991b1b}
 .fu-table td{vertical-align:middle}
 .fu-cell{border:0;background:none;padding:4px 6px;margin:-4px -6px;border-radius:8px;font:inherit;cursor:pointer}.fu-cell:hover{background:var(--soft2)}.fu-cell:hover span{text-decoration:underline}
@@ -1904,11 +1914,11 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     function drawVerify(list){if(!list.length){body.appendChild(el("div",{class:"empty"},[el("h3",{text:"All checked"}),el("p",{text:"Nobody is waiting on you to confirm."})]));return}
       var tb=el("tbody");list.forEach(function(t,i){var j=t.j,c=t.c,lnk=c.linkedin?(/^https?:/.test(c.linkedin)?c.linkedin:"https://"+c.linkedin):null;
         var mark=function(body,msg){return function(e){e.stopPropagation();var bs=this.parentNode.querySelectorAll("button");bs.forEach(function(b){b.disabled=true});api("PATCH","/api/jobs/"+j.id+"/contacts/"+c.id,body).then(function(){toast(msg);refresh()},function(err){bs.forEach(function(b){b.disabled=false});fail(err)})}};
-        tb.appendChild(el("tr",{class:"pg-row",onclick:function(){openJob(j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),
-          el("td",{},[el("div",{class:"rs-name",text:c.name}),el("div",{class:"rs-sub",text:(c.title?c.title+" \u00b7 ":"")+shortCo(j.company)+" \u00b7 "+j.role})]),
-          el("td",{},[lnk?el("a",{href:lnk,target:"_blank",rel:"noopener",class:"pg-go",style:"white-space:nowrap",onclick:function(e){e.stopPropagation()},text:"Open LinkedIn"}):el("span",{class:"pg-dim",text:"No LinkedIn"})]),
-          el("td",{class:"rc-verify"},[el("button",{type:"button",class:"pg-go hot",text:"Still there \u2713",onclick:mark({stillThere:true},c.name.split(" ")[0]+" is back on your LinkedIn list.")}),el("button",{type:"button",class:"pg-act",text:"Gone",onclick:mark({left:true},c.name.split(" ")[0]+" is marked as gone.")})])]))});
-      body.appendChild(el("table",{class:"pg-table"},[el("thead",{},[el("tr",{},["#","Person","LinkedIn",""].map(function(x){return el("th",{text:x})}))]),tb]))}
+        tb.appendChild(el("tr",{class:"pg-row vf-row",onclick:function(){openJob(j.id)}},[el("td",{class:"pg-n",text:String(i+1)}),
+          el("td",{},[el("div",{class:"vf-name"},[el("b",{text:c.name}),lnk?el("a",{href:lnk,target:"_blank",rel:"noopener",class:"vf-li",onclick:function(e){e.stopPropagation()},text:"LinkedIn \u2197"}):el("span",{class:"vf-none",text:"No LinkedIn"})]),
+            el("div",{class:"rs-sub",text:(c.title?c.title+" \u00b7 ":"")+shortCo(j.company)+" \u00b7 "+j.role})]),
+          el("td",{class:"vf-acts"},[el("div",{class:"vf-btns"},[el("button",{type:"button",class:"vf-yes",text:"Still there",onclick:mark({stillThere:true},c.name.split(" ")[0]+" is back on your LinkedIn list.")}),el("button",{type:"button",class:"vf-no",text:"Gone",onclick:mark({left:true},c.name.split(" ")[0]+" is marked as gone.")})])])]))});
+      body.appendChild(el("table",{class:"pg-table vf-table"},[el("thead",{},[el("tr",{},[el("th",{text:"#"}),el("th",{text:"Person"}),el("th",{class:"vf-acts",text:"Still there?"})])]),tb]))}
     function drawBody(){body.textContent="";S.rcOrder=[];var q2=norm(F.q);var list=all.filter(pass).filter(function(t){return t.tab===S.rcTab}).sort(function(a,b){return String(a.applied).localeCompare(String(b.applied))});
       // a search looks at everyone who has ever been on the board, not just this tab
       if(q2){drawSearch(q2);return}
