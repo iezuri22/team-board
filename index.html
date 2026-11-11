@@ -897,6 +897,9 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
 .am-chip button{border:0;background:none;cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px}.am-chip button:hover{color:var(--red)}
 .am-sent{font-size:13.5px;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:color-mix(in srgb,var(--green,#15803d) 10%,transparent);color:var(--fg)}.am-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.am-acts .sp{flex:1}
 .fu-chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}.fu-chip{border:1px solid var(--line);background:var(--bg);border-radius:16px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}.fu-chip b{margin-left:4px;color:var(--muted)}.fu-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.fu-chip.on b{color:inherit}.fu-chip.late b{color:#c2410c}.fu-chip.late.on{background:#c2410c;border-color:#c2410c}.fu-chip.late.on b{color:#fff}
+.rv-card{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;padding:14px 16px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--card)}
+.rv-t{font-size:14.5px;line-height:1.5;color:var(--muted);flex:1 1 360px}.rv-t b{color:var(--fg)}
+.rv-acts{display:flex;gap:8px;flex-wrap:wrap}.rv-why{margin-top:6px;font-size:13.5px;color:var(--muted)}
 .alert-snip{white-space:pre-wrap;margin:0}.post-acts a.btn{text-decoration:none}.post-kick.alert-iv{color:var(--green)}
 .vf-name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .vf-li{font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;white-space:nowrap}.vf-li:hover{text-decoration:underline;text-underline-offset:3px}
@@ -1024,7 +1027,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-type" aria-label="Job type"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option>
+        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option><option value="review">Not a fit, to review</option>
       </select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
@@ -2507,6 +2510,8 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     n(sentMe,sentMe===1?"job from Ifeanyi to apply to":"jobs from Ifeanyi to apply to",function(){S.status="fromif";$("f-status").value="fromif";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(need,need===1?"application could use a contact":"applications could use a contact",function(){S.status="contacts";$("f-status").value="contacts";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(stale,stale===1?"application needs a follow-up":"applications need a follow-up",function(){S.status="followup";$("f-status").value="followup";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
+    var toReview=S.isOwner?S.jobs.filter(reviewable).length:0;
+    n(toReview,toReview===1?"Not a fit job from the team to review":"Not a fit jobs from the team to review",function(){S.status="review";$("f-status").value="review";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     n(waiting,S.isOwner?(waiting===1?"reply waiting on you":"replies waiting on you"):"waiting on Ifeanyi",function(){S.status="flagged";$("f-status").value="flagged";renderRows();$("rows").scrollIntoView({behavior:"smooth"})});
     if(list.children.length===1)list.appendChild(el("p",{class:"muted-line",text:"You're all caught up."}));
     return list;
@@ -2525,7 +2530,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     var t0=performance.now();(function f(t){var dt=(t-t0);g.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore()});if(dt<2200)requestAnimationFrame(f);else c.remove()})(t0);
   }
   function renderWho(){
-    var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;
+    var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;var rvo=$("f-status").querySelector('option[value="review"]');if(rvo)rvo.hidden=!S.isOwner;
     var ft=$("f-type");if(ft&&!ft.options.length){ft.appendChild(el("option",{value:"",text:"Any job type"}));JOB_TYPES.map(function(x){return x[0]}).concat(["Other"]).forEach(function(t){ft.appendChild(el("option",{value:t,text:t}))})}
     var s=$("f-who"),cur=S.who;s.textContent="";s.hidden=!S.isOwner;if(!S.isOwner){S.who="all";return}
     var ids={};S.jobs.forEach(function(j){var k=j.addedBy||"owner";ids[k]=(ids[k]||0)+1});
@@ -2534,7 +2539,18 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(S.jtype&&jobType(j.role)!==S.jtype)return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="review"&&!reviewable(j))return false;if(S.jtype&&jobType(j.role)!==S.jtype)return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){if(S.status==="review")return fitScore(b)-fitScore(a)||String(b.addedAt).localeCompare(String(a.addedAt));return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
+  // the team's Not a fit calls from the last 30 days that he hasn't looked at yet; best fit scores first
+  // on a Not a fit job from the team: apply to it himself, or agree it's not a fit; in the review list it moves on to the next one
+  function reviewCard(j){if(!reviewable(j))return null;var who=whoName(j.addedBy).split(" ")[0],sc=fitScore(j),f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f)}catch(e){f=null}}
+    var gates=f&&f.gates?Object.keys(f.gates).map(function(k){return f.gates[k]}).filter(function(g){return g&&g.pass===false&&g.why}).map(function(g){return g.why}):[],why=gates[0]||(f&&f.summary)||"";
+    var next=function(){if(S.status!=="review")return;var rest=filtered().filter(function(x){return x.id!==j.id});S.open=rest.length?rest[0].id:null};
+    var go=function(body,msg,after){return function(e){var bs=e.currentTarget.parentNode.querySelectorAll("button");bs.forEach(function(b){b.disabled=true});api("PATCH","/api/jobs/"+j.id,body).then(function(){toast(msg);after();refresh().then(function(){var r=document.querySelector('.ap-row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})})},function(err){bs.forEach(function(b){b.disabled=false});fail(err)})}};
+    return el("div",{class:"rv-card"},[el("div",{class:"rv-t"},[el("b",{text:who+" marked this Not a fit"+(sc?" (fit "+sc+")":"")+"."}),el("span",{text:" Read the posting and the fit check below. If it looks good to you, apply to it yourself."}),why?el("div",{class:"rv-why",text:"Why: "+why}):null]),
+      el("div",{class:"rv-acts"},[el("button",{type:"button",class:"btn accent small",text:"I'll apply to this",onclick:go({status:"saved",reviewedAt:true,note:"Ifeanyi reviewed it and is applying himself"},"Moved to Saved. The steps to apply are open.",function(){})}),
+        el("button",{type:"button",class:"btn ghost small",text:"Keep it as Not a fit",onclick:go({reviewedAt:true,note:"Ifeanyi reviewed it: still not a fit"},"Kept as Not a fit.",next)})])])}
+  function reviewable(j){return S.isOwner&&j.status==="skipped"&&!j.reviewedAt&&(j.addedBy||"owner")!=="owner"&&daysSince(j.addedAt)<=30}
+  function fitScore(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f)}catch(e){f=null}}return f&&typeof f.score==="number"?f.score:0}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
   function initials(t){var w=String(t||"?").replace(/[^A-Za-z0-9 ]/g,"").trim().split(/\s+/);return ((w[0]||"?")[0]+(w[1]?w[1][0]:"")).toUpperCase()}
   function statusSel(j){var s=el("select",{class:"status s-"+j.status,"aria-label":"Status for "+j.company,disabled:null,onclick:function(e){e.stopPropagation()},onchange:function(e){setStatus(j,e.target.value)}});ST.forEach(function(o){s.appendChild(el("option",{value:o.k,selected:o.k===j.status?true:null,text:o.l}))});return s}
@@ -2625,7 +2641,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   function scard(title,kids,cls){return el("div",{class:"scard"+(cls?" "+cls:"")},[title?el("h4",{text:title}):null].concat(kids))}
   function detail(j){
     var saved=j.status==="saved";
-    var main=el("div",{class:"d-main"},[stepsCard(j),textBlock(j),saved?null:appBlock(j),jobMessages(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&j.cover?coverBlock(j):null]);
+    var main=el("div",{class:"d-main"},[reviewCard(j),stepsCard(j),textBlock(j),saved?null:appBlock(j),jobMessages(j),followBlock(j),contactsBlock(j),descBlock(j),saved&&j.cover?coverBlock(j):null]);
     var side=el("aside",{class:"d-side"},[detailsCard(j),notesCard(j),actionsCard(j),historyCard(j)]);
     return el("div",{class:"detail"},[main,side]);
   }
