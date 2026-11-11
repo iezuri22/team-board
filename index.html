@@ -1027,8 +1027,9 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
       <select id="f-who" aria-label="Whose applications"></select>
       <select id="f-type" aria-label="Job type"></select>
       <select id="f-status" aria-label="Status">
-        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option><option value="review">Not a fit, to review</option>
+        <option value="open">Still open</option><option value="fromif">From Ifeanyi</option><option value="flagged">Waiting on Ifeanyi</option><option value="contacts">No contacts yet</option><option value="followup">Follow up</option><option value="all">Everything</option><option value="replies">Got a reply</option><option value="closed">Closed</option><option value="review">Not a fit, to review</option><option value="archived">Archived</option>
       </select>
+      <select id="f-sort" aria-label="Order" hidden><option value="fit">Best fit first</option><option value="new">Newest first</option></select>
       <button class="btn accent small" id="add-btn" type="button">Log an application</button>
       <input id="search" type="search" placeholder="Search company or role" aria-label="Search company or role">
     </div>
@@ -2530,7 +2531,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     var t0=performance.now();(function f(t){var dt=(t-t0);g.clearRect(0,0,c.width,c.height);ps.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;g.save();g.translate(p.x,p.y);g.rotate(p.r);g.fillStyle=p.c;g.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);g.restore()});if(dt<2200)requestAnimationFrame(f);else c.remove()})(t0);
   }
   function renderWho(){
-    var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;var rvo=$("f-status").querySelector('option[value="review"]');if(rvo)rvo.hidden=!S.isOwner;
+    var bo=$("f-status").querySelector('option[value="board"]');if(bo)bo.hidden=S.isOwner;var rvo=$("f-status").querySelector('option[value="review"]');if(rvo)rvo.hidden=!S.isOwner;var aro=$("f-status").querySelector('option[value="archived"]');if(aro)aro.hidden=!S.isOwner;
     var ft=$("f-type");if(ft&&!ft.options.length){ft.appendChild(el("option",{value:"",text:"Any job type"}));JOB_TYPES.map(function(x){return x[0]}).concat(["Other"]).forEach(function(t){ft.appendChild(el("option",{value:t,text:t}))})}
     var s=$("f-who"),cur=S.who;s.textContent="";s.hidden=!S.isOwner;if(!S.isOwner){S.who="all";return}
     var ids={};S.jobs.forEach(function(j){var k=j.addedBy||"owner";ids[k]=(ids[k]||0)+1});
@@ -2539,16 +2540,18 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     Object.keys(ids).forEach(function(k){if(k===S.uid&&!S.isOwner)return;s.appendChild(el("option",{value:k,text:nameOf(k).replace(" (you)","")+" ("+ids[k]+")"}))});
     s.value=cur;if(s.value!==cur){S.who="all";s.value="all"}
   }
-  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="review"&&!reviewable(j))return false;if(S.jtype&&jobType(j.role)!==S.jtype)return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){if(S.status==="review")return fitScore(b)-fitScore(a)||String(b.addedAt).localeCompare(String(a.addedAt));return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
+  function filtered(){var q=norm(S.q);return S.jobs.filter(function(j){var k=j.addedBy||"owner";if(S.status==="archived")return !!j.archivedAt&&(!q||norm(j.company+" "+j.role).indexOf(q)>=0);if(j.archivedAt)return false;if(S.who!=="all"&&k!==S.who)return false;if(S.status==="open"&&(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="flagged"&&!j.needsIfeanyi)return false;if(S.status==="fromif"&&!(j.fromIfeanyi&&j.status==="saved"))return false;if(S.status==="replies"&&!REPLIED[j.status]&&!j.lastReply)return false;if(S.status==="contacts"&&!noContacts(j))return false;if(S.status==="followup"&&!needsFollowUp(j))return false;if(S.status==="closed"&&!(j.status==="rejected"||j.status==="skipped"))return false;if(S.status==="review"&&!reviewable(j))return false;if(S.jtype&&jobType(j.role)!==S.jtype)return false;if(q&&norm(j.company+" "+j.role).indexOf(q)<0)return false;return true}).sort(function(a,b){if(S.status==="review"&&S.rvSort!=="new")return fitScore(b)-fitScore(a)||String(b.addedAt).localeCompare(String(a.addedAt));if(S.status==="review")return String(b.addedAt).localeCompare(String(a.addedAt));return String(sentAt(b)||b.addedAt).localeCompare(String(sentAt(a)||a.addedAt))})}
   // the team's Not a fit calls from the last 30 days that he hasn't looked at yet; best fit scores first
   // on a Not a fit job from the team: apply to it himself, or agree it's not a fit; in the review list it moves on to the next one
-  function reviewCard(j){if(!reviewable(j))return null;var who=whoName(j.addedBy).split(" ")[0],sc=fitScore(j),f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f)}catch(e){f=null}}
+  function reviewCard(j){if(S.isOwner&&j.archivedAt)return el("div",{class:"rv-card"},[el("div",{class:"rv-t"},[el("b",{text:"Archived "+fmtD(j.archivedAt)+"."}),el("span",{text:" It's off every list. Bring it back if you change your mind."})]),
+      el("div",{class:"rv-acts"},[el("button",{type:"button",class:"btn ghost small",text:"Bring it back",onclick:function(e){e.currentTarget.disabled=true;api("PATCH","/api/jobs/"+j.id,{archivedAt:false,note:"Ifeanyi brought it back from the archive"}).then(function(){toast("Back on the list as Not a fit.");refresh()},fail)}})])]);
+    if(!reviewable(j))return null;var who=whoName(j.addedBy).split(" ")[0],sc=fitScore(j),f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f)}catch(e){f=null}}
     var gates=f&&f.gates?Object.keys(f.gates).map(function(k){return f.gates[k]}).filter(function(g){return g&&g.pass===false&&g.why}).map(function(g){return g.why}):[],why=gates[0]||(f&&f.summary)||"";
     var next=function(){if(S.status!=="review")return;var rest=filtered().filter(function(x){return x.id!==j.id});S.open=rest.length?rest[0].id:null};
     var go=function(body,msg,after){return function(e){var bs=e.currentTarget.parentNode.querySelectorAll("button");bs.forEach(function(b){b.disabled=true});api("PATCH","/api/jobs/"+j.id,body).then(function(){toast(msg);after();refresh().then(function(){var r=document.querySelector('.ap-row[aria-expanded="true"]');if(r)r.scrollIntoView({block:"start"})})},function(err){bs.forEach(function(b){b.disabled=false});fail(err)})}};
     return el("div",{class:"rv-card"},[el("div",{class:"rv-t"},[el("b",{text:who+" marked this Not a fit"+(sc?" (fit "+sc+")":"")+"."}),el("span",{text:" Read the posting and the fit check below. If it looks good to you, apply to it yourself."}),why?el("div",{class:"rv-why",text:"Why: "+why}):null]),
       el("div",{class:"rv-acts"},[el("button",{type:"button",class:"btn accent small",text:"I'll apply to this",onclick:go({status:"saved",reviewedAt:true,note:"Ifeanyi reviewed it and is applying himself"},"Moved to Saved. The steps to apply are open.",function(){})}),
-        el("button",{type:"button",class:"btn ghost small",text:"Keep it as Not a fit",onclick:go({reviewedAt:true,note:"Ifeanyi reviewed it: still not a fit"},"Kept as Not a fit.",next)})])])}
+        el("button",{type:"button",class:"btn ghost small",text:"Archive it",title:"Really not a fit: it comes off every list. Find it later under Archived.",onclick:go({reviewedAt:true,archivedAt:true,note:"Ifeanyi reviewed it: not a fit, archived"},"Archived. Find it under Archived in the status filter.",next)})])])}
   function reviewable(j){return S.isOwner&&j.status==="skipped"&&!j.reviewedAt&&(j.addedBy||"owner")!=="owner"&&daysSince(j.addedAt)<=30}
   function fitScore(j){var f=j.fit;if(typeof f==="string"){try{f=JSON.parse(f)}catch(e){f=null}}return f&&typeof f.score==="number"?f.score:0}
   function hue(t){var h=0;String(t||"").split("").forEach(function(ch){h=(h*31+ch.charCodeAt(0))%360});return h}
@@ -2566,7 +2569,7 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
     if(!items.length){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Nothing matches"}),el("p",{text:"Not on the board yet, so it's free to apply."})]));return}
     var box=el("div",{class:"blist"});items.forEach(function(x){box.appendChild(bRow(x))});R.appendChild(box);
   }
-  function renderRows(){
+  function renderRows(){var fso=$("f-sort");if(fso)fso.hidden=S.status!=="review";
     var R=$("rows");R.textContent="";
     if(!S.loaded){R.appendChild(el("div",{class:"empty"},[el("h3",{text:"Loading the list"})]));return}
     if(!S.db)return;
@@ -3344,6 +3347,8 @@ a.guide-btn{text-decoration:none;display:inline-flex;align-items:center}
   $("reply-btn").onclick=function(){S.replying=S.replying?false:"new";render()};
   $("f-who").onchange=function(e){S.who=e.target.value;S.limit=150;renderRows()};
   $("f-status").onchange=function(e){S.status=e.target.value;S.limit=150;renderRows()};
+  $("f-sort").onchange=function(e){S.rvSort=e.target.value;try{localStorage.setItem("ay-rvsort",S.rvSort)}catch(x){}renderRows()};
+  try{S.rvSort=localStorage.getItem("ay-rvsort")||"fit";$("f-sort").value=S.rvSort}catch(x){}
   $("f-type").onchange=function(e){S.jtype=e.target.value;S.limit=150;renderRows()};
   var qt;$("search").addEventListener("input",function(e){clearTimeout(qt);var v=e.target.value;qt=setTimeout(function(){S.q=v;renderRows()},120)});
   // back from Google sign-in
